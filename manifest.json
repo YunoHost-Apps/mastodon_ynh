@@ -1,0 +1,64 @@
+{
+	"name": "Mastodon",
+	"id": "mastodon",
+	"packaging_format": 1,
+	"requirements": {
+		"yunohost": ">= 2.4"
+	},
+	"description": {
+		"en": "Mastodon is a free, open-source social network.",
+		"fr": "Mastodon est un réseau social gratuit et open source."
+	},
+	"version": "0.6 dev",
+	"url": "https://github.com/tootsuite/mastodon",
+	"license": "AGPL",
+	"maintainer": {
+		"name": "cyp",
+		"email": "cyp@rouquin.me"
+	},
+	"multi_instance": false,
+	"services": [
+		"nginx"
+	],
+	"arguments": {
+		"install" : [
+			{
+				"name": "domain",
+				"type": "domain",
+				"ask": {
+					"en": "Choose a domain for Mastodon",
+					"fr": "Choisissez un domaine pour Mastodon"
+				},
+				"example": "domain.org"
+			},
+			{
+				"name": "path",
+				"type": "path",
+				"ask": {
+					"en": "Choose a path for Mastodon",
+					"fr": "Choisissez un chemin pour Mastodon"
+				},
+				"example": "/mastodon",
+				"default": "/mastodon"
+			},
+			{
+				"name": "admin",
+				"type": "user",
+				"ask": {
+					"en": "Choose the Mastodon administrator (must be an existing YunoHost user)",
+					"fr": "Choisissez un administrateur Mastodon (doit être un utilisateur YunoHost)"
+				},
+				"example": "john"
+			},
+			{
+				"name": "is_public",
+				"ask": {
+					"en": "Mastodon is it public?",
+					"fr": "Mastodon est-il public ?"
+				},
+				"choices": ["Yes", "No"],
+				"default": "Yes"
+			}
+		]
+	}
+}
