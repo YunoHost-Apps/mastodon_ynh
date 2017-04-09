@@ -135,9 +135,9 @@ pushd /var/cache/yunohost/from_file/scripts
 
 sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
 sudo chown root: /etc/systemd/system/mastodon-web.service
-sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-sidekiq.service
+sudo cp ../conf/mastodon-sidekiq.service /etc/systemd/system/mastodon-sidekiq.service
 sudo chown root: /etc/systemd/system/mastodon-sidekiq.service
-sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-streaming.service
+sudo cp ../conf/mastodon-streaming.service /etc/systemd/system/mastodon-streaming.service
 sudo chown root: /etc/systemd/system/mastodon-streaming.service
 
 sudo systemctl enable /etc/systemd/system/mastodon-*.service
@@ -154,6 +154,7 @@ sudo yunohost service add mastodon-streaming
 # Copy nginx config
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 sudo sed -i "s@__PATH__@$path@g" /etc/nginx/conf.d/$domain.d/$app.conf
+sudo sed -i "s@__FINALPATH__@$final_path@g" /etc/nginx/conf.d/$domain.d/$app.conf
 
 # Install crontab
 sudo cp ../conf/crontab_mastodon /etc/cron.d/$app
