@@ -82,56 +82,49 @@ git clone https://github.com/tootsuite/mastodon.git $final_path/live
 sudo chown -R $app: "${final_path}"
 
 # Install de rbenv
-# Install ruby-build
-# Install Mastodon
 sudo su - $app <<COMMANDS
 pushd ~/.rbenv
 src/configure && make -C src
-echo 'export PATH="/opt/mastodon/.rbenv/bin:$PATH"' >> ~/.bash_profile
-echo 'export PATH="/opt/mastodon/.rbenv/bin:$PATH" 
-eval "$(/opt/mastodon/.rbenv/bin/rbenv init -)"' >> ~/.bashrc
-type /opt/mastodon/.rbenv/bin/rbenv
+echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.bashrc
+echo 'eval "\$(rbenv init -)"' >> ~/.bashrc
+echo "alias su='env PATH=\$PATH'" >> ~/.bashrc
+COMMANDS
 
-/opt/mastodon/.rbenv/bin/rbenv init
-
+# Install ruby-build
+sudo su - $app <<RCOMMANDS
 /opt/mastodon/.rbenv/bin/rbenv install 2.3.1
 /opt/mastodon/.rbenv/versions/2.3.1/bin/ruby -v
+RCOMMANDS
 
+# Install Mastodon
+sudo su - $app <<MCOMMANDS
+pushd ~/live
 /opt/mastodon/.rbenv/versions/2.3.1/bin/gem install bundler
 /opt/mastodon/live/bin/bundle install --deployment --without development test
 yarn install
-COMMANDS
+MCOMMANDS
 
-## Generate a new environnement
-# Generate secret key
 # Adjust Mastodon config
+pushd $final_path/live/
+sudo cp -a .env.production.sample .env.production
+sudo sed -i "s@REDIS_HOST=localhost@REDIS_HOST=localhost@g" "${final_path}/live/.env.production"
+sudo sed -i "s@DB_HOST=db@DB_HOST=/var/run/postgresql@g" "${final_path}/live/.env.production"
+sudo sed -i "s@DB_USER=mastodon@DB_USER=${dbuser}@g" "${final_path}/live/.env.production"
+sudo sed -i "s@DB_NAME=mastodon@DB_NAME=${dbuser}@g" "${final_path}/live/.env.production"
+sudo sed -i "s@LOCAL_DOMAIN=domainedevotreinstance.tld@LOCAL_DOMAIN=${domain}@g" "${final_path}/live/.env.production"
+
+sudo sed -i "s@PAPERCLIP_SECRET=@PAPERCLIP_SECRET=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c32)@g" "${final_path}/live/.env.production"
+sudo sed -i "s@SECRET_KEY_BASE=@SECRET_KEY_BASE=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c32)@g" "${final_path}/live/.env.production"
+sudo sed -i "s@OTP_SECRET=@OTP_SECRET=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c32)@g" "${final_path}/live/.env.production"
+
+sudo sed -i "s@SMTP_SERVER=smtp.mailgun.org@SMTP_SERVER=localhost@g" "${final_path}/live/.env.production"
+sudo sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${admin_mastodon}'@'${domain}',' "${final_path}/live/.env.production"
+
 # Create database
 # Preconfig CSS & JS
 sudo su - $app <<ENDCOMMANDS
-type /opt/mastodon/.rbenv/bin/rbenv
-/opt/mastodon/.rbenv/bin/rbenv init
-
-bundle_paperclip_secret=$(/opt/mastodon/live/bin/bundle exec rake secret)
-bundle_secret_key_base=$(/opt/mastodon/live/bin/bundle exec rake secret)
-bundle_otp_secret=$(/opt/mastodon/live/bin/bundle exec rake secret)
-
-pushd ~/live/
-cp .env.production.sample .env.production
-sed -i "s@REDIS_HOST=localhost@REDIS_HOST=localhost@g" "${final_path}/live/.env.production"
-sed -i "s@DB_HOST=db@DB_HOST=/var/run/postgresql@g" "${final_path}/live/.env.production"
-sed -i "s@DB_USER=mastodon@DB_USER=${dbuser}@g" "${final_path}/live/.env.production"
-sed -i "s@DB_NAME=mastodon@DB_NAME=${dbuser}@g" "${final_path}/live/.env.production"
-sed -i "s@LOCAL_DOMAIN=domainedevotreinstance.tld@LOCAL_DOMAIN=${domain}@g" "${final_path}/live/.env.production"
-
-sed -i "s@PAPERCLIP_SECRET=@PAPERCLIP_SECRET=${bundle_paperclip_secret}@g" "${final_path}/live/.env.production"
-sed -i "s@SECRET_KEY_BASE=@SECRET_KEY_BASE=${bundle_secret_key_base}@g" "${final_path}/live/.env.production"
-sed -i "s@OTP_SECRET=@OTP_SECRET=${bundle_otp_secret}@g" "${final_path}/live/.env.production"
-
-sed -i "s@SMTP_SERVER=smtp.mailgun.org@SMTP_SERVER=localhost@g" "${final_path}/live/.env.production"
-sed -i "s@SMTP_FROM_ADDRESS=notifications@example.com@SMTP_FROM_ADDRESS=${user}@${domain}@g" "${final_path}/live/.env.production"
-
+pushd ~
 RAILS_ENV=production bundle exec rails db:setup
-
 RAILS_ENV=production bundle exec rails assets:precompile
 ENDCOMMANDS
 
@@ -149,6 +142,11 @@ sudo systemctl enable /etc/systemd/system/mastodon-*.service
 sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
 # debug
 sudo systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
+
+# Add service YunoHost
+sudo yunohost service add mastodon-web
+sudo yunohost service add mastodon-sidekiq
+sudo yunohost service add mastodon-streaming
 
 # Copy nginx config
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf

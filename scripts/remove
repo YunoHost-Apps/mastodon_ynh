@@ -13,6 +13,27 @@ app=$YNH_APP_INSTANCE_NAME
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
 
+# Delete service on Yunohost monitoring
+if sudo yunohost service status | grep -q mastodon-web
+then
+	echo "Remove mastodon-web service"
+	sudo yunohost service remove mastodon-web
+fi
+
+# Delete service on Yunohost monitoring
+if sudo yunohost service status | grep -q mastodon-sidekiq
+then
+	echo "Remove mastodon-sidekiq service"
+	sudo yunohost service remove mastodon-sidekiq
+fi
+
+# Delete service on Yunohost monitoring
+if sudo yunohost service status | grep -q mastodon-streaming
+then
+	echo "Remove mastodon-streaming service"
+	sudo yunohost service remove mastodon-streaming
+fi
+
 # Stop mastodon-web
 if [ -e "/etc/systemd/system/mastodon-web.service" ]; then
 	echo "Delete systemd script"
@@ -35,27 +56,6 @@ if [ -e "/etc/systemd/system/mastodon-streaming.service" ]; then
 	sudo service mastodon-sidekiq.streaming stop
 	sudo rm "/etc/systemd/system/mastodon-streaming.service"
 	sudo systemctl disable mastodon-streaming.service
-fi
-
-# Delete service on Yunohost monitoring
-if sudo yunohost service status | grep -q mastodon-web
-then
-	echo "Remove mastodon-web service"
-	sudo yunohost service remove mastodon-web
-fi
-
-# Delete service on Yunohost monitoring
-if sudo yunohost service status | grep -q mastodon-sidekiq
-then
-	echo "Remove mastodon-sidekiq service"
-	sudo yunohost service remove mastodon-sidekiq
-fi
-
-# Delete service on Yunohost monitoring
-if sudo yunohost service status | grep -q mastodon-streaming
-then
-	echo "Remove mastodon-streaming service"
-	sudo yunohost service remove mastodon-streaming
 fi
 
 # delete postgresql database & user

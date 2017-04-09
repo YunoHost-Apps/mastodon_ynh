@@ -1,6 +1,7 @@
 # Mastodon for YunoHost
 
-:warning: Testing version (don't work) :warning:
+[![Status](https://img.shields.io/badge/status-in_progress-yellow.svg?style=flat)](https://github.com/Snipees/couchpotato_ynh/milestones)
+[![Yunohost version](https://img.shields.io/badge/yunohost-2.4.2_tested-orange.svg?style=flat)](https://github.com/YunoHost/yunohost)
 
 ## Mastodon c'est quoi ?
 
