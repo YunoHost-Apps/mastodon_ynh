@@ -109,7 +109,7 @@ MCOMMANDS
 # Adjust Mastodon config
 pushd $final_path/live/
 sudo cp -a .env.production.sample .env.production
-sudo sed -i "s@REDIS_HOST=localhost@REDIS_HOST=localhost@g" "${final_path}/live/.env.production"
+sudo sed -i "s@REDIS_HOST=localhost@REDIS_HOST=127.0.0.1@g" "${final_path}/live/.env.production"
 sudo sed -i "s@DB_HOST=db@DB_HOST=/var/run/postgresql@g" "${final_path}/live/.env.production"
 sudo sed -i "s@DB_USER=mastodon@DB_USER=${dbuser}@g" "${final_path}/live/.env.production"
 sudo sed -i "s@DB_NAME=mastodon@DB_NAME=${dbuser}@g" "${final_path}/live/.env.production"
