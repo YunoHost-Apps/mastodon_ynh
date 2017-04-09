@@ -72,13 +72,12 @@ dbuser=$app
 # Generate random password
 dbpass=$(ynh_string_random)
 ynh_psql_create_db "$dbname" "$dbuser" "$dbpass"
-# sudo su -c "psql" postgres <<< \
-#         "CREATE EXTENSION mastodon;"
 
 # Download all Ruby source
 sudo git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
 git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
 git clone https://github.com/tootsuite/mastodon.git $final_path/live
+git clone git://github.com/dcarley/rbenv-sudo.git $final_path/.rbenv/plugins/rbenv-sudo
 sudo chown -R $app: "${final_path}"
 
 # Install de rbenv
@@ -96,11 +95,14 @@ sudo su - $app <<RCOMMANDS
 /opt/mastodon/.rbenv/versions/2.3.1/bin/ruby -v
 RCOMMANDS
 
-# Install Mastodon
+# Create symlink for ruby
+sudo ln -s /opt/mastodon/.rbenv/versions/2.3.1/bin/ruby /usr/bin/ruby || true
+
+# # Install Mastodon
 sudo su - $app <<MCOMMANDS
 pushd ~/live
 /opt/mastodon/.rbenv/versions/2.3.1/bin/gem install bundler
-/opt/mastodon/live/bin/bundle install --deployment --without development test
+bin/bundle install --deployment --without development test
 yarn install
 MCOMMANDS
 
@@ -123,9 +125,9 @@ sudo sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${
 # Create database
 # Preconfig CSS & JS
 sudo su - $app <<ENDCOMMANDS
-pushd ~
-RAILS_ENV=production bundle exec rails db:setup
-RAILS_ENV=production bundle exec rails assets:precompile
+pushd ~/live
+RAILS_ENV=production bin/bundle exec rails db:setup
+RAILS_ENV=production bin/bundle exec rails assets:precompile
 ENDCOMMANDS
 
 # Add Services
@@ -139,8 +141,9 @@ sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-streaming.serv
 sudo chown root: /etc/systemd/system/mastodon-streaming.service
 
 sudo systemctl enable /etc/systemd/system/mastodon-*.service
+sudo systemctl daemon-reload
 sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
-# debug
+# # debug
 sudo systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
 
 # Add service YunoHost
@@ -173,7 +176,9 @@ fi
 sudo yunohost app ssowatconf
 
 # Reload Nginx and regenerate SSOwat conf
-sudo systemctl reload nginx
+sudo systemctl reload nginx || true
+# debug
+sudo systemctl status nginx
 
 # Nettoyer hosts
 sudo sed -i '/#MASTODON/d' /etc/hosts

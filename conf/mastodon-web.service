@@ -11,6 +11,7 @@
  ExecStart=/opt/mastodon/.rbenv/shims/bundle exec puma -C config/puma.rb
  TimeoutSec=15
  Restart=always
+ StandardError=syslog
 
 [Install]
  WantedBy=multi-user.target
