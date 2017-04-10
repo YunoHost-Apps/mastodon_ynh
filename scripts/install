@@ -85,7 +85,6 @@ sudo chown -R $app: "${final_path}"
 sudo su - $app <<COMMANDS
 pushd ~/.rbenv
 src/configure && make -C src
-echo 'cd $HOME' >> ~/.bashrc
 echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.profile
 echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.bashrc
 echo 'eval "\$(rbenv init -)"' >> ~/.bashrc
@@ -137,7 +136,7 @@ sudo sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${
 sudo su - $app <<CCOMMANDS
 pushd ~/live
 RAILS_ENV=production bin/bundle exec rails db:setup
-# RAILS_ENV=production bin/bundle exec rails assets:precompile
+RAILS_ENV=production bin/bundle exec rails assets:precompile
 CCOMMANDS
 
 # Create admin user
