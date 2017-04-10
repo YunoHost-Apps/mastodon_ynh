@@ -67,6 +67,7 @@ sudo apt-get -y install nodejs
 sudo npm install -g yarn
 
 ## Install postgresql database
+sudo systemctl restart postgresql
 dbname=$app
 dbuser=$app
 # Generate random password
