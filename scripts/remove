@@ -75,6 +75,9 @@ ynh_psql_drop_user $app
 SECURE_REMOVE '/opt/$app'
 [[ -n $domain ]] && sudo rm -f "/etc/nginx/conf.d/${domain}.d/${app}.conf"
 
+# Suppression d'un lien symbolique
+rm /usr/bin/ruby
+
 REMOVE_NGINX_CONF	# Suppression de la configuration nginx
 
 SECURE_REMOVE '/var/log/$app/'	# Suppression des log
