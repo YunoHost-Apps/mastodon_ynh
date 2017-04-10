@@ -61,23 +61,32 @@ ynh_app_setting_set $app final_path $final_path
 
 # Install de Node.js
 pushd /opt
-curl -sL https://deb.nodesource.com/setup_4.x | bash -
+curl -sL https://deb.nodesource.com/setup_4.x | sudo bash -
 sudo apt-get -y install nodejs
 npm install -g yarn
 
 # Create DB without password
+sudo systemctl restart postgresql
 ynh_psql_create_db_without_password "$app"
 
 # Download all Ruby source
 sudo git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
-git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
-git clone https://github.com/tootsuite/mastodon.git $final_path/live
+sudo git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
+
+# Be king rewind (/var/cache/yunohost/from_file/scripts)
+popd
+
+# Get Mastodon last version
+sudo mkdir "${final_path}/live"
+SETUP_SOURCE
 sudo chown -R $app: "${final_path}"
 
 # Install de rbenv
 sudo su - $app <<COMMANDS
 pushd ~/.rbenv
 src/configure && make -C src
+echo 'cd $HOME' >> ~/.bashrc
+echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.profile
 echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.bashrc
 echo 'eval "\$(rbenv init -)"' >> ~/.bashrc
 COMMANDS
@@ -91,13 +100,19 @@ RCOMMANDS
 # Create symlink for ruby
 sudo ln -s /opt/mastodon/.rbenv/versions/2.3.1/bin/ruby /usr/bin/ruby || true
 
-# # Install Mastodon
+# Install Mastodon
 sudo su - $app <<MCOMMANDS
 pushd ~/live
 /opt/mastodon/.rbenv/versions/2.3.1/bin/gem install bundler
 bin/bundle install --deployment --without development test
 yarn install
 MCOMMANDS
+
+# Vérif Mastodon
+sudo su - $app <<VCOMMANDS
+pushd ~
+type rbenv
+VCOMMANDS
 
 # Adjust Mastodon config
 pushd $final_path/live/
@@ -118,16 +133,20 @@ sudo sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${
 
 # Create database
 # Preconfig CSS & JS
-# Create admin user
-# Create confirm email
-sudo su - $app <<ENDCOMMANDS
+
+sudo su - $app <<CCOMMANDS
 pushd ~/live
 RAILS_ENV=production bin/bundle exec rails db:setup
-RAILS_ENV=production bin/bundle exec rails assets:precompile
-ENDCOMMANDS
+# RAILS_ENV=production bin/bundle exec rails assets:precompile
+CCOMMANDS
 
+# Create admin user
+# Create confirm email
+sudo su - $app <<ACOMMANDS
+pushd ~/live
 # RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
 # RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon@$domain
+ACOMMANDS
 
 # Add Services
 pushd /var/cache/yunohost/from_file/scripts
@@ -174,5 +193,5 @@ fi
 # Reload SSOwat configuration
 sudo yunohost app ssowatconf
 
-# Reload Nginx and regenerate SSOwat conf
+# Reload Nginx
 sudo systemctl reload nginx
