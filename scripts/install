@@ -9,7 +9,7 @@ source /usr/share/yunohost/helpers # Source app helpers
 CLEAN_SETUP () {
 	# Clean installation residues that are not supported by the remove script.
 	# Clean hosts
-	sudo sed -i '/#MASTODON/d' /etc/hosts
+	echo ""
 }
 TRAP_ON	# Active trap to stop the script if an error is detected.
 
@@ -17,7 +17,6 @@ domain=$YNH_APP_ARG_DOMAIN
 path=$YNH_APP_ARG_PATH
 admin_mastodon=$YNH_APP_ARG_ADMIN
 is_public=$YNH_APP_ARG_IS_PUBLIC
-#language=$YNH_APP_ARG_LANGUAGE
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -66,18 +65,13 @@ curl -sL https://deb.nodesource.com/setup_4.x | bash -
 sudo apt-get -y install nodejs
 npm install -g yarn
 
-## Install postgresql database
-dbname=$app
-dbuser=$app
-# Generate random password
-dbpass=$(ynh_string_random)
-ynh_psql_create_db "$dbname" "$dbuser" "$dbpass"
+# Create DB without password
+ynh_psql_create_db_without_password "$app"
 
 # Download all Ruby source
 sudo git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
 git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
 git clone https://github.com/tootsuite/mastodon.git $final_path/live
-git clone git://github.com/dcarley/rbenv-sudo.git $final_path/.rbenv/plugins/rbenv-sudo
 sudo chown -R $app: "${final_path}"
 
 # Install de rbenv
@@ -86,7 +80,6 @@ pushd ~/.rbenv
 src/configure && make -C src
 echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.bashrc
 echo 'eval "\$(rbenv init -)"' >> ~/.bashrc
-echo "alias su='env PATH=\$PATH'" >> ~/.bashrc
 COMMANDS
 
 # Install ruby-build
@@ -109,11 +102,12 @@ MCOMMANDS
 # Adjust Mastodon config
 pushd $final_path/live/
 sudo cp -a .env.production.sample .env.production
-sudo sed -i "s@REDIS_HOST=localhost@REDIS_HOST=127.0.0.1@g" "${final_path}/live/.env.production"
+sudo sed -i "s@REDIS_HOST=redis@REDIS_HOST=127.0.0.1@g" "${final_path}/live/.env.production"
 sudo sed -i "s@DB_HOST=db@DB_HOST=/var/run/postgresql@g" "${final_path}/live/.env.production"
-sudo sed -i "s@DB_USER=mastodon@DB_USER=${dbuser}@g" "${final_path}/live/.env.production"
-sudo sed -i "s@DB_NAME=mastodon@DB_NAME=${dbuser}@g" "${final_path}/live/.env.production"
-sudo sed -i "s@LOCAL_DOMAIN=domainedevotreinstance.tld@LOCAL_DOMAIN=${domain}@g" "${final_path}/live/.env.production"
+sudo sed -i "s@DB_USER=postgres@DB_USER=${app}@g" "${final_path}/live/.env.production"
+sudo sed -i "s@DB_NAME=postgres@DB_NAME=${app}_production@g" "${final_path}/live/.env.production"
+# sudo sed -i "s@DB_PASS=@DB_PASS=${dbpass}@g" "${final_path}/live/.env.production"
+sudo sed -i "s@LOCAL_DOMAIN=example.com@LOCAL_DOMAIN=${domain}@g" "${final_path}/live/.env.production"
 
 sudo sed -i "s@PAPERCLIP_SECRET=@PAPERCLIP_SECRET=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c32)@g" "${final_path}/live/.env.production"
 sudo sed -i "s@SECRET_KEY_BASE=@SECRET_KEY_BASE=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c32)@g" "${final_path}/live/.env.production"
@@ -124,11 +118,16 @@ sudo sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${
 
 # Create database
 # Preconfig CSS & JS
+# Create admin user
+# Create confirm email
 sudo su - $app <<ENDCOMMANDS
 pushd ~/live
 RAILS_ENV=production bin/bundle exec rails db:setup
 RAILS_ENV=production bin/bundle exec rails assets:precompile
 ENDCOMMANDS
+
+# RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
+# RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon@$domain
 
 # Add Services
 pushd /var/cache/yunohost/from_file/scripts
@@ -141,10 +140,9 @@ sudo cp ../conf/mastodon-streaming.service /etc/systemd/system/mastodon-streamin
 sudo chown root: /etc/systemd/system/mastodon-streaming.service
 
 sudo systemctl enable /etc/systemd/system/mastodon-*.service
-sudo systemctl daemon-reload
-sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
+# sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
 # # debug
-sudo systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
+# sudo systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
 
 # Add service YunoHost
 sudo yunohost service add mastodon-web
@@ -158,7 +156,7 @@ sudo sed -i "s@__FINALPATH__@$final_path@g" /etc/nginx/conf.d/$domain.d/$app.con
 
 # Install crontab
 sudo cp ../conf/crontab_mastodon /etc/cron.d/$app
-sudo sed -i "s@__AP__@$app@g" /etc/cron.d/$app
+sudo sed -i "s@__APP__@$app@g" /etc/cron.d/$app
 
 # Private or not
 if [ "$is_public" = "Yes" ];
@@ -177,9 +175,4 @@ fi
 sudo yunohost app ssowatconf
 
 # Reload Nginx and regenerate SSOwat conf
-sudo systemctl reload nginx || true
-# debug
-sudo systemctl status nginx
-
-# Nettoyer hosts
-sudo sed -i '/#MASTODON/d' /etc/hosts
+sudo systemctl reload nginx
