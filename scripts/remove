@@ -13,6 +13,30 @@ app=$YNH_APP_INSTANCE_NAME
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
 
+# Stop mastodon-web
+if [ -e "/etc/systemd/system/mastodon-web.service" ]; then
+	echo "Delete systemd script"
+	sudo systemctl stop mastodon-web.service
+	sudo rm "/etc/systemd/system/mastodon-web.service"
+	sudo systemctl disable mastodon-web.service
+fi
+
+# Stop mastodon-sidekiq
+if [ -e "/etc/systemd/system/mastodon-sidekiq.service" ]; then
+	echo "Delete systemd script"
+	sudo systemctl stop mastodon-sidekiq.service
+	sudo rm "/etc/systemd/system/mastodon-sidekiq.service"
+	sudo systemctl disable mastodon-sidekiq.service
+fi
+
+# Stop mastodon-sidekiq
+if [ -e "/etc/systemd/system/mastodon-streaming.service" ]; then
+	echo "Delete systemd script"
+	sudo systemctl stop mastodon-sidekiq.streaming
+	sudo rm "/etc/systemd/system/mastodon-streaming.service"
+	sudo systemctl disable mastodon-streaming.service
+fi
+
 # Delete service on Yunohost monitoring
 if sudo yunohost service status | grep -q mastodon-web
 then
@@ -34,33 +58,8 @@ then
 	sudo yunohost service remove mastodon-streaming
 fi
 
-# Stop mastodon-web
-if [ -e "/etc/systemd/system/mastodon-web.service" ]; then
-	echo "Delete systemd script"
-	sudo service mastodon-web.service stop
-	sudo rm "/etc/systemd/system/mastodon-web.service"
-	sudo systemctl disable mastodon-web.service
-fi
-
-# Stop mastodon-sidekiq
-if [ -e "/etc/systemd/system/mastodon-sidekiq.service" ]; then
-	echo "Delete systemd script"
-	sudo service mastodon-sidekiq.service stop
-	sudo rm "/etc/systemd/system/mastodon-sidekiq.service"
-	sudo systemctl disable mastodon-sidekiq.service
-fi
-
-# Stop mastodon-sidekiq
-if [ -e "/etc/systemd/system/mastodon-streaming.service" ]; then
-	echo "Delete systemd script"
-	sudo service mastodon-sidekiq.streaming stop
-	sudo rm "/etc/systemd/system/mastodon-streaming.service"
-	sudo systemctl disable mastodon-streaming.service
-fi
-
 # delete postgresql database & user
-ynh_psql_drop_db $app
-ynh_psql_drop_user $app
+ynh_psql_drop_db "${app}_production"
 
 # Remove Debian package
 #sudo apt-get remove --purge -y imagemagick ffmpeg libpq-dev libxml2-dev libxslt1-dev file curl git
@@ -75,12 +74,13 @@ ynh_psql_drop_user $app
 SECURE_REMOVE '/opt/$app'
 [[ -n $domain ]] && sudo rm -f "/etc/nginx/conf.d/${domain}.d/${app}.conf"
 
-# Suppression d'un lien symbolique
-rm /usr/bin/ruby
+# Delete nginx configuration
+REMOVE_NGINX_CONF
 
-REMOVE_NGINX_CONF	# Suppression de la configuration nginx
-
-SECURE_REMOVE '/var/log/$app/'	# Suppression des log
+# Delete log
+SECURE_REMOVE '/var/log/$app/'
+# Delete cronlog
+SECURE_REMOVE '/etc/cron.d/$app'
 
 # Remove user
 sudo userdel -f $app

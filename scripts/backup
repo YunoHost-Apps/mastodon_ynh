@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Exit on command errors and treat unset variables as an error
+set -eu
+
+# Get multi-instances specific variables
+app=$YNH_APP_INSTANCE_NAME
+
+# Source app helpers
+source /usr/share/yunohost/helpers
+
+# Retrieve app settings
+domain=$(ynh_app_setting_get "$app" domain)
+
+# Copy the app files
+final_path="/opt/${app}"
+ynh_backup "$final_path" "sources" 1
+
+# Copy the nginx conf files
+ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf" "nginx.conf"
+ynh_backup "/etc/cron.d/${app}.conf" "cron.conf"
+ynh_backup "/etc/systemd/system/mastodon-web.service" "systemd_web.service"
+ynh_backup "/etc/systemd/system/mastodon-sidekiq.service" "systemd_sidekiq.service"
+ynh_backup "/etc/systemd/system/mastodon-streaming.service" "systemd_streaming.service"
+
+# Backup db
+sudo su - postgres <<COMMANDS
+pg_dump mastodon_production > /home/backup/mastodon_db.sql
+COMMANDS
+ynh_backup "/home/backup/mastodon_db.sql" "mastodon_db.sql"

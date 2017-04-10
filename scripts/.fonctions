@@ -135,17 +135,15 @@ SECURE_REMOVE () {      # Deleting a folder with variable verification
 	fi
 }
 
-REMOVE_BDD () {	# Delete database and users
-	# $1 = Database name
-	# Uses '$app' as user name and database
-	db_user=$1
-	if mysqlshow -u root -p$(sudo cat $MYSQL_ROOT_PWD_FILE) | grep -q "^| $db_user"; then
-		echo "Delete db"
-		ynh_mysql_drop_db $db_user
-		ynh_mysql_drop_user $db_user
-	fi
+# Create a db without password
+#
+# usage: ynh_mysql_create_user user
+# | arg: user - the user name to create
+ynh_psql_create_db_without_password() {
+	db=$1
+    sudo su -c "psql" postgres <<< \
+    "CREATE USER $db CREATEDB;"
 }
-
 
 # Create a user
 #

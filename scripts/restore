@@ -1,0 +1,83 @@
+#!/bin/bash
+# This restore script is adapted to Yunohost >=2.4
+
+# Exit on command errors and treat unset variables as an error
+set -eu
+
+# The parameter $app is the id of the app instance ex: ynhexample__2
+app=$YNH_APP_INSTANCE_NAME
+
+# Source app helpers
+source /usr/share/yunohost/helpers
+
+# Get old parameter of the app
+domain=$(ynh_app_setting_get $app domain)
+path=$(ynh_app_setting_get $app path)
+is_public=$(ynh_app_setting_get $app is_public)
+
+# Check domain/path availability
+sudo yunohost app checkurl "${domain}${path}" -a "$app" \
+    || ynh_die "Path not available: ${domain}${path}"
+
+# Check $final_path
+final_path="/opt/${app}"
+if [ -d $final_path ]; then
+	ynh_die "There is already a directory: $final_path"
+fi
+
+# Check configuration files nginx
+nginx_conf="/etc/nginx/conf.d/${domain}.d/${app}.conf"
+if [ -f $nginx_conf ]; then
+	ynh_die "The NGINX configuration already exists at '${nginx_conf}'. 
+	You should safely delete it before restoring this app."
+
+# Check configuration files php-fpm
+crontab_conf="/etc/cron.d/${app}"
+if [ -f $crontab_conf ]; then 
+	ynh_die "The CRONTAB configuration already exists at '${crontab_conf}'. 
+	You should safely delete it before restoring this app."
+fi
+
+# Restore services
+web_systemd="/etc/systemd/system/${app}-web.service"
+if [ -f "${web_systemd}" ]; then
+	ynh_die "The MASTODON WEB configuration already exists at '${web_systemd}'. 
+	You should safely delete it before restoring this app."
+fi
+sidekiq_systemd="/etc/systemd/system/${app}-sidekiq.service"
+if [ -f "${sidekiq_systemd}" ]; then
+	ynh_die "The MASTODON SIDEKIQ configuration already exists at '${sidekiq_systemd}'. 
+	You should safely delete it before restoring this app."
+fi
+streaming_systemd="/etc/systemd/system/${app}-streaming.service"
+if [ -f "${streaming_systemd}" ]; then
+	ynh_die "The MASTODON STREAMING configuration already exists at '${streaming_systemd}'. 
+	You should safely delete it before restoring this app."
+fi
+
+ # Restore sources & data
+sudo cp -a ./sources "$final_path"
+
+# Set permissions
+sudo chown -R $app: "$final_path"
+
+# Restore db
+ynh_psql_create_db_without_password "$app"
+sudo su - postgres <<COMMANDS
+pg_dump mastodon_production < ./mastodon_db.sql
+COMMANDS
+
+# Restore Mastodon
+sudo su - $app <<RCOMMANDS
+cd ~/live
+RAILS_ENV=production bin/bundle exec rails db:migrate
+RAILS_ENV=production bin/bundle exec rails assets:precompile
+RCOMMANDS
+
+# Restore nginx configuration files
+sudo cp -a ./nginx.conf   "$nginx_conf"
+# Restore crontab
+sudo cp -a ./cron.conf "$crontab_conf"
+
+# Reload services
+sudo systemctl reload nginx
