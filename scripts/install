@@ -132,7 +132,7 @@ RAILS_ENV=production bin/bundle exec rails assets:precompile
 ENDCOMMANDS
 
 # Add Services
-pushd /var/cache/yunohost/from_file/scripts
+pushd /var/cache/yunohost/from_file/mastodon_ynh-master/scripts
 
 sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
 sudo chown root: /etc/systemd/system/mastodon-web.service
