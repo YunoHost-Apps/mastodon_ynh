@@ -61,17 +61,19 @@ ynh_app_setting_set $app final_path $final_path
 
 # Install de Node.js
 pushd /opt
-curl -sL https://deb.nodesource.com/setup_4.x | bash -
+curl -sL https://deb.nodesource.com/setup_4.x | sudo bash -
 sudo apt-get -y install nodejs
-npm install -g yarn
+sudo npm install -g yarn
 
 # Create DB without password
+sudo systemctl restart postgresql
 ynh_psql_create_db_without_password "$app"
 
 # Download all Ruby source
 sudo git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
-git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
-git clone https://github.com/tootsuite/mastodon.git $final_path/live
+sudo git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
+sudo git clone https://github.com/tootsuite/mastodon.git $final_path/live
+
 sudo chown -R $app: "${final_path}"
 
 # Install de rbenv
@@ -130,7 +132,7 @@ ENDCOMMANDS
 # RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon@$domain
 
 # Add Services
-pushd /var/cache/yunohost/from_file/scripts
+pushd /var/cache/yunohost/from_file/mastodon_ynh-master/scripts
 
 sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
 sudo chown root: /etc/systemd/system/mastodon-web.service
@@ -138,7 +140,7 @@ sudo cp ../conf/mastodon-sidekiq.service /etc/systemd/system/mastodon-sidekiq.se
 sudo chown root: /etc/systemd/system/mastodon-sidekiq.service
 sudo cp ../conf/mastodon-streaming.service /etc/systemd/system/mastodon-streaming.service
 sudo chown root: /etc/systemd/system/mastodon-streaming.service
-
+sudo systemctl daemon-reload
 sudo systemctl enable /etc/systemd/system/mastodon-*.service
 # sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
 # # debug
@@ -174,5 +176,7 @@ fi
 # Reload SSOwat configuration
 sudo yunohost app ssowatconf
 
-# Reload Nginx and regenerate SSOwat conf
-sudo systemctl reload nginx
+# Reload Nginx
+sudo systemctl reload nginx || true
+# debug
+sudo systemctl status nginx
