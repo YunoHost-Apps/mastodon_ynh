@@ -62,7 +62,7 @@ ynh_app_setting_set $app final_path $final_path
 
 # Install de Node.js
 pushd /opt
-curl -sL https://deb.nodesource.com/setup_4.x | bash -
+curl -sL https://deb.nodesource.com/setup_4.x | sudo bash -
 sudo apt-get -y install nodejs
 npm install -g yarn
 
