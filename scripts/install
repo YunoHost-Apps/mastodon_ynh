@@ -76,9 +76,9 @@ ynh_psql_create_db "$dbname" "$dbuser" "$dbpass"
 
 # Download all Ruby source
 sudo git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
-git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
-git clone https://github.com/tootsuite/mastodon.git $final_path/live
-git clone git://github.com/dcarley/rbenv-sudo.git $final_path/.rbenv/plugins/rbenv-sudo
+sudo git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
+sudo git clone https://github.com/tootsuite/mastodon.git $final_path/live
+sudo git clone git://github.com/dcarley/rbenv-sudo.git $final_path/.rbenv/plugins/rbenv-sudo
 sudo chown -R $app: "${final_path}"
 
 # Install de rbenv
