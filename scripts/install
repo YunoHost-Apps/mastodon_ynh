@@ -159,8 +159,17 @@ pushd ~/live
 # RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon@$domain
 ACOMMANDS
 
+# Re-Install Mastodon WHY ???
+sudo su - $app <<MCOMMANDS
+pushd ~/live
+/opt/mastodon/.rbenv/versions/2.4.1/bin/gem install bundler
+bin/bundle install --deployment --without development test
+yarn install
+MCOMMANDS
+
 # Add Services
-pushd /var/cache/yunohost/from_file/mastodon_ynh-master/scripts
+#pushd /var/cache/yunohost/from_file/mastodon_ynh-master/scripts
+popd
 
 sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
 sudo chown root: /etc/systemd/system/mastodon-web.service
