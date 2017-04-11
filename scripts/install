@@ -40,7 +40,7 @@ ynh_app_setting_set $app is_public $is_public
 sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
 
 # Install debian package
-ynh_package_install imagemagick libpq-dev libxml2-dev libxslt1-dev file curl
+ynh_package_install imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https
 
 # Install redis package
 ynh_package_install redis-server redis-tools
@@ -51,9 +51,13 @@ ynh_package_install postgresql postgresql-contrib
 # Install Ruby
 ynh_package_install autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
 
-# Install debian package backports
-sudo cp ../conf/backports.list /etc/apt/sources.list.d/ 
+# Install source.list debian package backports & yarn
+sudo cp ../conf/backports.list /etc/apt/sources.list.d/
+sudo curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+sudo cp ../conf/yarn.list /etc/apt/sources.list.d/
 ynh_package_update
+
+# Install debian package backports
 sudo apt-get -t jessie-backports -y install ffmpeg
 
 # Creates the destination directory and stores its location.
@@ -63,11 +67,23 @@ ynh_app_setting_set $app final_path $final_path
 pushd /opt
 curl -sL https://deb.nodesource.com/setup_4.x | sudo bash -
 sudo apt-get -y install nodejs
-npm install -g yarn
+
+# Install Yarn
+ynh_package_install yarn
+# sudo npm install -g yarn
+
+# Set UTF8 encoding by default
+# Bug: Warning: PG::InsufficientPrivilege: ERROR:  permission denied to copy database "template1"
+# Exec db:setup
+# sudo su -c "psql" postgres <<< \
+#     "update pg_database set datistemplate='false' where datname='template1';"\
+# 	"drop database template1;"\
+# 	"create database template1 encoding='UTF8' template template0;"\
+# 	"update pg_database set datistemplate='true' where datname='template1';"
 
 # Create DB without password
-sudo systemctl restart postgresql
 ynh_psql_create_db_without_password "$app"
+sudo systemctl restart postgresql
 
 # Download all Ruby source
 sudo git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
@@ -82,12 +98,13 @@ SETUP_SOURCE
 sudo chown -R $app: "${final_path}"
 
 # Install de rbenv
+# Tips: rbenv init - bash (see: https://github.com/rbenv/rbenv/issues/925)
 sudo su - $app <<COMMANDS
 pushd ~/.rbenv
 src/configure && make -C src
 echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.profile
 echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.bashrc
-echo 'eval "\$(rbenv init -)"' >> ~/.bashrc
+echo 'eval "\$(rbenv init - bash)"' >> ~/.bashrc
 COMMANDS
 
 # Install ruby-build
@@ -104,7 +121,7 @@ sudo su - $app <<MCOMMANDS
 pushd ~/live
 /opt/mastodon/.rbenv/versions/2.3.1/bin/gem install bundler
 bin/bundle install --deployment --without development test
-yarn install
+yarn install --production
 MCOMMANDS
 
 # Vérif Mastodon
@@ -112,6 +129,13 @@ sudo su - $app <<VCOMMANDS
 pushd ~
 type rbenv
 VCOMMANDS
+
+# Vérif Mastodon
+sudo su - $app <<VVCOMMANDS
+pushd ~
+rbenv init - bash
+type rbenv
+VVCOMMANDS
 
 # Adjust Mastodon config
 pushd $final_path/live/
@@ -132,13 +156,14 @@ sudo sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${
 
 # Create database
 # Preconfig CSS & JS
-
 sudo su - $app <<CCOMMANDS
 pushd ~/live
 RAILS_ENV=production bin/bundle exec rails db:setup
-RAILS_ENV=production bin/bundle exec rails assets:precompile
+RAILS_ENV=production bin/bundle exec rails --trace assets:precompile
 CCOMMANDS
 
+# TODO: Doesn't work for the moment, 
+# Mastodon need a user for creating an administator account
 # Create admin user
 # Create confirm email
 sudo su - $app <<ACOMMANDS
@@ -157,9 +182,10 @@ sudo chown root: /etc/systemd/system/mastodon-sidekiq.service
 sudo cp ../conf/mastodon-streaming.service /etc/systemd/system/mastodon-streaming.service
 sudo chown root: /etc/systemd/system/mastodon-streaming.service
 
+sudo systemctl daemon-reload
 sudo systemctl enable /etc/systemd/system/mastodon-*.service
 # sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
-# # debug
+# debug
 # sudo systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
 
 # Add service YunoHost
