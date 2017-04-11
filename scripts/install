@@ -68,6 +68,9 @@ sudo npm install -g yarn
 # Create DB user mastodon
 ynh_psql_create_user_without_password "$app"
 
+# Create DB user mastodon
+ynh_psql_create_db_without_password "$app"
+
 # Set UTF8 encoding by default
 sudo su -c "psql" postgres <<< \
         "update pg_database set datistemplate='false' where datname='template1';"\
