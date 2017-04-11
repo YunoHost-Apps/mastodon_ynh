@@ -60,6 +60,7 @@ fi
 
 # delete postgresql database & user
 ynh_psql_drop_db "${app}_production"
+ynh_psql_drop_role "${app}"
 
 # Remove Debian package
 #sudo apt-get remove --purge -y imagemagick ffmpeg libpq-dev libxml2-dev libxslt1-dev file curl git

@@ -89,6 +89,27 @@ FIND_PORT () {	# Search free port
 	CHECK_VAR "$port" "port empty"
 }
 
+SETUP_SOURCE () {	# Download source, decompress and copu into $final_path
+	src=$(cat ../sources/source_md5 | awk -F' ' {'print $2'})
+	sudo wget -nv -i ../sources/source_url -O $src
+	# Checks the checksum of the downloaded source.
+	# md5sum -c ../sources/source_md5 --status || ynh_die "Corrupt source"
+	# Decompress source
+	if [ "$(echo ${src##*.})" == "tgz" ]; then
+		tar -x -f $src
+	elif [ "$(echo ${src##*.})" == "zip" ]; then
+		unzip -q $src
+	else
+		false	# Unsupported archive format.
+	fi
+	# Copy file source
+	sudo cp -a $(cat ../sources/source_dir)/. "$final_path/live"
+	# Copy additional file and modified
+	if test -e "../sources/ajouts"; then
+		sudo cp -a ../sources/ajouts/. "$final_path"
+	fi
+}
+
 
 ### REMOVE SCRIPT
 
@@ -180,6 +201,15 @@ ynh_psql_create_db() {
         sudo su -c "createdb $db" postgres
     fi
 
+}
+
+# Drop a role
+#
+# usage: ynh_mysql_drop_role db
+# | arg: db - the database name to drop
+ynh_psql_drop_role() {
+	sudo su -c "psql" postgres <<< \
+	"DROP ROLE ${1};"
 }
 
 # Drop a database
