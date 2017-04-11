@@ -169,7 +169,7 @@ MCOMMANDS
 
 # Add Services
 #pushd /var/cache/yunohost/from_file/mastodon_ynh-master/scripts
-popd
+pushd $(popd)
 
 sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
 sudo chown root: /etc/systemd/system/mastodon-web.service
