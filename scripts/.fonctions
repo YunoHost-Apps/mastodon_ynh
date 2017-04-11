@@ -155,6 +155,15 @@ ynh_psql_create_user() {
         "CREATE USER ${1} WITH PASSWORD '${2}';"
 }
 
+# Create a user without password
+#
+# usage: ynh_mysql_create_user user pwd [host]
+# | arg: user - the user name to create
+ynh_psql_create_user_without_password() {
+        sudo su -c "psql" postgres <<< \
+        "CREATE USER ${1};"
+}
+
 # Create a database and grant optionnaly privilegies to a user
 #
 # usage: ynh_mysql_create_db db [user [pwd]]
