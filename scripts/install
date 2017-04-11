@@ -65,7 +65,6 @@ curl -sL https://deb.nodesource.com/setup_4.x | sudo bash -
 sudo apt-get -y install nodejs
 sudo npm install -g yarn
 
-<<<<<<< HEAD
 # Set UTF8 encoding by default
 sudo su -c "psql" postgres <<< \
         "update pg_database set datistemplate='false' where datname='template1';"
@@ -76,20 +75,13 @@ sudo su -c "psql" postgres <<< \
 sudo su -c "psql" postgres <<< \
 	      "update pg_database set datistemplate='true' where datname='template1';"
 
-# Create DB user mastodon
-=======
 # Create DB without password
-sudo systemctl restart postgresql
->>>>>>> refs/remotes/magikcypress/master
 ynh_psql_create_db_without_password "$app"
 
 # Download all Ruby source
 sudo git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
 sudo git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
-<<<<<<< HEAD
 sudo git clone https://github.com/tootsuite/mastodon.git $final_path/live
-
-=======
 
 # Be king rewind (/var/cache/yunohost/from_file/scripts)
 popd
@@ -97,7 +89,6 @@ popd
 # Get Mastodon last version
 sudo mkdir "${final_path}/live"
 SETUP_SOURCE
->>>>>>> refs/remotes/magikcypress/master
 sudo chown -R $app: "${final_path}"
 
 # Install de rbenv
@@ -212,10 +203,8 @@ fi
 sudo yunohost app ssowatconf
 
 # Reload Nginx
-<<<<<<< HEAD
 sudo systemctl reload nginx || true
 # debug
-sudo systemctl status nginx
-=======
-sudo systemctl reload nginx
->>>>>>> refs/remotes/magikcypress/master
+# sudo systemctl status nginx
+# sudo systemctl reload nginx
+
