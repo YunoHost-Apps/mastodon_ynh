@@ -79,17 +79,19 @@ sudo su -c "psql" postgres <<< \
 ynh_psql_create_db_without_password "$app"
 
 # Download all Ruby source
+su - mastodon
 sudo git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
 sudo git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
 sudo git clone https://github.com/tootsuite/mastodon.git $final_path/live
+exit
 
 # Be king rewind (/var/cache/yunohost/from_file/scripts)
 popd
 
 # Get Mastodon last version
-sudo mkdir "${final_path}/live"
-SETUP_SOURCE
-sudo chown -R $app: "${final_path}"
+# sudo mkdir "${final_path}/live"
+# SETUP_SOURCE
+# sudo chown -R $app: "${final_path}"
 
 # Install de rbenv
 sudo su - $app <<COMMANDS
