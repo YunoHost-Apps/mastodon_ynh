@@ -198,7 +198,7 @@ sudo yunohost service add mastodon-sidekiq
 sudo yunohost service add mastodon-streaming
 
 # restart 1
-sudo systemctl restart /etc/systemd/system/mastodon-*.service
+#sudo systemctl restart /etc/systemd/system/mastodon-*.service
 
 # Re-Install bundle WHY ???
 sudo su - $app <<MCOMMANDS
