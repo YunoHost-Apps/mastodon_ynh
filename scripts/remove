@@ -82,6 +82,15 @@ REMOVE_NGINX_CONF
 SECURE_REMOVE '/var/log/$app/'
 # Delete cronlog
 SECURE_REMOVE '/etc/cron.d/$app'
+# Delete source.list
+SECURE_REMOVE '/etc/apt/sources.list.d/backports.list'
+SECURE_REMOVE '/etc/apt/sources.list.d/yarn.list'
+
+# Delete ruby exec
+sudo rm /usr/bin/ruby
+
+# Uninstall Yarn
+sudo npm uninstall yarn
 
 # Remove user
 sudo userdel -f $app
