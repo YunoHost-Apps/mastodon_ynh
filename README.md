@@ -15,7 +15,7 @@ Mastodon est un réseau social gratuit et open source. Une alternative décentra
 
 ### Mise à jour
 
-`$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastoron_ynh.git`
+`$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
 
 ## What is Mastodon?
 
@@ -25,8 +25,8 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 
 ### Install
 
-`$ sudo yunohost app install https://github.com/YunoHost-Apps/mastoron_ynh.git`
+`$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git`
 
 ### Update
 
-`$ sudo yunohost app upgrade --verbose mastoron -u https://github.com/YunoHost-Apps/mastoron_ynh.git`
+`$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
