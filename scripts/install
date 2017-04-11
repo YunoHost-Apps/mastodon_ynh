@@ -207,7 +207,7 @@ bundle install
 MCOMMANDS
 
 # restart 2
-sudo systemctl restart /etc/systemd/system/mastodon-*.service
+sudo systemctl restart mastodon-*.service
 
 # Copy nginx config
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
