@@ -31,6 +31,9 @@ db_name=$app
 sudo sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
 sudo sed -i "s@__FINALPATH__@$final_path/@g" ../conf/nginx.conf*
 
+# Stop Mastodon Services
+sudo systemctl stop /etc/systemd/system/mastodon-*.service
+
 # Update Mastodon
 sudo su - $app <<COMMANDS
 pushd ~/live
@@ -38,6 +41,9 @@ git pull
 RAILS_ENV=production bin/bundle exec rails db:migrate
 RAILS_ENV=production bin/bundle exec rails assets:precompile
 COMMANDS
+
+# Start Mastodon Services
+sudo systemctl start /etc/systemd/system/mastodon-*.service
 
 # If app is public, add url to SSOWat conf as skipped_uris
 if [ $is_public = "Yes" ];

@@ -70,32 +70,35 @@ sudo apt-get -y install nodejs
 
 # Install Yarn
 ynh_package_install yarn
-# sudo npm install -g yarn
 
 # Set UTF8 encoding by default
-# Bug: Warning: PG::InsufficientPrivilege: ERROR:  permission denied to copy database "template1"
-# Exec db:setup
-# sudo su -c "psql" postgres <<< \
-#     "update pg_database set datistemplate='false' where datname='template1';"\
-# 	"drop database template1;"\
-# 	"create database template1 encoding='UTF8' template template0;"\
-# 	"update pg_database set datistemplate='true' where datname='template1';"
+sudo su -c "psql" postgres <<< \
+        "update pg_database set datistemplate='false' where datname='template1';"
+sudo su -c "psql" postgres <<< \
+	      "drop database template1;"
+sudo su -c "psql" postgres <<< \
+	      "create database template1 encoding='UTF8' template template0;"
+sudo su -c "psql" postgres <<< \
+	      "update pg_database set datistemplate='true' where datname='template1';"
 
 # Create DB without password
 ynh_psql_create_db_without_password "$app"
 sudo systemctl restart postgresql
 
 # Download all Ruby source
-sudo git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
-sudo git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
+sudo su - $app <<CLONECOMMANDS
+git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
+git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
+git clone https://github.com/tootsuite/mastodon.git $final_path/live
+CLONECOMMANDS
 
 # Be king rewind (/var/cache/yunohost/from_file/scripts)
 popd
 
 # Get Mastodon last version
-sudo mkdir "${final_path}/live"
-SETUP_SOURCE
-sudo chown -R $app: "${final_path}"
+# sudo mkdir "${final_path}/live"
+# SETUP_SOURCE
+# sudo chown -R $app: "${final_path}"
 
 # Install de rbenv
 # Tips: rbenv init - bash (see: https://github.com/rbenv/rbenv/issues/925)
@@ -109,17 +112,17 @@ COMMANDS
 
 # Install ruby-build
 sudo su - $app <<RCOMMANDS
-/opt/mastodon/.rbenv/bin/rbenv install 2.3.1
-/opt/mastodon/.rbenv/versions/2.3.1/bin/ruby -v
+/opt/mastodon/.rbenv/bin/rbenv install 2.4.1
+/opt/mastodon/.rbenv/versions/2.4.1/bin/ruby -v
 RCOMMANDS
 
 # Create symlink for ruby
-sudo ln -s /opt/mastodon/.rbenv/versions/2.3.1/bin/ruby /usr/bin/ruby || true
+sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
 
 # Install Mastodon
 sudo su - $app <<MCOMMANDS
 pushd ~/live
-/opt/mastodon/.rbenv/versions/2.3.1/bin/gem install bundler
+/opt/mastodon/.rbenv/versions/2.4.1/bin/gem install bundler
 bin/bundle install --deployment --without development test
 yarn install --production
 MCOMMANDS
@@ -173,7 +176,8 @@ pushd ~/live
 ACOMMANDS
 
 # Add Services
-pushd /var/cache/yunohost/from_file/scripts
+#pushd /var/cache/yunohost/from_file/mastodon_ynh-master/scripts
+pushd $(popd)
 
 sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
 sudo chown root: /etc/systemd/system/mastodon-web.service
@@ -192,6 +196,18 @@ sudo systemctl enable /etc/systemd/system/mastodon-*.service
 sudo yunohost service add mastodon-web
 sudo yunohost service add mastodon-sidekiq
 sudo yunohost service add mastodon-streaming
+
+# restart 1
+sudo systemctl restart /etc/systemd/system/mastodon-*.service
+
+# Re-Install bundle WHY ???
+sudo su - $app <<MCOMMANDS
+pushd ~/live
+bundle install
+MCOMMANDS
+
+# restart 2
+sudo systemctl restart /etc/systemd/system/mastodon-*.service
 
 # Copy nginx config
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
@@ -219,4 +235,8 @@ fi
 sudo yunohost app ssowatconf
 
 # Reload Nginx
-sudo systemctl reload nginx
+sudo systemctl reload nginx || true
+# debug
+# sudo systemctl status nginx
+# sudo systemctl reload nginx
+
