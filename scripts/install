@@ -159,14 +159,6 @@ pushd ~/live
 # RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon@$domain
 ACOMMANDS
 
-# Re-Install Mastodon WHY ???
-sudo su - $app <<MCOMMANDS
-pushd ~/live
-/opt/mastodon/.rbenv/versions/2.4.1/bin/gem install bundler
-bin/bundle install --deployment --without development test
-yarn install
-MCOMMANDS
-
 # Add Services
 #pushd /var/cache/yunohost/from_file/mastodon_ynh-master/scripts
 pushd $(popd)
@@ -187,6 +179,18 @@ sudo systemctl enable /etc/systemd/system/mastodon-*.service
 sudo yunohost service add mastodon-web
 sudo yunohost service add mastodon-sidekiq
 sudo yunohost service add mastodon-streaming
+
+# restart 1
+sudo systemctl restart /etc/systemd/system/mastodon-*.service
+
+# Re-Install bundle WHY ???
+sudo su - $app <<MCOMMANDS
+pushd ~/live
+bundle install
+MCOMMANDS
+
+# restart 2
+sudo systemctl restart /etc/systemd/system/mastodon-*.service
 
 # Copy nginx config
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
