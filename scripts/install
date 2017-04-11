@@ -79,11 +79,11 @@ sudo su -c "psql" postgres <<< \
 ynh_psql_create_db_without_password "$app"
 
 # Download all Ruby source
-sudo su - $app <<WCOMMANDS
-sudo git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
-sudo git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
-sudo git clone https://github.com/tootsuite/mastodon.git $final_path/live
-WCOMMANDS
+sudo su - $app <<CLONECOMMANDS
+git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
+git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
+git clone https://github.com/tootsuite/mastodon.git $final_path/live
+CLONECOMMANDS
 
 # Be king rewind (/var/cache/yunohost/from_file/scripts)
 popd
