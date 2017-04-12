@@ -101,13 +101,12 @@ popd
 # sudo chown -R $app: "${final_path}"
 
 # Install de rbenv
-# Tips: rbenv init - bash (see: https://github.com/rbenv/rbenv/issues/925)
 sudo su - $app <<COMMANDS
 pushd ~/.rbenv
 src/configure && make -C src
 echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.profile
 echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.bashrc
-echo 'eval "\$(rbenv init - bash)"' >> ~/.bashrc
+echo 'eval "\$(rbenv init -)"' >> ~/.profile
 COMMANDS
 
 # Install ruby-build
@@ -127,19 +126,6 @@ bin/bundle install --deployment --without development test
 yarn install --production
 MCOMMANDS
 
-# Vérif Mastodon
-sudo su - $app <<VCOMMANDS
-pushd ~
-type rbenv
-VCOMMANDS
-
-# Vérif Mastodon
-sudo su - $app <<VVCOMMANDS
-pushd ~
-rbenv init - bash
-type rbenv
-VVCOMMANDS
-
 # Adjust Mastodon config
 pushd $final_path/live/
 sudo cp -a .env.production.sample .env.production
@@ -156,6 +142,7 @@ sudo sed -i "s@OTP_SECRET=@OTP_SECRET=$(head -n32 /dev/urandom | tr -dc -d 'A-Za
 
 sudo sed -i "s@SMTP_SERVER=smtp.mailgun.org@SMTP_SERVER=localhost@g" "${final_path}/live/.env.production"
 sudo sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${admin_mastodon}'@'${domain}',' "${final_path}/live/.env.production"
+sudo sed -i "s@#SMTP_OPENSSL_VERIFY_MODE=peer@SMTP_OPENSSL_VERIFY_MODE=none@g" "${final_path}/live/.env.production"
 
 # Create database
 # Preconfig CSS & JS
@@ -175,8 +162,16 @@ pushd ~/live
 # RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon@$domain
 ACOMMANDS
 
+# init rbenv & create bundle
+# Tips: rbenv init bash (see: https://github.com/rbenv/rbenv/issues/925)
+sudo su - $app <<BCOMMANDS
+. ~/.profile
+type rbenv
+ls -alh /opt/mastodon/.rbenv/shims/bundle || true
+BCOMMANDS
+
+
 # Add Services
-#pushd /var/cache/yunohost/from_file/mastodon_ynh-master/scripts
 pushd $(popd)
 
 sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
@@ -188,26 +183,14 @@ sudo chown root: /etc/systemd/system/mastodon-streaming.service
 
 sudo systemctl daemon-reload
 sudo systemctl enable /etc/systemd/system/mastodon-*.service
-# sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
+sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
 # debug
-# sudo systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
+sudo systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
 
 # Add service YunoHost
 sudo yunohost service add mastodon-web
 sudo yunohost service add mastodon-sidekiq
 sudo yunohost service add mastodon-streaming
-
-# restart 1
-sudo systemctl restart /etc/systemd/system/mastodon-*.service
-
-# Re-Install bundle WHY ???
-sudo su - $app <<MCOMMANDS
-pushd ~/live
-bundle install
-MCOMMANDS
-
-# restart 2
-sudo systemctl restart /etc/systemd/system/mastodon-*.service
 
 # Copy nginx config
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
@@ -235,8 +218,4 @@ fi
 sudo yunohost app ssowatconf
 
 # Reload Nginx
-sudo systemctl reload nginx || true
-# debug
-# sudo systemctl status nginx
-# sudo systemctl reload nginx
-
+sudo systemctl reload nginx
