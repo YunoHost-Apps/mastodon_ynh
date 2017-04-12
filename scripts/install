@@ -199,11 +199,11 @@ sudo yunohost service add mastodon-sidekiq
 sudo yunohost service add mastodon-streaming
 
 # restart 1
-sudo systemctl restart mastodon-*
+# sudo systemctl restart mastodon-*
 
 # Re-Install bundle WHY ???
 sudo su - $app <<MCOMMANDS
-cd live
+# cd live
 bundle install
 MCOMMANDS
 
