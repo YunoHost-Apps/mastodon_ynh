@@ -17,24 +17,25 @@ domain=$(ynh_app_setting_get "$app" domain)
 if [ -e "/etc/systemd/system/mastodon-web.service" ]; then
 	echo "Delete systemd script"
 	sudo systemctl stop mastodon-web.service
-	sudo rm "/etc/systemd/system/mastodon-web.service"
 	sudo systemctl disable mastodon-web.service
+	sudo rm "/etc/systemd/system/mastodon-web.service"
+
 fi
 
 # Stop mastodon-sidekiq
 if [ -e "/etc/systemd/system/mastodon-sidekiq.service" ]; then
 	echo "Delete systemd script"
 	sudo systemctl stop mastodon-sidekiq.service
-	sudo rm "/etc/systemd/system/mastodon-sidekiq.service"
 	sudo systemctl disable mastodon-sidekiq.service
+	sudo rm "/etc/systemd/system/mastodon-sidekiq.service"
 fi
 
 # Stop mastodon-sidekiq
 if [ -e "/etc/systemd/system/mastodon-streaming.service" ]; then
 	echo "Delete systemd script"
 	sudo systemctl stop mastodon-sidekiq.streaming
-	sudo rm "/etc/systemd/system/mastodon-streaming.service"
 	sudo systemctl disable mastodon-streaming.service
+	sudo rm "/etc/systemd/system/mastodon-streaming.service"
 fi
 
 # Delete service on Yunohost monitoring
