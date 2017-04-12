@@ -156,7 +156,7 @@ sudo sed -i "s@OTP_SECRET=@OTP_SECRET=$(head -n32 /dev/urandom | tr -dc -d 'A-Za
 
 sudo sed -i "s@SMTP_SERVER=smtp.mailgun.org@SMTP_SERVER=localhost@g" "${final_path}/live/.env.production"
 sudo sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${admin_mastodon}'@'${domain}',' "${final_path}/live/.env.production"
-sudo sed -i "s,#SMTP_OPENSSL_VERIFY_MODE=peer,SMTP_OPENSSL_VERIFY_MODE=none" "${final_path}/live/.env.production"
+sudo sed -i "s@#SMTP_OPENSSL_VERIFY_MODE=peer@SMTP_OPENSSL_VERIFY_MODE=none@g" "${final_path}/live/.env.production"
 
 # Create database
 # Preconfig CSS & JS
