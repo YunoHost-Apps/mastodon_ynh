@@ -87,8 +87,8 @@ SECURE_REMOVE '/etc/cron.d/$app'
 SECURE_REMOVE '/etc/apt/sources.list.d/backports.list'
 SECURE_REMOVE '/etc/apt/sources.list.d/yarn.list'
 
-# Delete ruby exec
-sudo rm /usr/bin/ruby
+# Delete ruby symb link
+# sudo rm /usr/bin/ruby
 
 # Uninstall Yarn
 sudo npm uninstall yarn
