@@ -3,6 +3,8 @@
 [![Status](https://img.shields.io/badge/status-in_progress-yellow.svg?style=flat)](https://github.com/magikcypress/mastodon_ynh/milestones)
 [![Yunohost version](https://img.shields.io/badge/yunohost-2.4.2_tested-orange.svg?style=flat)](https://github.com/YunoHost/yunohost)
 
+:warning: working process for the moment, do not working :warning:
+
 ## Mastodon c'est quoi ?
 
 Mastodon est un réseau social gratuit et open source. Une alternative décentralisée aux plates-formes commerciales, elle évite les risques d'une seule société qui monopolise votre communication. Choisissez un serveur sur lequel vous faites confiance - selon votre choix, vous pouvez interagir avec tous les autres. N'importe qui peut exécuter sa propre instance de Mastodon et participer au réseau social de façon transparente.
