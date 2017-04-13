@@ -3,7 +3,7 @@
 [![Status](https://img.shields.io/badge/status-in_progress-yellow.svg?style=flat)](https://github.com/Snipees/couchpotato_ynh/milestones)
 [![Yunohost version](https://img.shields.io/badge/yunohost-2.4.2_tested-orange.svg?style=flat)](https://github.com/YunoHost/yunohost)
 
-:warning: working process for the moment, do not working :warning:
+:warning: working process for the moment, do not working correctly & do not install in production :warning:
 
 ## Mastodon c'est quoi ?
 
