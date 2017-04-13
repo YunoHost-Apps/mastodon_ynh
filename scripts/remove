@@ -64,6 +64,7 @@ ynh_psql_drop_db "${app}_production"
 ynh_psql_drop_role "${app}"
 
 # Remove Debian package
+sudo apt-get remove --purge -y yarn
 #sudo apt-get remove --purge -y imagemagick ffmpeg libpq-dev libxml2-dev libxslt1-dev file curl git
 # Delete redis package
 #sudo apt-get remove --purge -y redis-server redis-tools
@@ -84,14 +85,11 @@ SECURE_REMOVE '/var/log/$app/'
 # Delete cronlog
 SECURE_REMOVE '/etc/cron.d/$app'
 # Delete source.list
-SECURE_REMOVE '/etc/apt/sources.list.d/backports.list'
-SECURE_REMOVE '/etc/apt/sources.list.d/yarn.list'
+sudo rm /etc/apt/sources.list.d/backports.list
+sudo rm /etc/apt/sources.list.d/yarn.list
 
 # Delete ruby symb link
 # sudo rm /usr/bin/ruby
-
-# Uninstall Yarn
-sudo npm uninstall yarn
 
 # Remove user
 sudo userdel -f $app
