@@ -38,8 +38,8 @@
 					"en": "Choose a path for Mastodon",
 					"fr": "Choisissez un chemin pour Mastodon"
 				},
-				"example": "/mastodon",
-				"default": "/mastodon"
+				"example": "/",
+				"default": "/"
 			},
 			{
 				"name": "admin",
