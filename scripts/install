@@ -16,6 +16,7 @@ TRAP_ON	# Active trap to stop the script if an error is detected.
 domain=$YNH_APP_ARG_DOMAIN
 path=$YNH_APP_ARG_PATH
 admin_mastodon=$YNH_APP_ARG_ADMIN
+admin_pass=$YNH_APP_ARG_PASSWD
 is_public=$YNH_APP_ARG_IS_PUBLIC
 
 app=$YNH_APP_INSTANCE_NAME
@@ -33,8 +34,8 @@ CHECK_FINALPATH
 ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app path $path
 ynh_app_setting_set $app admin $admin_mastodon
+ynh_app_setting_set $app pass $admin_pass
 ynh_app_setting_set $app is_public $is_public
-# ynh_app_setting_set $app language $language
 
 # Create user unix
 sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
@@ -140,6 +141,8 @@ sudo sed -i "s@PAPERCLIP_SECRET=@PAPERCLIP_SECRET=$(head -n32 /dev/urandom | tr 
 sudo sed -i "s@SECRET_KEY_BASE=@SECRET_KEY_BASE=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c32)@g" "${final_path}/live/.env.production"
 sudo sed -i "s@OTP_SECRET=@OTP_SECRET=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c32)@g" "${final_path}/live/.env.production"
 
+sudo sed -i 's,SMTP_LOGIN=,SMTP_LOGIN='${admin_mastodon}'@'${domain}',' "${final_path}/live/.env.production"
+sudo sed -i 's,SMTP_PASSWORD=,SMTP_PASSWORD=${admin_pass},' "${final_path}/live/.env.production"
 sudo sed -i "s@SMTP_SERVER=smtp.mailgun.org@SMTP_SERVER=localhost@g" "${final_path}/live/.env.production"
 sudo sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${admin_mastodon}'@'${domain}',' "${final_path}/live/.env.production"
 sudo sed -i "s@#SMTP_OPENSSL_VERIFY_MODE=peer@SMTP_OPENSSL_VERIFY_MODE=none@g" "${final_path}/live/.env.production"

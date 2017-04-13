@@ -50,6 +50,15 @@
 				},
 				"example": "john"
 			},
+            {
+                "name": "passwd",
+                "type": "password",
+                "ask": {
+                    "en": "Add password for the Admin YunoHost",
+                    "fr": "Ajouter le mot de passe l'Administrateur YunoHost"
+                },
+                "example": "adminpassword"
+            },
 			{
 				"name": "is_public",
 				"ask": {
