@@ -194,21 +194,6 @@ sudo yunohost service add mastodon-web
 sudo yunohost service add mastodon-sidekiq
 sudo yunohost service add mastodon-streaming
 
-<<<<<<< HEAD
-# restart 1
-# sudo systemctl restart mastodon-*
-
-# Re-Install bundle WHY ???
-sudo su - $app <<MCOMMANDS
-# cd live
-bundle install
-MCOMMANDS
-
-# restart 2
-sudo systemctl restart mastodon-*.service
-
-=======
->>>>>>> refs/remotes/magikcypress/master
 # Copy nginx config
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 sudo sed -i "s@__PATH__@$path@g" /etc/nginx/conf.d/$domain.d/$app.conf
