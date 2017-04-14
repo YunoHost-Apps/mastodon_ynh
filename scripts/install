@@ -165,11 +165,9 @@ pushd ~/live
 ACOMMANDS
 
 # init rbenv & create bundle
-# Tips: rbenv init bash (see: https://github.com/rbenv/rbenv/issues/925)
 sudo su - $app <<BCOMMANDS
 . ~/.profile
 type rbenv
-ls -alh /opt/mastodon/.rbenv/shims/bundle || true
 BCOMMANDS
 
 
