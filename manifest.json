@@ -35,11 +35,11 @@
 				"name": "path",
 				"type": "path",
 				"ask": {
-					"en": "Choose a path for Mastodon",
-					"fr": "Choisissez un chemin pour Mastodon"
+					"en": "Choose a path for Mastodon (don't use subdir ex: /mastodon)",
+					"fr": "Choisissez un chemin pour Mastodon (ne pas utiliser de répertoire ex: /mastodon)"
 				},
-				"example": "/mastodon",
-				"default": "/mastodon"
+				"example": "/",
+				"default": "/"
 			},
 			{
 				"name": "admin",
