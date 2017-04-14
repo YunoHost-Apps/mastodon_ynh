@@ -136,9 +136,9 @@ sudo sed -i "s@DB_USER=postgres@DB_USER=${app}@g" "${final_path}/live/.env.produ
 sudo sed -i "s@DB_NAME=postgres@DB_NAME=${app}_production@g" "${final_path}/live/.env.production"
 sudo sed -i "s@LOCAL_DOMAIN=example.com@LOCAL_DOMAIN=${domain}@g" "${final_path}/live/.env.production"
 
-sudo sed -i "s@PAPERCLIP_SECRET=@PAPERCLIP_SECRET=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c32)@g" "${final_path}/live/.env.production"
-sudo sed -i "s@SECRET_KEY_BASE=@SECRET_KEY_BASE=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c32)@g" "${final_path}/live/.env.production"
-sudo sed -i "s@OTP_SECRET=@OTP_SECRET=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c32)@g" "${final_path}/live/.env.production"
+sudo sed -i "s@PAPERCLIP_SECRET=@PAPERCLIP_SECRET=$(head -n128 /dev/urandom | tr -dc -d 'a-z0-9' | head -c128)@g" "${final_path}/live/.env.production"
+sudo sed -i "s@SECRET_KEY_BASE=@SECRET_KEY_BASE=$(head -n128 /dev/urandom | tr -dc -d 'a-z0-9' | head -c128)@g" "${final_path}/live/.env.production"
+sudo sed -i "s@OTP_SECRET=@OTP_SECRET=$(head -n128 /dev/urandom | tr -dc -d 'a-z0-9' | head -c128)@g" "${final_path}/live/.env.production"
 
 sudo sed -i 's,SMTP_LOGIN=,SMTP_LOGIN='${admin_mastodon}'@'${domain}',' "${final_path}/live/.env.production"
 sudo sed -i "s@SMTP_PASSWORD=@SMTP_PASSWORD=${admin_pass}@g" "${final_path}/live/.env.production"
