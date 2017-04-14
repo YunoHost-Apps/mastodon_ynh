@@ -154,22 +154,11 @@ RAILS_ENV=production bin/bundle exec rails db:setup
 RAILS_ENV=production bin/bundle exec rails --trace assets:precompile
 CCOMMANDS
 
-# TODO: Doesn't work for the moment, 
-# Mastodon need a user for creating an administator account
-# Create admin user
-# Create confirm email
-sudo su - $app <<ACOMMANDS
-pushd ~/live
-# RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
-# RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon@$domain
-ACOMMANDS
-
 # init rbenv & create bundle
 sudo su - $app <<BCOMMANDS
 . ~/.profile
 type rbenv
 BCOMMANDS
-
 
 # Add Services
 pushd $(popd)
