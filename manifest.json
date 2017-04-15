@@ -9,12 +9,12 @@
 		"en": "Mastodon is a free, open-source social network.",
 		"fr": "Mastodon est un réseau social gratuit et open source."
 	},
-	"version": "0.6 dev",
+	"version": "1.1.1",
 	"url": "https://github.com/tootsuite/mastodon",
-	"license": "AGPL",
+	"license": "AGPL v3.0",
 	"maintainer": {
-		"name": "cyp",
-		"email": "cyp@rouquin.me"
+		"name": "cyp, nemsia",
+		"email": "cyp@rouquin.me, nemsia@nemsia.org"
 	},
 	"multi_instance": false,
 	"services": [
@@ -59,6 +59,15 @@
                 },
                 "example": "adminpassword"
             },
+			{
+				"name": "language",
+				"ask": {
+					"en": "Choose the application language",
+					"fr": "Choisissez la langue de l'application"
+				},
+				"choices": ["en_EN", "fr_FR"],
+				"default": "fr_FR"
+			},
 			{
 				"name": "is_public",
 				"ask": {
