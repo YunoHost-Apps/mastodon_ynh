@@ -207,8 +207,6 @@ sudo yunohost app ssowatconf
 
 # Reload Nginx
 sudo systemctl reload nginx
-<<<<<<< HEAD
-=======
 
 # all services start, please 
 sleep 30
@@ -229,4 +227,3 @@ ACOMMANDS
 
 # Restart crontab
 sudo systemctl restart cron
->>>>>>> refs/remotes/YunoHost-Apps/devel
