@@ -32,19 +32,6 @@
 				"example": "domain.org"
 			},
 			{
-<<<<<<< HEAD
-				"name": "path",
-				"type": "path",
-				"ask": {
-					"en": "Choose a path for Mastodon",
-					"fr": "Choisissez un chemin pour Mastodon"
-				},
-				"example": "/",
-				"default": "/"
-			},
-			{
-=======
->>>>>>> refs/remotes/YunoHost-Apps/master
 				"name": "admin",
 				"type": "user",
 				"ask": {
