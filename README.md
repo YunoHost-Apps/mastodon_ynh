@@ -17,6 +17,20 @@ Mastodon est un réseau social gratuit et open source. Une alternative décentra
 
 `$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git`
 
+Une fois l'installation effectuée, vous pouvez créer un compte manuellement sur Mastodon depuis votre navigateur. Lorsque vous avez crée le premier utilisateur vous pouvez créer l'administrateur de votre Mastodon. Pour celà, il faut impérativement passer par une interface en ligne de commande et taper les commandes suivantes :
+
+**se connecter en sudo sur l'utilisateur**
+
+`$ sudo su mastodon`
+
+**se placer dans le répertoire où est installé Mastodon**
+
+`$ cd /opt/mastodon/live`
+
+**lancer la commande de création de l'administrateur**
+
+`$ RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=*Nom de votre utilisateur*`
+
 ### Mise à jour
 
 `$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
@@ -36,6 +50,20 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 ### Install
 
 `$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git`
+
+After installation, you can create an account manually on Mastodon from your browser. When you have created the first user you can create the administrator of your Mastodon. For this, it is imperative to go through a command line and type the following commands:
+
+**sudo to the user**
+
+`$ sudo su mastodon`
+
+**change directory where Mastodon is installed**
+
+`$ cd /opt/mastodon/live`
+
+**launch the command to create the administrator**
+
+`$ RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=*Nom de votre utilisateur*`
 
 ### Update
 
