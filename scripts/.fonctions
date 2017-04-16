@@ -22,7 +22,7 @@ EXIT_PROPERLY () {	# Causes the script to stop in the event of an error. And cle
 	fi
 
 	# Compensates the ssowat bug that does not remove the app's input in case of installation error.
-	sudo sed -i "\@\"$domain$path/\":@d" /etc/ssowat/conf.json
+	sudo sed -i "\@\"$domain/\":@d" /etc/ssowat/conf.json
 
 	if [ "$ynh_version" = "2.2" ]; then
 		/bin/bash $script_dir/remove
@@ -54,7 +54,7 @@ CHECK_PATH () {	# Checks / at the beginning of the path. And his absence at the 
 }
 
 CHECK_DOMAINPATH () {	# Checks the availability of the path and domain.
-	sudo yunohost app checkurl $domain$path -a $app
+	sudo yunohost app checkurl $domain -a $app
 }
 
 CHECK_FINALPATH () {	# Checks that the destination folder is not already in use.
@@ -109,7 +109,6 @@ SETUP_SOURCE () {	# Download source, decompress and copu into $final_path
 		sudo cp -a ../sources/ajouts/. "$final_path"
 	fi
 }
-
 
 ### REMOVE SCRIPT
 

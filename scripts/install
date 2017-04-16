@@ -14,9 +14,9 @@ CLEAN_SETUP () {
 TRAP_ON	# Active trap to stop the script if an error is detected.
 
 domain=$YNH_APP_ARG_DOMAIN
-path=$YNH_APP_ARG_PATH
 admin_mastodon=$YNH_APP_ARG_ADMIN
 admin_pass=$YNH_APP_ARG_PASSWD
+language=$YNH_APP_ARG_LANGUAGE
 is_public=$YNH_APP_ARG_IS_PUBLIC
 
 app=$YNH_APP_INSTANCE_NAME
@@ -25,16 +25,14 @@ CHECK_VAR "$app" "app name not set"
 
 CHECK_USER "$admin_mastodon"
 
-CHECK_PATH
-
 CHECK_DOMAINPATH
 
 CHECK_FINALPATH
 
 ynh_app_setting_set $app domain $domain
-ynh_app_setting_set $app path $path
 ynh_app_setting_set $app admin $admin_mastodon
 ynh_app_setting_set $app pass $admin_pass
+ynh_app_setting_set $app language $language
 ynh_app_setting_set $app is_public $is_public
 
 # Create user unix
@@ -136,9 +134,18 @@ sudo sed -i "s@DB_USER=postgres@DB_USER=${app}@g" "${final_path}/live/.env.produ
 sudo sed -i "s@DB_NAME=postgres@DB_NAME=${app}_production@g" "${final_path}/live/.env.production"
 sudo sed -i "s@LOCAL_DOMAIN=example.com@LOCAL_DOMAIN=${domain}@g" "${final_path}/live/.env.production"
 
+<<<<<<< HEAD
 sudo sed -i "s@PAPERCLIP_SECRET=@PAPERCLIP_SECRET=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c128)@g" "${final_path}/live/.env.production"
 sudo sed -i "s@SECRET_KEY_BASE=@SECRET_KEY_BASE=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c128)@g" "${final_path}/live/.env.production"
 sudo sed -i "s@OTP_SECRET=@OTP_SECRET=$(head -n32 /dev/urandom | tr -dc -d 'A-Za-z0-9' | head -c128)@g" "${final_path}/live/.env.production"
+=======
+language="$(echo $language | head -c 2)"
+sudo sed -i "s@# DEFAULT_LOCALE=de@DEFAULT_LOCALE=${language}@g" "${final_path}/live/.env.production"
+
+sudo sed -i "s@PAPERCLIP_SECRET=@PAPERCLIP_SECRET=$(head -n128 /dev/urandom | tr -dc -d 'a-z0-9' | head -c128)@g" "${final_path}/live/.env.production"
+sudo sed -i "s@SECRET_KEY_BASE=@SECRET_KEY_BASE=$(head -n128 /dev/urandom | tr -dc -d 'a-z0-9' | head -c128)@g" "${final_path}/live/.env.production"
+sudo sed -i "s@OTP_SECRET=@OTP_SECRET=$(head -n128 /dev/urandom | tr -dc -d 'a-z0-9' | head -c128)@g" "${final_path}/live/.env.production"
+>>>>>>> refs/remotes/YunoHost-Apps/master
 
 sudo sed -i 's,SMTP_LOGIN=,SMTP_LOGIN='${admin_mastodon}'@'${domain}',' "${final_path}/live/.env.production"
 sudo sed -i "s@SMTP_PASSWORD=@SMTP_PASSWORD=${admin_pass}@g" "${final_path}/live/.env.production"
@@ -154,24 +161,11 @@ RAILS_ENV=production bin/bundle exec rails db:setup
 RAILS_ENV=production bin/bundle exec rails --trace assets:precompile
 CCOMMANDS
 
-# TODO: Doesn't work for the moment, 
-# Mastodon need a user for creating an administator account
-# Create admin user
-# Create confirm email
-sudo su - $app <<ACOMMANDS
-pushd ~/live
-# RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
-# RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon@$domain
-ACOMMANDS
-
 # init rbenv & create bundle
-# Tips: rbenv init bash (see: https://github.com/rbenv/rbenv/issues/925)
 sudo su - $app <<BCOMMANDS
 . ~/.profile
 type rbenv
-ls -alh /opt/mastodon/.rbenv/shims/bundle || true
 BCOMMANDS
-
 
 # Add Services
 pushd $(popd)
@@ -196,12 +190,12 @@ sudo yunohost service add mastodon-streaming
 
 # Copy nginx config
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
-sudo sed -i "s@__PATH__@$path@g" /etc/nginx/conf.d/$domain.d/$app.conf
-sudo sed -i "s@__FINALPATH__@$final_path@g" /etc/nginx/conf.d/$domain.d/$app.conf
 
 # Install crontab
 sudo cp ../conf/crontab_mastodon /etc/cron.d/$app
 sudo sed -i "s@__APP__@$app@g" /etc/cron.d/$app
+# Restart crontab
+sudo systemctl restart cron
 
 # Private or not
 if [ "$is_public" = "Yes" ];
