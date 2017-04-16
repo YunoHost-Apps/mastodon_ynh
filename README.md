@@ -63,7 +63,7 @@ After installation, you can create an account manually on Mastodon from your bro
 
 **launch the command to create the administrator**
 
-`$ RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=*Nom de votre utilisateur*`
+`$ RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=*username*`
 
 ### Update
 
