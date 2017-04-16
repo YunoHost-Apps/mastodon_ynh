@@ -65,7 +65,7 @@
 					"fr": "Mastodon est-il public ?"
 				},
 				"choices": ["Yes", "No"],
-				"default": "No"
+				"default": "Yes"
 			}
 		]
 	}
