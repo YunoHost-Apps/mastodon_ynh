@@ -1,4 +1,7 @@
 @daily __APP__ cd /opt/__APP__/live && RAILS_ENV=production /opt/__APP__/.rbenv/shims/bundle exec rake mastodon:media:clear
+
 @daily __APP__ cd /opt/__APP__/live && RAILS_ENV=production /opt/__APP__/.rbenv/shims/bundle exec rake mastodon:push:refresh
+
 @daily __APP__ cd /opt/__APP__/live && RAILS_ENV=production /opt/__APP__/.rbenv/shims/bundle exec rake mastodon:feeds:clear
+
 @daily __APP__ cd /opt/__APP__/live && RAILS_ENV=production /opt/__APP__/.rbenv/shims/bundle exec rake mastodon:users:clear

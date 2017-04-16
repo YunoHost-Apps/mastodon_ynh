@@ -14,7 +14,6 @@ CLEAN_SETUP () {
 TRAP_ON	# Active trap to stop the script if an error is detected.
 
 domain=$YNH_APP_ARG_DOMAIN
-path=$YNH_APP_ARG_PATH
 admin_mastodon=$YNH_APP_ARG_ADMIN
 admin_pass=$YNH_APP_ARG_PASSWD
 language=$YNH_APP_ARG_LANGUAGE
@@ -26,14 +25,11 @@ CHECK_VAR "$app" "app name not set"
 
 CHECK_USER "$admin_mastodon"
 
-CHECK_PATH
-
 CHECK_DOMAINPATH
 
 CHECK_FINALPATH
 
 ynh_app_setting_set $app domain $domain
-ynh_app_setting_set $app path $path
 ynh_app_setting_set $app admin $admin_mastodon
 ynh_app_setting_set $app pass $admin_pass
 ynh_app_setting_set $app language $language
@@ -188,12 +184,12 @@ sudo yunohost service add mastodon-streaming
 
 # Copy nginx config
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
-sudo sed -i "s@__PATH__@$path@g" /etc/nginx/conf.d/$domain.d/$app.conf
-sudo sed -i "s@__FINALPATH__@$final_path@g" /etc/nginx/conf.d/$domain.d/$app.conf
 
 # Install crontab
 sudo cp ../conf/crontab_mastodon /etc/cron.d/$app
 sudo sed -i "s@__APP__@$app@g" /etc/cron.d/$app
+# Restart crontab
+sudo systemctl restart cron
 
 # Private or not
 if [ "$is_public" = "Yes" ];

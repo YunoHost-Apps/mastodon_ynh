@@ -32,16 +32,6 @@
 				"example": "domain.org"
 			},
 			{
-				"name": "path",
-				"type": "path",
-				"ask": {
-					"en": "Choose a path for Mastodon (don't use subdir ex: /mastodon)",
-					"fr": "Choisissez un chemin pour Mastodon (ne pas utiliser de répertoire ex: /mastodon)"
-				},
-				"example": "/",
-				"default": "/"
-			},
-			{
 				"name": "admin",
 				"type": "user",
 				"ask": {
@@ -75,7 +65,7 @@
 					"fr": "Mastodon est-il public ?"
 				},
 				"choices": ["Yes", "No"],
-				"default": "Yes"
+				"default": "No"
 			}
 		]
 	}

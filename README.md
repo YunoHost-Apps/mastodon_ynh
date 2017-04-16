@@ -1,9 +1,11 @@
 # Mastodon for YunoHost
 
-[![Status](https://img.shields.io/badge/status-in_progress-yellow.svg?style=flat)](https://github.com/Snipees/couchpotato_ynh/milestones)
+[![Latest Version](https://img.shields.io/badge/version-_--_-green.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/releases)
+[![Status](https://img.shields.io/badge/status-testing-yellow.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/milestones)
+[![Dependencies](https://img.shields.io/badge/dependencies-includes-lightgrey.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh#dependencies)
+[![GitHub license](https://img.shields.io/badge/license-GPLv3-blue.svg?style=flat)](https://raw.githubusercontent.com/YunoHost-Apps/mastodon_ynh/master/LICENSE)
 [![Yunohost version](https://img.shields.io/badge/yunohost-2.4.2_tested-orange.svg?style=flat)](https://github.com/YunoHost/yunohost)
-
-:warning: working process for the moment, do not working correctly & do not install in production :warning:
+[![GitHub issues](https://img.shields.io/github/issues/YunoHost-Apps/mastodon_ynh.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/issues)
 
 ## Mastodon c'est quoi ?
 
@@ -19,6 +21,12 @@ Mastodon est un réseau social gratuit et open source. Une alternative décentra
 
 `$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
 
+## Recommandations
+
+Vous ne pouvez pas installer Mastodon en subdirectory, vous devez obligatoirement utiliser un domaine ou un sous-domaine pour cette application.
+
+Il semble important de fermer les inscriptions pour votre Mastodon, pour que ça reste une instance privé. Nous vous invitons à bloquer les instances distantes malfaisantes depuis l'interface d'administration. Vous pouvez également ajouter un texte sur votre page d'accueil dans l'administration.
+
 ## What is Mastodon?
 
 Mastodon is a free, open-source social network. A decentralized alternative to commercial platforms, it avoids the risks of a single company monopolizing your communication. Pick a server that you trust — whichever you choose, you can interact with everyone else. Anyone can run their own Mastodon instance and participate in the social network seamlessly.
@@ -32,3 +40,9 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 ### Update
 
 `$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
+
+## Recommendation
+
+You can't install Mastodon in subdirectory, you must use a domain or subdomain for this application.
+
+It seems important to close the inscriptions for your Mastodon, so that it remains a private body. We invite you to block remote malicious instances from the administration interface. You can also add text on your home page.
