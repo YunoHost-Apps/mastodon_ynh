@@ -110,6 +110,13 @@ SETUP_SOURCE () {	# Download source, decompress and copu into $final_path
 	fi
 }
 
+# Create user with special hack 
+CREATE_USER () {
+	sudo curl -kSs https://${domain}/auth/sign_up --cookie-jar cookie | grep csrf > token || true
+	token=$(sudo cat token | sed -n '/csrf-token/s/.*name="csrf-token"\s\+content="\([^"]\+\).*/\1/p')
+	sudo curl -kSs https://${domain}/auth --data "&user[account_attributes][username]=${admin_mastodon}&user[email]=${admin_mastodon}@${domain}&user[password]=${admin_pass}&user[password_confirmation]=${admin_pass}&authenticity_token=${token}" --cookie cookie
+}
+
 ### REMOVE SCRIPT
 
 REMOVE_NGINX_CONF () {	# Delete nginx configuration

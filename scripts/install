@@ -188,8 +188,6 @@ sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 # Install crontab
 sudo cp ../conf/crontab_mastodon /etc/cron.d/$app
 sudo sed -i "s@__APP__@$app@g" /etc/cron.d/$app
-# Restart crontab
-sudo systemctl restart cron
 
 # Private or not
 if [ "$is_public" = "Yes" ];
@@ -209,3 +207,23 @@ sudo yunohost app ssowatconf
 
 # Reload Nginx
 sudo systemctl reload nginx
+
+# all services start, please 
+sleep 30
+
+# Mastodon need a user for creating an administator account
+# rake create user is not up for the moment
+# See PR: https://github.com/tootsuite/mastodon/pull/1482 
+CREATE_USER
+
+# Create admin user
+# Create confirm email
+sudo su - $app <<ACOMMANDS
+pushd ~/live
+
+# RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
+# RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon@$domain
+ACOMMANDS
+
+# Restart crontab
+sudo systemctl restart cron
