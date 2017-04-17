@@ -70,15 +70,6 @@
 				},
 				"choices": ["en_EN", "fr_FR"],
 				"default": "fr_FR"
-			},
-			{
-				"name": "is_public",
-				"ask": {
-					"en": "Mastodon is it public?",
-					"fr": "Mastodon est-il public ?"
-				},
-				"choices": ["Yes", "No"],
-				"default": "Yes"
 			}
 		]
 	}

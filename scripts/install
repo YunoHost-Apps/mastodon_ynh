@@ -17,7 +17,6 @@ domain=$YNH_APP_ARG_DOMAIN
 admin_mastodon=$YNH_APP_ARG_ADMIN
 admin_pass=$YNH_APP_ARG_PASSWD
 language=$YNH_APP_ARG_LANGUAGE
-is_public=$YNH_APP_ARG_IS_PUBLIC
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -33,7 +32,6 @@ ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app admin $admin_mastodon
 ynh_app_setting_set $app pass $admin_pass
 ynh_app_setting_set $app language $language
-ynh_app_setting_set $app is_public $is_public
 
 # Create user unix
 sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
@@ -94,7 +92,7 @@ CLONECOMMANDS
 # Be king rewind (/var/cache/yunohost/from_file/scripts)
 popd
 
-# Get Mastodon last version
+# # Get Mastodon last version
 # sudo mkdir "${final_path}/live"
 # SETUP_SOURCE
 # sudo chown -R $app: "${final_path}"
@@ -194,19 +192,6 @@ sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 # Install crontab
 sudo cp ../conf/crontab_mastodon /etc/cron.d/$app
 sudo sed -i "s@__APP__@$app@g" /etc/cron.d/$app
-
-# Private or not
-if [ "$is_public" = "Yes" ];
-then
-	sudo sed -i "s@#--PRIVATE--@@g" /etc/nginx/conf.d/$domain.d/$app.conf
-fi
-
-# Setup SSOwat
-ynh_app_setting_set "$app" is_public "$is_public"
-if [ "$is_public" = "Yes" ];
-then
-  ynh_app_setting_set "$app" unprotected_uris "/"
-fi
 
 # Reload SSOwat configuration
 sudo yunohost app ssowatconf
