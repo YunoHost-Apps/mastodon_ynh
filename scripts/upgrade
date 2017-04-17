@@ -32,35 +32,11 @@ sudo sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
 sudo sed -i "s@__FINALPATH__@$final_path/@g" ../conf/nginx.conf*
 
 # Stop Mastodon Services
-<<<<<<< HEAD
-sudo systemctl stop mastodon-*
-=======
 sudo systemctl stop mastodon-*.service
->>>>>>> refs/remotes/YunoHost-Apps/master
 
 # Update Mastodon
 sudo su - $app <<COMMANDS
 pushd ~/live
-<<<<<<< HEAD
-git pull
-bundle install
-RAILS_ENV=production bin/bundle exec rails db:migrate
-RAILS_ENV=production bin/bundle exec rails assets:precompile
-COMMANDS
-
-# Start Mastodon Services
-sudo systemctl start mastodon-*
-
-# If app is public, add url to SSOWat conf as skipped_uris
-if [ $is_public = "Yes" ];
-then
-	ynh_app_setting_set "$app" unprotected_uris "/"
-	sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
-else
-	sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
-fi
-
-=======
 git fetch
 git pull https://github.com/tootsuite/mastodon.git master
 git checkout v1.2
@@ -71,7 +47,6 @@ RAILS_ENV=production bundle exec rails assets:precompile
 RAILS_ENV=production bundle exec rails db:migrate
 COMMANDS
 
->>>>>>> refs/remotes/YunoHost-Apps/master
 # Reload Nginx
 sudo systemctl reload nginx
 # Restart Mastodon
