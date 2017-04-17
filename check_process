@@ -2,27 +2,26 @@
 	auto_remove=1
 	; Manifest
 		domain="domain.tld"	(DOMAIN)
-		path="/path"	(PATH)
-		is_public="Yes" (PUBLIC|public=Yes|private=No)
 		admin="john"   (USER)
-		
+		path="/path"	(PATH)
+		passwd="adminpassword"
 	; Checks
 		pkg_linter=1
-		setup_sub_dir=1
+		setup_sub_dir=0
 		setup_root=1
 		setup_nourl=0
-		setup_private=1
-		setup_public=1
+		setup_private=0
+		setup_public=0
 		upgrade=1
 		backup_restore=1
-		multi_instance=1
-		wrong_user=1
-		wrong_path=1
-		incorrect_path=1
-		corrupt_source=1
-		fail_download_source=1
-		port_already_use=1
-		final_path_already_use=1
+		multi_instance=0
+		wrong_user=0
+		wrong_path=0
+		incorrect_path=0
+		corrupt_source=0
+		fail_download_source=0
+		port_already_use=0
+		final_path_already_use=0
 ;;; Levels
 	Level 1=auto
 	Level 2=auto
