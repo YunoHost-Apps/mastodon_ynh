@@ -18,7 +18,7 @@ ynh_backup "$final_path" "sources" 1
 
 # Copy the nginx conf files
 ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf" "nginx.conf"
-ynh_backup "/etc/cron.d/${app}.conf" "cron.conf"
+ynh_backup "/etc/cron.d/${app}" "cron.conf"
 ynh_backup "/etc/systemd/system/mastodon-web.service" "systemd_web.service"
 ynh_backup "/etc/systemd/system/mastodon-sidekiq.service" "systemd_sidekiq.service"
 ynh_backup "/etc/systemd/system/mastodon-streaming.service" "systemd_streaming.service"
