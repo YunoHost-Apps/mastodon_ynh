@@ -25,6 +25,7 @@ ynh_backup "/etc/systemd/system/mastodon-streaming.service" "systemd_streaming.s
 
 # Backup db
 sudo su - postgres <<COMMANDS
-pg_dump mastodon_production > /home/backup/mastodon_db.sql
+pg_dump -U mastodon mastodon_production > mastodon_db.sql
 COMMANDS
-ynh_backup "/home/backup/mastodon_db.sql" "mastodon_db.sql"
+ynh_backup "./mastodon_db.sql" "mastodon_db.sql"
+ynh_secure_remove /var/lib/postgresql/mastodon_db.sql

@@ -61,10 +61,20 @@ sudo cp -a ./sources "$final_path"
 # Set permissions
 sudo chown -R $app: "$final_path"
 
+# Set UTF8 encoding by default
+sudo su -c "psql" postgres <<< \
+        "update pg_database set datistemplate='false' where datname='template1';"
+sudo su -c "psql" postgres <<< \
+	      "drop database template1;"
+sudo su -c "psql" postgres <<< \
+	      "create database template1 encoding='UTF8' template template0;"
+sudo su -c "psql" postgres <<< \
+	      "update pg_database set datistemplate='true' where datname='template1';"
+
 # Restore db
 ynh_psql_create_db_without_password "$app"
 sudo su - postgres <<COMMANDS
-pg_dump mastodon_production < ./mastodon_db.sql
+pg_dump -U mastodon mastodon_production < ./mastodon_db.sql
 COMMANDS
 
 # Restore Mastodon
