@@ -3,8 +3,10 @@
 # Exit on command errors and treat unset variables as an error
 set -eu
 
-source .fonctions	# Loads the generic functions usually used in the script
-source /usr/share/yunohost/helpers # Source YunoHost helpers
+# Loads the generic functions usually used in the script
+source .fonctions
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
 
 # See comments in install script
 app=$YNH_APP_INSTANCE_NAME
