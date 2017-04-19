@@ -187,6 +187,9 @@ sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 sudo cp ../conf/crontab_mastodon /etc/cron.d/$app
 sudo sed -i "s@__APP__@$app@g" /etc/cron.d/$app
 
+# Set app public
+ynh_app_setting_set "$app" unprotected_uris "/"
+
 # Reload SSOwat configuration
 sudo yunohost app ssowatconf
 
