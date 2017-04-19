@@ -44,8 +44,8 @@
                 "name": "passwd",
                 "type": "password",
                 "ask": {
-                    "en": "Add password for the Admin YunoHost",
-                    "fr": "Ajouter le mot de passe l'Administrateur YunoHost"
+                    "en": "Enter password of this administrator",
+                    "fr": "Ajouter le mot de passe pour cette administrateur"
                 },
                 "example": "adminpassword"
             },
