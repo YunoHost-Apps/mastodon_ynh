@@ -51,5 +51,9 @@ COMMANDS
 
 # Reload Nginx
 sudo systemctl reload nginx
+
+# Set app public
+ynh_app_setting_set "$app" unprotected_uris "/"
+
 # Restart Mastodon
 sudo systemctl start mastodon-*.service

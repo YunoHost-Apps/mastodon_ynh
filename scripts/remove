@@ -19,6 +19,7 @@ if [ -e "/etc/systemd/system/mastodon-web.service" ]; then
 	sudo systemctl stop mastodon-web.service
 	ynh_secure_remove "/etc/systemd/system/mastodon-web.service"
 	sudo systemctl disable mastodon-web.service
+
 fi
 
 # Stop mastodon-sidekiq
