@@ -192,6 +192,9 @@ sudo sed -i "s@__APP__@$app@g" /etc/cron.d/$app
 # Restart crontab
 sudo systemctl restart cron
 
+# Unprotected url
+ynh_app_setting_set "$app" unprotected_uris "/"
+
 # Reload SSOwat configuration
 sudo yunohost app ssowatconf
 
