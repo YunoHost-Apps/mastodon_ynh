@@ -3,8 +3,10 @@
 # Exit on command errors and treat unset variables as an error
 set -eu
 
-source .fonctions	# Loads the generic functions usually used in the script
-source /usr/share/yunohost/helpers # Source YunoHost helpers
+# Loads the generic functions usually used in the script
+source .fonctions
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
 
 # See comments in install script
 app=$YNH_APP_INSTANCE_NAME
@@ -39,7 +41,7 @@ sudo su - $app <<COMMANDS
 pushd ~/live
 git fetch
 git pull https://github.com/tootsuite/mastodon.git master
-git checkout v1.2
+git checkout $(git tag | tail -n 1)
 bin/bundle install
 yarn install --production
 RAILS_ENV=production bundle exec rails assets:clean

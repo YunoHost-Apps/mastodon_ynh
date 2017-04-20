@@ -4,11 +4,18 @@
 # Exit on command errors and treat unset variables as an error
 set -eu
 
-# The parameter $app is the id of the app instance ex: ynhexample__2
-app=$YNH_APP_INSTANCE_NAME
-
+if [ ! -e .fonctions ]; then
+	# Get file fonction if not been to the current directory
+	sudo cp ../settings/scripts/.fonctions ./.fonctions
+	sudo chmod a+rx .fonctions
+fi
+# Loads the generic functions usually used in the script
+source .fonctions
 # Source app helpers
 source /usr/share/yunohost/helpers
+
+# The parameter $app is the id of the app instance ex: ynhexample__2
+app=$YNH_APP_INSTANCE_NAME
 
 # Get old parameter of the app
 domain=$(ynh_app_setting_get $app domain)
@@ -30,7 +37,7 @@ nginx_conf="/etc/nginx/conf.d/${domain}.d/${app}.conf"
 if [ -f $nginx_conf ]; then
 	ynh_die "The NGINX configuration already exists at '${nginx_conf}'. 
 	You should safely delete it before restoring this app."
-
+fi
 # Check configuration files php-fpm
 crontab_conf="/etc/cron.d/${app}"
 if [ -f $crontab_conf ]; then 
@@ -55,17 +62,33 @@ if [ -f "${streaming_systemd}" ]; then
 	You should safely delete it before restoring this app."
 fi
 
+# Create user unix
+sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
+
  # Restore sources & data
 sudo cp -a ./sources "$final_path"
 
 # Set permissions
 sudo chown -R $app: "$final_path"
 
+# Set UTF8 encoding by default
+sudo su -c "psql" postgres <<< \
+        "update pg_database set datistemplate='false' where datname='template1';"
+sudo su -c "psql" postgres <<< \
+	      "drop database template1;"
+sudo su -c "psql" postgres <<< \
+	      "create database template1 encoding='UTF8' template template0;"
+sudo su -c "psql" postgres <<< \
+	      "update pg_database set datistemplate='true' where datname='template1';"
+
 # Restore db
 ynh_psql_create_db_without_password "$app"
 sudo su - postgres <<COMMANDS
-pg_dump mastodon_production < ./mastodon_db.sql
+pg_dump --role=mastodon -U postgres --no-password mastodon < $YNH_APP_BACKUP_DIR/mastodon_db.sql
 COMMANDS
+
+# Create symlink for ruby
+sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
 
 # Restore Mastodon
 sudo su - $app <<RCOMMANDS
@@ -78,6 +101,24 @@ RCOMMANDS
 sudo cp -a ./nginx.conf   "$nginx_conf"
 # Restore crontab
 sudo cp -a ./cron.conf "$crontab_conf"
+
+sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
+sudo chown root: /etc/systemd/system/mastodon-web.service
+sudo cp ../conf/mastodon-sidekiq.service /etc/systemd/system/mastodon-sidekiq.service
+sudo chown root: /etc/systemd/system/mastodon-sidekiq.service
+sudo cp ../conf/mastodon-streaming.service /etc/systemd/system/mastodon-streaming.service
+sudo chown root: /etc/systemd/system/mastodon-streaming.service
+
+sudo systemctl daemon-reload
+sudo systemctl enable /etc/systemd/system/mastodon-*.service
+sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
+# debug
+sudo systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
+
+# Add service YunoHost
+sudo yunohost service add mastodon-web
+sudo yunohost service add mastodon-sidekiq
+sudo yunohost service add mastodon-streaming
 
 # Reload services
 sudo systemctl reload nginx

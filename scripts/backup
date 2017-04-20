@@ -3,11 +3,18 @@
 # Exit on command errors and treat unset variables as an error
 set -eu
 
-# Get multi-instances specific variables
-app=$YNH_APP_INSTANCE_NAME
-
+if [ ! -e .fonctions ]; then
+	# Get file fonction if not been to the current directory
+	sudo cp ../settings/scripts/.fonctions ./.fonctions
+	sudo chmod a+rx .fonctions
+fi
+# Loads the generic functions usually used in the script
+source .fonctions
 # Source app helpers
 source /usr/share/yunohost/helpers
+
+# Get multi-instances specific variables
+app=$YNH_APP_INSTANCE_NAME
 
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
@@ -25,6 +32,7 @@ ynh_backup "/etc/systemd/system/mastodon-streaming.service" "systemd_streaming.s
 
 # Backup db
 sudo su - postgres <<COMMANDS
-pg_dump mastodon_production > /home/backup/mastodon_db.sql
+pg_dump --role=mastodon -U postgres --no-password mastodon_production > mastodon_db.sql
 COMMANDS
-ynh_backup "/home/backup/mastodon_db.sql" "mastodon_db.sql"
+ynh_backup "/var/lib/postgresql/${app}_db.sql" "${app}_db.sql"
+ynh_secure_remove /var/lib/postgresql/mastodon_db.sql

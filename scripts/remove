@@ -17,8 +17,8 @@ domain=$(ynh_app_setting_get "$app" domain)
 if [ -e "/etc/systemd/system/mastodon-web.service" ]; then
 	echo "Delete systemd script"
 	sudo systemctl stop mastodon-web.service
+	ynh_secure_remove "/etc/systemd/system/mastodon-web.service"
 	sudo systemctl disable mastodon-web.service
-	sudo rm "/etc/systemd/system/mastodon-web.service"
 
 fi
 
@@ -26,16 +26,16 @@ fi
 if [ -e "/etc/systemd/system/mastodon-sidekiq.service" ]; then
 	echo "Delete systemd script"
 	sudo systemctl stop mastodon-sidekiq.service
+	ynh_secure_remove "/etc/systemd/system/mastodon-sidekiq.service"
 	sudo systemctl disable mastodon-sidekiq.service
-	sudo rm "/etc/systemd/system/mastodon-sidekiq.service"
 fi
 
 # Stop mastodon-sidekiq
 if [ -e "/etc/systemd/system/mastodon-streaming.service" ]; then
 	echo "Delete systemd script"
 	sudo systemctl stop mastodon-sidekiq.streaming
+	ynh_secure_remove "/etc/systemd/system/mastodon-streaming.service"
 	sudo systemctl disable mastodon-streaming.service
-	sudo rm "/etc/systemd/system/mastodon-streaming.service"
 fi
 
 # Delete service on Yunohost monitoring
@@ -74,27 +74,25 @@ sudo apt-get remove --purge -y yarn
 #sudo apt-get remove --purge -y autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
 
 # Delete app directory and configurations
-SECURE_REMOVE '/opt/$app'
+ynh_secure_remove /opt/$app
 [[ -n $domain ]] && sudo rm -f "/etc/nginx/conf.d/${domain}.d/${app}.conf"
 
 # Delete nginx configuration
 REMOVE_NGINX_CONF
 
-# Delete log
-SECURE_REMOVE '/var/log/$app/'
 # Delete cronlog
-SECURE_REMOVE '/etc/cron.d/$app'
+ynh_secure_remove /etc/cron.d/$app
 # Delete source.list
-sudo rm /etc/apt/sources.list.d/backports.list
-sudo rm /etc/apt/sources.list.d/yarn.list
+ynh_secure_remove /etc/apt/sources.list.d/backports.list
+ynh_secure_remove /etc/apt/sources.list.d/yarn.list
 
-# Delete ruby symb link
-# sudo rm /usr/bin/ruby
+# Delete ruby exec
+ynh_secure_remove /usr/bin/ruby
 
 # Remove user
 sudo userdel -f $app
 
 # Reload services
-sudo service nginx reload
+sudo systemctl reload nginx
 
 echo -e "\e[0m"	# Restore normal color
