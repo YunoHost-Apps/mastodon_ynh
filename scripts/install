@@ -198,8 +198,5 @@ ynh_app_setting_set "$app" unprotected_uris "/"
 # Reload SSOwat configuration
 sudo yunohost app ssowatconf
 
-# Reload SSOwat configuration
-sudo yunohost app ssowatconf
-
 # Reload Nginx
 sudo systemctl reload nginx
