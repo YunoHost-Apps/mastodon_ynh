@@ -32,7 +32,7 @@ fi
 # Stop mastodon-sidekiq
 if [ -e "/etc/systemd/system/mastodon-streaming.service" ]; then
 	echo "Delete systemd script"
-	sudo systemctl stop mastodon-sidekiq.streaming
+	sudo systemctl stop mastodon-streaming.service
 	ynh_secure_remove "/etc/systemd/system/mastodon-streaming.service"
 	sudo systemctl disable mastodon-streaming.service
 fi
