@@ -82,7 +82,7 @@ sudo su -c "psql" postgres <<< \
 	      "update pg_database set datistemplate='true' where datname='template1';"
 
 # Acl for Postgres user dump
-sudo setfacl -R -m u:postgres:r $YNH_APP_BACKUP_DIR || true
+sudo chmod o+r $YNH_APP_BACKUP_DIR/mastodon_db.sql || true
 
 # Restore db
 ynh_psql_create_db_without_password "$app"
