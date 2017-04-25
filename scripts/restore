@@ -81,15 +81,17 @@ sudo su -c "psql" postgres <<< \
 sudo su -c "psql" postgres <<< \
 	      "update pg_database set datistemplate='true' where datname='template1';"
 
-# Acl for Postgres user dump
-sudo chmod a+rx $YNH_APP_BACKUP_DIR
-sudo chmod a+rx $YNH_APP_BACKUP_DIR/mastodon_db.sql
+# Copy postgresql dump
+sudo cp $YNH_APP_BACKUP_DIR/mastodon_db.sql $final_path
 
 # Restore db
 ynh_psql_create_db_without_password "$app"
 sudo su - postgres <<COMMANDS
-pg_dump --role=mastodon -U postgres --no-password mastodon < $YNH_APP_BACKUP_DIR/mastodon_db.sql
+pg_dump --role=mastodon -U postgres --no-password mastodon < $final_path/mastodon_db.sql
 COMMANDS
+
+# Delete dump after restore
+# rm $final_path/mastodon_db.sql
 
 # Create symlink for ruby
 sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
