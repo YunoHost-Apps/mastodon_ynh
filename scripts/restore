@@ -70,6 +70,8 @@ sudo cp -a ./sources "$final_path"
 
 # Set permissions
 sudo chown -R $app: "$final_path"
+sudo chmod -R a+rx /home/yunohost.backup/tmp
+
 
 # Set UTF8 encoding by default
 sudo su -c "psql" postgres <<< \
