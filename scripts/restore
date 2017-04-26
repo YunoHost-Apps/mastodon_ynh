@@ -88,6 +88,7 @@ sudo cp $YNH_APP_BACKUP_DIR/mastodon_db.sql $final_path
 
 # Restore db
 ynh_psql_create_db_without_password "$app"
+sudo systemctl restart postgresql
 sudo su - postgres <<COMMANDS
 pg_dump --role=mastodon -U postgres --no-password mastodon < $final_path/mastodon_db.sql
 COMMANDS
