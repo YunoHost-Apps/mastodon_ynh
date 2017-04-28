@@ -82,12 +82,13 @@ sudo su -c "psql" postgres <<< \
 ynh_psql_create_db_without_password "$app"
 sudo systemctl restart postgresql
 
-# Download all Ruby source
+# Download all sources rbenv, ruby and mastodon
+pushd $final_path/live
 sudo su - $app <<CLONECOMMANDS
 git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
 git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
 git clone https://github.com/tootsuite/mastodon.git $final_path/live
-cd $final_path/live
+pushd $final_path/live
 git checkout $(git tag | tail -n 1)
 CLONECOMMANDS
 

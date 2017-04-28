@@ -38,8 +38,9 @@ sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 sudo systemctl stop mastodon-*.service
 
 # Update Mastodon
+pushd /opt/mastodon/live
 sudo su - $app <<COMMANDS
-cd live
+pushd ~/live
 git fetch
 git pull https://github.com/tootsuite/mastodon.git master
 git checkout $(git tag | tail -n 1)
