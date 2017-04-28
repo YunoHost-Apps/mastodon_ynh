@@ -70,6 +70,8 @@ sudo cp -a ./sources "$final_path"
 
 # Set permissions
 sudo chown -R $app: "$final_path"
+sudo chmod -R a+rx /home/yunohost.backup/tmp
+
 
 # Set UTF8 encoding by default
 sudo su -c "psql" postgres <<< \
@@ -81,11 +83,18 @@ sudo su -c "psql" postgres <<< \
 sudo su -c "psql" postgres <<< \
 	      "update pg_database set datistemplate='true' where datname='template1';"
 
+# Copy postgresql dump
+sudo cp $YNH_APP_BACKUP_DIR/mastodon_db.sql $final_path
+
 # Restore db
 ynh_psql_create_db_without_password "$app"
+sudo systemctl restart postgresql
 sudo su - postgres <<COMMANDS
-pg_dump --role=mastodon -U postgres --no-password mastodon < $YNH_APP_BACKUP_DIR/mastodon_db.sql
+pg_restore --role=mastodon -U postgres --no-password < $final_path/mastodon_db.sql
 COMMANDS
+
+# Delete dump after restore
+# rm $final_path/mastodon_db.sql
 
 # Create symlink for ruby
 sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true

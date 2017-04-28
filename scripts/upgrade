@@ -39,7 +39,7 @@ sudo systemctl stop mastodon-*.service
 
 # Update Mastodon
 sudo su - $app <<COMMANDS
-pushd ~/live
+cd live
 git fetch
 git pull https://github.com/tootsuite/mastodon.git master
 git checkout $(git tag | tail -n 1)
