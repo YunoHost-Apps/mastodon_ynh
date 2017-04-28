@@ -45,7 +45,7 @@ git fetch
 git pull https://github.com/tootsuite/mastodon.git master
 git checkout $(git tag | tail -n 1)
 bin/bundle install
-yarn install --production
+yarn install --pure-lockfile
 RAILS_ENV=production bundle exec rails assets:clean
 RAILS_ENV=production bundle exec rails assets:precompile
 RAILS_ENV=production bundle exec rails db:migrate
