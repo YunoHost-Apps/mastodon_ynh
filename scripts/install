@@ -162,7 +162,7 @@ type rbenv
 BCOMMANDS
 
 # Add Services
-pushd $(popd)
+popd
 
 sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
 sudo chown root: /etc/systemd/system/mastodon-web.service
