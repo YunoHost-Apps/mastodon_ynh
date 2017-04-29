@@ -70,13 +70,13 @@ ynh_package_install yarn
 
 # Set UTF8 encoding by default
 sudo su -c "psql" postgres <<< \
-        "update pg_database set datistemplate='false' where datname='template1';"
+			"update pg_database set datistemplate='false' where datname='template1';"
 sudo su -c "psql" postgres <<< \
-	      "drop database template1;"
+			"drop database template1;"
 sudo su -c "psql" postgres <<< \
-	      "create database template1 encoding='UTF8' template template0;"
+			"create database template1 encoding='UTF8' template template0;"
 sudo su -c "psql" postgres <<< \
-	      "update pg_database set datistemplate='true' where datname='template1';"
+			"update pg_database set datistemplate='true' where datname='template1';"
 
 # Create DB without password
 ynh_psql_create_db_without_password "$app"
@@ -91,11 +91,6 @@ CLONECOMMANDS
 
 # Be king rewind (/var/cache/yunohost/from_file/scripts)
 popd
-
-# # Get Mastodon last version
-# sudo mkdir "${final_path}/live"
-# SETUP_SOURCE
-# sudo chown -R $app: "${final_path}"
 
 # Install de rbenv
 sudo su - $app <<COMMANDS
