@@ -89,6 +89,10 @@ git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/rub
 git clone https://github.com/tootsuite/mastodon.git $final_path/live
 CLONECOMMANDS
 
+# Switch to tagged release
+pushd $final_path/live
+sudo git checkout $(git tag | tail -n 1)
+
 # Be king rewind (/var/cache/yunohost/from_file/scripts)
 popd
 
