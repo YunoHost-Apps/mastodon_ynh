@@ -50,6 +50,7 @@ sudo git checkout $(git tag | tail -n 1)
 
 # Apply Mastodon upgrade
 sudo su - $app <<COMMANDS
+pushd ~/live
 bin/bundle install
 yarn install --pure-lockfile
 RAILS_ENV=production bundle exec rails assets:clean
