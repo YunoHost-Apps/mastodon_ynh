@@ -37,13 +37,19 @@ sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 # Stop Mastodon Services
 sudo systemctl stop mastodon-*.service
 
-# Update Mastodon
-pushd /opt/mastodon/live
-sudo su - $app <<COMMANDS
+# Download Mastodon
+sudo su - $app <<PULLCOMMANDS
 pushd ~/live
 git fetch
 git pull https://github.com/tootsuite/mastodon.git master
-git checkout $(git tag | tail -n 1)
+PULLCOMMANDS
+
+# Switch branch to tagged release
+pushd /opt/mastodon/live
+sudo git checkout $(git tag | tail -n 1)
+
+# Apply Mastodon upgrade
+sudo su - $app <<COMMANDS
 bin/bundle install
 yarn install --pure-lockfile
 RAILS_ENV=production bundle exec rails assets:clean
