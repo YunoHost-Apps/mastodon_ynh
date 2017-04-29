@@ -24,7 +24,7 @@ is_public=$(ynh_app_setting_get $app is_public)
 
 # Check domain/path availability
 sudo yunohost app checkurl "${domain}${path}" -a "$app" \
-    || ynh_die "Path not available: ${domain}${path}"
+	|| ynh_die "Path not available: ${domain}${path}"
 
 # Check $final_path
 final_path="/opt/${app}"
@@ -66,29 +66,33 @@ fi
 sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
 
  # Restore sources & data
-sudo cp -a ./sources "$final_path"
+sudo cp -a ./sources/. "$final_path"
 
 # Set permissions
 sudo chown -R $app: "$final_path"
 
+sudo ls -alh "$final_path"
+
+# Change directory for create user & database postgresql
+
 # Set UTF8 encoding by default
 sudo su -c "psql" postgres <<< \
-        "update pg_database set datistemplate='false' where datname='template1';"
+			"update pg_database set datistemplate='false' where datname='template1';"
 sudo su -c "psql" postgres <<< \
-	      "drop database template1;"
+			"drop database template1;"
 sudo su -c "psql" postgres <<< \
-	      "create database template1 encoding='UTF8' template template0;"
+			"create database template1 encoding='UTF8' template template0;"
 sudo su -c "psql" postgres <<< \
-	      "update pg_database set datistemplate='true' where datname='template1';"
+			"update pg_database set datistemplate='true' where datname='template1';"
 
-# Restore db
+# Create user for db postgresql
 ynh_psql_create_db_without_password "$app"
-sudo su - postgres <<COMMANDS
-pg_dump --role=mastodon -U postgres --no-password mastodon < $YNH_APP_BACKUP_DIR/mastodon_db.sql
-COMMANDS
 
-# Create symlink for ruby
-sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
+# Setup database
+sudo su - $app <<SCOMMANDS
+cd ~/live
+RAILS_ENV=production bin/bundle exec rails db:setup
+SCOMMANDS
 
 # Restore Mastodon
 sudo su - $app <<RCOMMANDS
@@ -97,16 +101,22 @@ RAILS_ENV=production bin/bundle exec rails db:migrate
 RAILS_ENV=production bin/bundle exec rails assets:precompile
 RCOMMANDS
 
+# restore database
+sudo pg_dump mastodon_production < $YNH_APP_BACKUP_DIR/mastodon_db.sql
+
+# Create symlink for ruby
+sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
+
 # Restore nginx configuration files
 sudo cp -a ./nginx.conf   "$nginx_conf"
 # Restore crontab
 sudo cp -a ./cron.conf "$crontab_conf"
 
-sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
+sudo cp ./systemd_web.service /etc/systemd/system/mastodon-web.service
 sudo chown root: /etc/systemd/system/mastodon-web.service
-sudo cp ../conf/mastodon-sidekiq.service /etc/systemd/system/mastodon-sidekiq.service
+sudo cp ./systemd_sidekiq.service /etc/systemd/system/mastodon-sidekiq.service
 sudo chown root: /etc/systemd/system/mastodon-sidekiq.service
-sudo cp ../conf/mastodon-streaming.service /etc/systemd/system/mastodon-streaming.service
+sudo cp ./systemd_streaming.service /etc/systemd/system/mastodon-streaming.service
 sudo chown root: /etc/systemd/system/mastodon-streaming.service
 
 sudo systemctl daemon-reload
