@@ -43,7 +43,7 @@ sudo su - $app <<COMMANDS
 pushd ~/live
 git fetch
 git pull https://github.com/tootsuite/mastodon.git master
-#git checkout $(git tag | tail -n 1)
+git checkout $(git tag | tail -n 1)
 bin/bundle install
 yarn install --pure-lockfile
 RAILS_ENV=production bundle exec rails assets:clean
