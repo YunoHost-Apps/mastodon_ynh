@@ -33,6 +33,9 @@ ynh_app_setting_set $app admin $admin_mastodon
 ynh_app_setting_set $app pass $admin_pass
 ynh_app_setting_set $app language $language
 
+[[ ${#admin_pass} -gt 8 ]] || ynh_die \
+"The password is too weak, it must be longer than 8 characters"
+
 # Create user unix
 sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
 
@@ -181,6 +184,21 @@ sudo systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-str
 sudo yunohost service add mastodon-web
 sudo yunohost service add mastodon-sidekiq
 sudo yunohost service add mastodon-streaming
+
+# Create user
+sudo su - $app <<UCOMMANDS
+pushd ~/live
+RAILS_ENV=production bundle exec rails c
+account = Account.create!(username: '$admin_mastodon')
+user = User.create!(email: '$admin_mastodon@$domain', password: '$admin_pass', account: account)
+UCOMMANDS
+
+# Create administrator & confirm user
+sudo su - $app <<ACOMMANDS
+pushd ~/live
+RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
+RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon@$domain
+ACOMMANDS
 
 # Copy nginx config
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
