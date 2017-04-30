@@ -45,7 +45,7 @@ git pull https://github.com/tootsuite/mastodon.git master
 PULLCOMMANDS
 
 # Switch branch to tagged release
-cd /opt/mastodon/live
+cd $final_path/live
 sudo git checkout $(git tag | tail -n 1)
 
 # Apply Mastodon upgrade
