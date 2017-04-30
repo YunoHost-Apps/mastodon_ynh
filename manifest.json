@@ -44,8 +44,8 @@
                 "name": "passwd",
                 "type": "password",
                 "ask": {
-                    "en": "Enter password of this administrator",
-                    "fr": "Ajouter le mot de passe pour cette administrateur"
+                    "en": "Enter password of this administrator ≥ 8 character",
+                    "fr": "Ajouter le mot de passe pour cette administrateur ≥ 8 charactères"
                 },
                 "example": "adminpassword"
             },
