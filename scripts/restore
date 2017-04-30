@@ -70,9 +70,8 @@ sudo cp -a ./sources/. "$final_path"
 
 # Set permissions
 sudo chown -R $app: "$final_path"
-sudo chmod -R a+rx /home/yunohost.backup/tmp
 
-
+# Debug
 sudo ls -alh "$final_path"
 
 # Change directory for create user & database postgresql
@@ -104,7 +103,16 @@ RAILS_ENV=production bin/bundle exec rails assets:precompile
 RCOMMANDS
 
 # restore database
-sudo psql mastodon_production < $YNH_APP_BACKUP_DIR/mastodon_db.sql
+sudo cp $YNH_APP_BACKUP_DIR/mastodon_db.sql $final_path
+
+sudo su - $app <<RECOMMANDS
+dropdb mastodon_production
+createdb mastodon_production
+psql mastodon_production < $YNH_APP_BACKUP_DIR/mastodon_db.sql
+RECOMMANDS
+
+# Remove dump
+sudo rm $final_path/mastodon_db.sql
 
 # Create symlink for ruby
 sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
