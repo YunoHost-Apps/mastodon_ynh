@@ -110,7 +110,7 @@ sudo chmod a+r $final_path/mastodon_db.sql
 sudo su - $app <<RECOMMANDS
 dropdb mastodon_production
 createdb mastodon_production
-psql mastodon_production < $YNH_APP_BACKUP_DIR/mastodon_db.sql
+psql mastodon_production < $final_path/mastodon_db.sql
 RECOMMANDS
 
 # Remove dump
