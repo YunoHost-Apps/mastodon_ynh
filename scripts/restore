@@ -101,8 +101,19 @@ RAILS_ENV=production bin/bundle exec rails db:migrate
 RAILS_ENV=production bin/bundle exec rails assets:precompile
 RCOMMANDS
 
-# restore database
-sudo psql mastodon_production < $YNH_APP_BACKUP_DIR/mastodon_db.sql
+# copy database dump
+sudo cp $YNH_APP_BACKUP_DIR/mastodon_db.sql $final_path
+sudo chmod a+r $final_path/mastodon_db.sql
+
+# Restore database dump
+sudo su - $app <<RECOMMANDS
+dropdb mastodon_production
+createdb mastodon_production
+psql mastodon_production < $final_path/mastodon_db.sql
+RECOMMANDS
+
+# Remove dump
+ynh_secure_remove $final_path/mastodon_db.sql
 
 # Create symlink for ruby
 sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
