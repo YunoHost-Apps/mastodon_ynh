@@ -41,6 +41,7 @@ sudo systemctl stop mastodon-*.service
 sudo su - $app <<PULLCOMMANDS
 pushd ~/live
 git fetch
+git reset --hard origin/master
 git pull https://github.com/tootsuite/mastodon.git master
 PULLCOMMANDS
 
