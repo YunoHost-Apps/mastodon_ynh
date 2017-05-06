@@ -62,6 +62,9 @@ RAILS_ENV=production bundle exec rails assets:precompile
 RAILS_ENV=production bundle exec rails db:migrate
 COMMANDS
 
+# Restart Mastodon
+sudo systemctl start mastodon-*.service
+
 # Reload Nginx
 sudo systemctl reload nginx
 
@@ -70,6 +73,3 @@ ynh_app_setting_set "$app" unprotected_uris "/"
 
 # Reload SSOwat configuration
 sudo yunohost app ssowatconf
-
-# Restart Mastodon
-sudo systemctl start mastodon-*.service
