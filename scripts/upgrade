@@ -40,7 +40,7 @@ sudo systemctl stop mastodon-*.service
 # Download Mastodon
 sudo su - $app <<PULLCOMMANDS
 pushd ~/live
-git fetch
+# git fetch
 git pull https://github.com/tootsuite/mastodon.git master
 PULLCOMMANDS
 
