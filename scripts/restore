@@ -95,6 +95,9 @@ sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,Home
 	# Install Yarn
 	ynh_package_install yarn
 
+	# Return to home
+	popd
+	
  # Restore sources & data
 sudo cp -a ./sources/. "$final_path"
 
