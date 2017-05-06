@@ -113,7 +113,7 @@ psql mastodon_production < $final_path/mastodon_db.sql
 RECOMMANDS
 
 # Remove dump
-sudo rm $final_path/mastodon_db.sql
+ynh_secure_remove $final_path/mastodon_db.sql
 
 # Create symlink for ruby
 sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
