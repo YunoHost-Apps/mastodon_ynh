@@ -3,6 +3,12 @@
 # Exit on command errors and treat unset variables as an error
 set -u
 
+if [ ! -e .fonctions ]; then
+	# Get file fonction if not been to the current directory
+	sudo cp ../settings/scripts/.fonctions ./.fonctions
+	sudo chmod a+rx .fonctions
+fi
+
 source .fonctions	# Loads the generic functions usually used in the script
 # Source app helpers
 source /usr/share/yunohost/helpers
