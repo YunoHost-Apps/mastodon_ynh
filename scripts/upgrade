@@ -37,10 +37,14 @@ sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 # Stop Mastodon Services
 sudo systemctl stop mastodon-*.service
 
+# Change owner of live folder
+sudo chown -R $app: $final_path/live
+
 # Download Mastodon
 sudo su - $app <<PULLCOMMANDS
 pushd ~/live
 git fetch
+git reset --hard origin/master
 git pull https://github.com/tootsuite/mastodon.git master
 PULLCOMMANDS
 
