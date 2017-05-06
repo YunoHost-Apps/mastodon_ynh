@@ -106,8 +106,6 @@ sudo chown -R $app: "$final_path"
 
 sudo ls -alh "$final_path"
 
-# Change directory for create user & database postgresql
-
 # Set UTF8 encoding by default
 sudo su -c "psql" postgres <<< \
 			"update pg_database set datistemplate='false' where datname='template1';"
