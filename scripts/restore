@@ -104,6 +104,7 @@ sudo cp -a ./sources/. "$final_path"
 # Set permissions
 sudo chown -R $app: "$final_path"
 
+# Debug
 sudo ls -alh "$final_path"
 
 # Set UTF8 encoding by default
