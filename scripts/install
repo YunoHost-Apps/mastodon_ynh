@@ -33,7 +33,7 @@ ynh_app_setting_set $app admin $admin_mastodon
 ynh_app_setting_set $app pass $admin_pass
 ynh_app_setting_set $app language $language
 
-[[ ${#admin_pass} -gt 8 ]] || ynh_die \
+[[ ${#admin_pass} -gt 7 ]] || ynh_die \
 "The password is too weak, it must be longer than 8 characters"
 
 # Create user unix
