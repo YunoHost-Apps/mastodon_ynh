@@ -79,9 +79,9 @@ sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,Home
 	ynh_package_install autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
 
 	# Install source.list debian package backports & yarn
-	sudo cp ../conf/backports.list /etc/apt/sources.list.d/
+	sudo cp ./apt_backports.list /etc/apt/sources.list.d/backports.list
 	sudo curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-	sudo cp ../conf/yarn.list /etc/apt/sources.list.d/
+	sudo cp ./apt_yarn.list /etc/apt/sources.list.d/yarn.list
 	ynh_package_update
 
 	# Install debian package backports
