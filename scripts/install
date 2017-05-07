@@ -15,6 +15,7 @@ TRAP_ON	# Active trap to stop the script if an error is detected.
 
 domain=$YNH_APP_ARG_DOMAIN
 admin_mastodon=$YNH_APP_ARG_ADMIN
+admin_mastodon_mail=$(ynh_user_get_info $admin_mastodon 'mail')
 admin_pass=$YNH_APP_ARG_PASSWD
 language=$YNH_APP_ARG_LANGUAGE
 
@@ -190,7 +191,7 @@ sudo su - $app <<UCOMMANDS
 pushd ~/live
 RAILS_ENV=production bundle exec rails c
 account = Account.create!(username: '$admin_mastodon')
-user = User.create!(email: '$admin_mastodon@$domain', password: '$admin_pass', account: account)
+user = User.create!(email: '$admin_mastodon_mail', password: '$admin_pass', account: account)
 UCOMMANDS
 
 # Create administrator & confirm user
