@@ -198,7 +198,7 @@ UCOMMANDS
 sudo su - $app <<ACOMMANDS
 pushd ~/live
 RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
-RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon@$domain
+RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon_mail
 ACOMMANDS
 
 # Copy nginx config
