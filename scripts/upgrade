@@ -65,6 +65,9 @@ COMMANDS
 # Restart Mastodon
 sudo systemctl start mastodon-*.service
 
+# Waiting start all services
+sleep 30
+
 # Reload Nginx
 sudo systemctl reload nginx
 
