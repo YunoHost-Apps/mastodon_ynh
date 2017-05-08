@@ -35,7 +35,7 @@ ynh_app_setting_set $app pass $admin_pass
 ynh_app_setting_set $app language $language
 
 [[ ${#admin_pass} -gt 7 ]] || ynh_die \
-"The password is too weak, it must be longer than 8 characters"
+"The password is too weak, it must be longer than 7 characters"
 
 # Create user unix
 sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
