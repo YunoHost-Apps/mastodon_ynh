@@ -15,6 +15,7 @@ TRAP_ON	# Active trap to stop the script if an error is detected.
 
 domain=$YNH_APP_ARG_DOMAIN
 admin_mastodon=$YNH_APP_ARG_ADMIN
+admin_mastodon_mail=$(ynh_user_get_info $admin_mastodon 'mail')
 admin_pass=$YNH_APP_ARG_PASSWD
 language=$YNH_APP_ARG_LANGUAGE
 
@@ -33,8 +34,8 @@ ynh_app_setting_set $app admin $admin_mastodon
 ynh_app_setting_set $app pass $admin_pass
 ynh_app_setting_set $app language $language
 
-[[ ${#admin_pass} -gt 8 ]] || ynh_die \
-"The password is too weak, it must be longer than 8 characters"
+[[ ${#admin_pass} -gt 7 ]] || ynh_die \
+"The password is too weak, it must be longer than 7 characters"
 
 # Create user unix
 sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
@@ -190,14 +191,14 @@ sudo su - $app <<UCOMMANDS
 pushd ~/live
 RAILS_ENV=production bundle exec rails c
 account = Account.create!(username: '$admin_mastodon')
-user = User.create!(email: '$admin_mastodon@$domain', password: '$admin_pass', account: account)
+user = User.create!(email: '$admin_mastodon_mail', password: '$admin_pass', account: account)
 UCOMMANDS
 
 # Create administrator & confirm user
 sudo su - $app <<ACOMMANDS
 pushd ~/live
 RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
-RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon@$domain
+RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon_mail
 ACOMMANDS
 
 # Copy nginx config
