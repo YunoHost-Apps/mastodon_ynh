@@ -50,7 +50,10 @@ PULLCOMMANDS
 
 # Switch branch to tagged release
 cd $final_path/live
-sudo git checkout $(git tag | tail -n 1)
+sudo su - $app <<SWITCHCOMMANDS
+pushd ~/live
+git checkout $(git tag | tail -n 1)
+SWITCHCOMMANDS
 
 # Apply Mastodon upgrade
 sudo su - $app <<COMMANDS

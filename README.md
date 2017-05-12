@@ -90,5 +90,5 @@ It seems important to close the inscriptions for your Mastodon, so that it remai
 - [x] Fix restore
 - [x] Install from a release
 - [x] Tune [Create automatic user](https://github.com/tootsuite/documentation/blob/master/Running-Mastodon/Administration-guide.md#creating-users-while-registration-is-closed)
-- [ ] Change SMTP settings
+- [x] Change SMTP settings
 - [ ] Fix errors on jenkins
