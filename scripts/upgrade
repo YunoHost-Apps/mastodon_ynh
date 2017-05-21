@@ -52,7 +52,9 @@ PULLCOMMANDS
 cd $final_path/live
 sudo su - $app <<SWITCHCOMMANDS
 pushd ~/live
-git checkout $(git tag | tail -n 1)
+url=$(curl -s https://api.github.com/repos/tootsuite/mastodon/releases/latest | sort -r | head -1 | cut -d\" -f4)
+version=$(echo $url | cut -d/ -f8)
+git checkout $(git tag $version)
 SWITCHCOMMANDS
 
 # Apply Mastodon upgrade
