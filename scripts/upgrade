@@ -55,11 +55,16 @@ pushd ~/live
 git checkout $(git tag | tail -n 1)
 SWITCHCOMMANDS
 
-# Upgrade Node.js
-pushd /opt
-curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
-sudo apt-get install -y nodejs
-popd
+# upgrade Node.js v4 to v6
+node_version=$(nodejs --version)
+if [[ $node_version =~ ^v4.*$  ]]; then
+	pushd /opt
+	curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
+	sudo apt-get -y install nodejs
+fi
+
+# add additional package for release 1.4
+ynh_package_install pkg-config libprotobuf-dev protobuf-compiler
 
 # Apply Mastodon upgrade
 sudo su - $app <<COMMANDS
