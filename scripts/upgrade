@@ -55,9 +55,16 @@ pushd ~/live
 git checkout $(git tag | tail -n 1)
 SWITCHCOMMANDS
 
+# Upgrade Node.js
+pushd /opt
+curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
+sudo apt-get install -y nodejs
+popd
+
 # Apply Mastodon upgrade
 sudo su - $app <<COMMANDS
 pushd ~/live
+pkg-config libprotobuf-dev protobuf-compiler
 bin/bundle install
 yarn install --pure-lockfile
 RAILS_ENV=production bundle exec rails assets:clean
