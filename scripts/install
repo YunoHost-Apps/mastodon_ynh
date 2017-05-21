@@ -41,7 +41,7 @@ ynh_app_setting_set $app language $language
 sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
 
 # Install debian package
-ynh_package_install imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https
+ynh_package_install imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler
 
 # Install redis package
 ynh_package_install redis-server redis-tools
@@ -66,7 +66,7 @@ ynh_app_setting_set $app final_path $final_path
 
 # Install de Node.js
 pushd /opt
-curl -sL https://deb.nodesource.com/setup_4.x | sudo bash -
+curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
 sudo apt-get -y install nodejs
 
 # Install Yarn
@@ -95,9 +95,11 @@ CLONECOMMANDS
 
 # Switch branch to tagged release
 cd $final_path/live
+url=$(curl -s https://api.github.com/repos/tootsuite/mastodon/releases/latest | sort -r | head -1 | cut -d\" -f4)
+version=$(echo $url | cut -d/ -f8)
 sudo su - $app <<SWITCHCOMMANDS
 pushd ~/live
-git checkout $(git tag | tail -n 1)
+git checkout $version
 SWITCHCOMMANDS
 
 # Be king rewind (/var/cache/yunohost/from_file/scripts)
