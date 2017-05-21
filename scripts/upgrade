@@ -69,10 +69,10 @@ ynh_package_install pkg-config libprotobuf-dev protobuf-compiler
 # Apply Mastodon upgrade
 sudo su - $app <<COMMANDS
 pushd ~/live
-pkg-config libprotobuf-dev protobuf-compiler
+# pkg-config libprotobuf-dev protobuf-compiler
 bin/bundle install
 yarn install --pure-lockfile
-RAILS_ENV=production bundle exec rails assets:clean
+# RAILS_ENV=production bundle exec rails assets:clean
 RAILS_ENV=production bundle exec rails assets:precompile
 RAILS_ENV=production bundle exec rails db:migrate
 COMMANDS
