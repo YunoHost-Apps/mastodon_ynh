@@ -40,7 +40,7 @@ sudo systemctl stop mastodon-*.service
 # Change owner of live folder
 sudo chown -R $app: $final_path/live
 
-# upgrade Node.js v4 to v6
+# upgrade Node.js v4 to v6 
 node_version=$(nodejs --version)
 if [[ $node_version =~ ^v4.*$  ]]; then
 	pushd /opt
@@ -58,9 +58,11 @@ PULLCOMMANDS
 
 # Switch branch to tagged release
 cd $final_path/live
+url=$(curl -s https://api.github.com/repos/tootsuite/mastodon/releases/latest | sort -r | head -1 | cut -d\" -f4)
+version=$(echo $url | cut -d/ -f8)
 sudo su - $app <<SWITCHCOMMANDS
 pushd ~/live
-git checkout $(git tag | tail -n 1)
+git checkout $version
 SWITCHCOMMANDS
 
 # upgrade Node.js v4 to v6
