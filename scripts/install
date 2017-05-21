@@ -41,7 +41,7 @@ ynh_app_setting_set $app language $language
 sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
 
 # Install debian package
-ynh_package_install imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https
+ynh_package_install imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler
 
 # Install redis package
 ynh_package_install redis-server redis-tools
