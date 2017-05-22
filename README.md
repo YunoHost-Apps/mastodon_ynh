@@ -82,13 +82,3 @@ The admin user is automatically created as: user@domain.tld
 You can't install Mastodon in subdirectory, you must use a domain or subdomain for this application.
 
 It seems important to close the inscriptions for your Mastodon, so that it remains a private body. We invite you to block remote malicious instances from the administration interface. You can also add text on your home page.
-
-## TODO
-
-- [x] Fix upgrade
-- [x] [Create automatic user](https://github.com/tootsuite/documentation/blob/master/Running-Mastodon/Administration-guide.md#creating-users-while-registration-is-closed)
-- [x] Fix restore
-- [x] Install from a release
-- [x] Tune [Create automatic user](https://github.com/tootsuite/documentation/blob/master/Running-Mastodon/Administration-guide.md#creating-users-while-registration-is-closed)
-- [x] Change SMTP settings
-- [ ] Fix errors on jenkins
