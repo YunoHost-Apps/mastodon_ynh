@@ -89,7 +89,7 @@ sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,Home
 
 	# Install de Node.js
 	pushd /opt
-	curl -sL https://deb.nodesource.com/setup_4.x | sudo bash -
+	curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
 	sudo apt-get -y install nodejs
 
 	# Install Yarn
