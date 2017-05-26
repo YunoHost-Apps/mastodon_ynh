@@ -153,11 +153,14 @@ ynh_secure_remove $final_path/mastodon_db.sql
 sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
 
 # Upgrade Mastodon
-#sudo su - $app <<RCOMMANDS
-#cd ~/live
+sudo su - $app <<RCOMMANDS
+cd ~/live
+bin/bundle install
+yarn install --pure-lockfile
 #RAILS_ENV=production bin/bundle exec rails db:migrate
+#RAILS_ENV=production bundle exec rails assets:clean
 #RAILS_ENV=production bin/bundle exec rails assets:precompile
-#RCOMMANDS
+RCOMMANDS
 
 # Restore nginx configuration files
 sudo cp -a ./nginx.conf   "$nginx_conf"
