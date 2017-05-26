@@ -58,9 +58,11 @@ PULLCOMMANDS
 
 # Switch branch to tagged release
 cd $final_path/live
+url=$(curl -s https://api.github.com/repos/tootsuite/mastodon/releases/latest | sort -r | head -1 | cut -d\" -f4)
+version=$(echo $url | cut -d/ -f8)
 sudo su - $app <<SWITCHCOMMANDS
 pushd ~/live
-git checkout $(git tag | tail -n 1)
+git checkout $version
 SWITCHCOMMANDS
 
 # upgrade Node.js v4 to v6
