@@ -152,12 +152,12 @@ ynh_secure_remove $final_path/mastodon_db.sql
 # Create symlink for ruby
 sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
 
-# Restore Mastodon
-sudo su - $app <<RCOMMANDS
-cd ~/live
-RAILS_ENV=production bin/bundle exec rails db:migrate
-RAILS_ENV=production bin/bundle exec rails assets:precompile
-RCOMMANDS
+# Upgrade Mastodon
+#sudo su - $app <<RCOMMANDS
+#cd ~/live
+#RAILS_ENV=production bin/bundle exec rails db:migrate
+#RAILS_ENV=production bin/bundle exec rails assets:precompile
+#RCOMMANDS
 
 # Restore nginx configuration files
 sudo cp -a ./nginx.conf   "$nginx_conf"
