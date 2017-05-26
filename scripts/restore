@@ -35,30 +35,30 @@ fi
 # Check configuration files nginx
 nginx_conf="/etc/nginx/conf.d/${domain}.d/${app}.conf"
 if [ -f $nginx_conf ]; then
-	ynh_die "The NGINX configuration already exists at '${nginx_conf}'. 
+	ynh_die "The NGINX configuration already exists at '${nginx_conf}'.
 	You should safely delete it before restoring this app."
 fi
 # Check configuration files php-fpm
 crontab_conf="/etc/cron.d/${app}"
-if [ -f $crontab_conf ]; then 
-	ynh_die "The CRONTAB configuration already exists at '${crontab_conf}'. 
+if [ -f $crontab_conf ]; then
+	ynh_die "The CRONTAB configuration already exists at '${crontab_conf}'.
 	You should safely delete it before restoring this app."
 fi
 
 # Restore services
 web_systemd="/etc/systemd/system/${app}-web.service"
 if [ -f "${web_systemd}" ]; then
-	ynh_die "The MASTODON WEB configuration already exists at '${web_systemd}'. 
+	ynh_die "The MASTODON WEB configuration already exists at '${web_systemd}'.
 	You should safely delete it before restoring this app."
 fi
 sidekiq_systemd="/etc/systemd/system/${app}-sidekiq.service"
 if [ -f "${sidekiq_systemd}" ]; then
-	ynh_die "The MASTODON SIDEKIQ configuration already exists at '${sidekiq_systemd}'. 
+	ynh_die "The MASTODON SIDEKIQ configuration already exists at '${sidekiq_systemd}'.
 	You should safely delete it before restoring this app."
 fi
 streaming_systemd="/etc/systemd/system/${app}-streaming.service"
 if [ -f "${streaming_systemd}" ]; then
-	ynh_die "The MASTODON STREAMING configuration already exists at '${streaming_systemd}'. 
+	ynh_die "The MASTODON STREAMING configuration already exists at '${streaming_systemd}'.
 	You should safely delete it before restoring this app."
 fi
 
@@ -97,7 +97,7 @@ sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,Home
 
 	# Return to home
 	popd
-	
+
  # Restore sources & data
 sudo cp -a ./sources/. "$final_path"
 
@@ -117,21 +117,23 @@ sudo su -c "psql" postgres <<< \
 sudo su -c "psql" postgres <<< \
 			"update pg_database set datistemplate='true' where datname='template1';"
 
+# Install rbenv
+sudo su - $app <<COMMANDS
+pushd ~/.rbenv
+src/configure && make -C src
+echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.profile
+echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.bashrc
+echo 'eval "\$(rbenv init -)"' >> ~/.profile
+COMMANDS
+
 # Create user for db postgresql
 ynh_psql_create_db_without_password "$app"
 
 # Setup database
-sudo su - $app <<SCOMMANDS
-cd ~/live
-RAILS_ENV=production bin/bundle exec rails db:setup
-SCOMMANDS
-
-# Restore Mastodon
-sudo su - $app <<RCOMMANDS
-cd ~/live
-RAILS_ENV=production bin/bundle exec rails db:migrate
-RAILS_ENV=production bin/bundle exec rails assets:precompile
-RCOMMANDS
+#sudo su - $app <<SCOMMANDS
+#cd ~/live
+#RAILS_ENV=production bin/bundle exec rails db:setup
+#SCOMMANDS
 
 # copy database dump
 sudo cp $YNH_APP_BACKUP_DIR/mastodon_db.sql $final_path
@@ -149,6 +151,16 @@ ynh_secure_remove $final_path/mastodon_db.sql
 
 # Create symlink for ruby
 sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
+
+# Upgrade Mastodon
+sudo su - $app <<RCOMMANDS
+cd ~/live
+bin/bundle install
+yarn install --pure-lockfile
+#RAILS_ENV=production bin/bundle exec rails db:migrate
+#RAILS_ENV=production bundle exec rails assets:clean
+#RAILS_ENV=production bin/bundle exec rails assets:precompile
+RCOMMANDS
 
 # Restore nginx configuration files
 sudo cp -a ./nginx.conf   "$nginx_conf"
