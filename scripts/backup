@@ -24,7 +24,7 @@ final_path="/opt/${app}"
 ynh_backup "$final_path" "sources" 1
 
 # final_path on nginx
-sudo sed -i "s@$final_path@__FINALPATH__@g" ../conf/nginx.conf
+sudo sed -i "s@$final_path@__FINALPATH__@g" /etc/nginx/conf.d/${domain}.d/${app}.conf
 
 # Copy the nginx conf files
 ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf" "nginx.conf"

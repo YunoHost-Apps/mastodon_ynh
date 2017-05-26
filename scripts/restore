@@ -35,30 +35,30 @@ fi
 # Check configuration files nginx
 nginx_conf="/etc/nginx/conf.d/${domain}.d/${app}.conf"
 if [ -f $nginx_conf ]; then
-	ynh_die "The NGINX configuration already exists at '${nginx_conf}'. 
+	ynh_die "The NGINX configuration already exists at '${nginx_conf}'.
 	You should safely delete it before restoring this app."
 fi
 # Check configuration files php-fpm
 crontab_conf="/etc/cron.d/${app}"
-if [ -f $crontab_conf ]; then 
-	ynh_die "The CRONTAB configuration already exists at '${crontab_conf}'. 
+if [ -f $crontab_conf ]; then
+	ynh_die "The CRONTAB configuration already exists at '${crontab_conf}'.
 	You should safely delete it before restoring this app."
 fi
 
 # Restore services
 web_systemd="/etc/systemd/system/${app}-web.service"
 if [ -f "${web_systemd}" ]; then
-	ynh_die "The MASTODON WEB configuration already exists at '${web_systemd}'. 
+	ynh_die "The MASTODON WEB configuration already exists at '${web_systemd}'.
 	You should safely delete it before restoring this app."
 fi
 sidekiq_systemd="/etc/systemd/system/${app}-sidekiq.service"
 if [ -f "${sidekiq_systemd}" ]; then
-	ynh_die "The MASTODON SIDEKIQ configuration already exists at '${sidekiq_systemd}'. 
+	ynh_die "The MASTODON SIDEKIQ configuration already exists at '${sidekiq_systemd}'.
 	You should safely delete it before restoring this app."
 fi
 streaming_systemd="/etc/systemd/system/${app}-streaming.service"
 if [ -f "${streaming_systemd}" ]; then
-	ynh_die "The MASTODON STREAMING configuration already exists at '${streaming_systemd}'. 
+	ynh_die "The MASTODON STREAMING configuration already exists at '${streaming_systemd}'.
 	You should safely delete it before restoring this app."
 fi
 
@@ -97,7 +97,7 @@ sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,Home
 
 	# Return to home
 	popd
-	
+
  # Restore sources & data
 sudo cp -a ./sources/. "$final_path"
 
@@ -150,7 +150,9 @@ ynh_secure_remove $final_path/mastodon_db.sql
 # Create symlink for ruby
 sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
 
-# Restore nginx configuration files
+# Modify Nginx configuration file and copy it to Nginx conf directory
+sudo sed -i "s@__PATH__@$app@g" ./nginx.conf
+sudo sed -i "s@__FINALPATH__@$final_path/@g" ./nginx.conf
 sudo cp -a ./nginx.conf   "$nginx_conf"
 # Restore crontab
 sudo cp -a ./cron.conf "$crontab_conf"
