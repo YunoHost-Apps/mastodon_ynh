@@ -117,6 +117,15 @@ sudo su -c "psql" postgres <<< \
 sudo su -c "psql" postgres <<< \
 			"update pg_database set datistemplate='true' where datname='template1';"
 
+# Install rbenv
+sudo su - $app <<COMMANDS
+pushd ~/.rbenv
+src/configure && make -C src
+echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.profile
+echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.bashrc
+echo 'eval "\$(rbenv init -)"' >> ~/.profile
+COMMANDS
+
 # Create user for db postgresql
 ynh_psql_create_db_without_password "$app"
 
