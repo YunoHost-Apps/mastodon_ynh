@@ -35,6 +35,9 @@ ynh_backup "/etc/systemd/system/mastodon-streaming.service" "systemd_streaming.s
 ynh_backup "/etc/apt/sources.list.d/backports.list" "apt_backports.list"
 ynh_backup "/etc/apt/sources.list.d/yarn.list" "apt_yarn.list"
 
+# final_path on nginx
+sudo sed -i "s@__FINALPATH__@$final_path@g" /etc/nginx/conf.d/${domain}.d/${app}.conf
+
 # Backup db
 sudo su - postgres <<COMMANDS
 pg_dump --role=mastodon -U postgres --no-password mastodon_production > mastodon_db.sql
