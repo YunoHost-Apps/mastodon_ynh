@@ -210,7 +210,7 @@ ACOMMANDS
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sudo sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
-sudo sed -i "s@__FINALPATH__@$final_path/@g" ../conf/nginx.conf*
+sudo sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 
 # Install crontab

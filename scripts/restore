@@ -164,7 +164,7 @@ RCOMMANDS
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sudo sed -i "s@__PATH__@$app@g" ./nginx.conf
-sudo sed -i "s@__FINALPATH__@$final_path/@g" ./nginx.conf
+sudo sed -i "s@__FINALPATH__@$final_path@g" ./nginx.conf
 sudo cp -a ./nginx.conf   "$nginx_conf"
 # Restore crontab
 sudo cp -a ./cron.conf "$crontab_conf"
