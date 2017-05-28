@@ -40,14 +40,6 @@ sudo systemctl stop mastodon-*.service
 # Change owner of live folder
 sudo chown -R $app: $final_path/live
 
-# upgrade Node.js v4 to v6
-node_version=$(nodejs --version)
-if [[ $node_version =~ ^v4.*$  ]]; then
-	pushd /opt
-	curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
-	sudo apt-get -y install nodejs
-fi
-
 # Download Mastodon
 sudo su - $app <<PULLCOMMANDS
 pushd ~/live
