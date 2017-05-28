@@ -4,7 +4,7 @@
 [![Status](https://img.shields.io/badge/status-testing-yellow.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/milestones)
 [![Dependencies](https://img.shields.io/badge/dependencies-includes-lightgrey.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh#dependencies)
 [![GitHub license](https://img.shields.io/badge/license-GPLv3-blue.svg?style=flat)](https://raw.githubusercontent.com/YunoHost-Apps/mastodon_ynh/master/LICENSE)
-[![Yunohost version](https://img.shields.io/badge/yunohost-2.4.2_tested-orange.svg?style=flat)](https://github.com/YunoHost/yunohost)
+[![Yunohost version](https://img.shields.io/badge/yunohost-2.5.6_tested-orange.svg?style=flat)](https://github.com/YunoHost/yunohost)
 [![GitHub issues](https://img.shields.io/github/issues/YunoHost-Apps/mastodon_ynh.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/issues)
 
 :warning: Cette application utilise les packages backports de Debian, nous vous recommendons de ne pas installer cette application directement en production
@@ -82,13 +82,3 @@ The admin user is automatically created as: user@domain.tld
 You can't install Mastodon in subdirectory, you must use a domain or subdomain for this application.
 
 It seems important to close the inscriptions for your Mastodon, so that it remains a private body. We invite you to block remote malicious instances from the administration interface. You can also add text on your home page.
-
-## TODO
-
-- [x] Fix upgrade
-- [x] [Create automatic user](https://github.com/tootsuite/documentation/blob/master/Running-Mastodon/Administration-guide.md#creating-users-while-registration-is-closed)
-- [x] Fix restore
-- [x] Install from a release
-- [x] Tune [Create automatic user](https://github.com/tootsuite/documentation/blob/master/Running-Mastodon/Administration-guide.md#creating-users-while-registration-is-closed)
-- [x] Change SMTP settings
-- [ ] Fix errors on jenkins
