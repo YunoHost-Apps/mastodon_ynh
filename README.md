@@ -23,20 +23,6 @@ Mastodon est un réseau social gratuit et open source. Une alternative décentra
 
 L'utilisateur admin est crée automatiquement comme: user@domain.tld
 
-<del>Une fois l'installation effectuée, vous pouvez créer un compte manuellement sur Mastodon depuis votre navigateur. Lorsque vous avez crée le premier utilisateur vous pouvez créer l'administrateur de votre Mastodon. Pour celà, il faut impérativement passer par une interface en ligne de commande et taper les commandes suivantes :</del>
-
-<del>**se connecter en sudo sur l'utilisateur**</del>
-
-<del>`$ sudo su mastodon`</del>
-
-<del>**se placer dans le répertoire où est installé Mastodon**</del>
-
-<del>`$ cd /opt/mastodon/live`</del>
-
-<del>**lancer la commande de création de l'administrateur**</del>
-
-<del>`$ RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=*Nom de votre utilisateur*`</del>
-
 ### Mise à jour
 
 `$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
@@ -58,20 +44,6 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 `$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git`
 
 The admin user is automatically created as: user@domain.tld
-
-<del>After installation, you can create an account manually on Mastodon from your browser. When you have created the first user you can create the administrator of your Mastodon. For this, it is imperative to go through a command line and type the following commands:</del>
-
-<del>**sudo to the user**</del>
-
-<del>`$ sudo su mastodon`</del>
-
-<del>**change directory where Mastodon is installed**</del>
-
-<del>`$ cd /opt/mastodon/live`</del>
-
-<del>**launch the command to create the administrator**</del>
-
-<del>`$ RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=*username*`</del>
 
 ### Update
 
