@@ -58,6 +58,13 @@ sudo curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 sudo cp ../conf/yarn.list /etc/apt/sources.list.d/
 ynh_package_update
 
+# Import debian archive pubkey, need on ARM arch
+arch=$(uname -m)
+if [[ $arch = arm*  ]]; then
+	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B48AD6246925553
+	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7638D0442B90D010
+fi
+
 # Install debian package backports
 sudo apt-get -t jessie-backports -y install ffmpeg
 
