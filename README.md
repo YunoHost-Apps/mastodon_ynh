@@ -7,11 +7,11 @@
 [![Yunohost version](https://img.shields.io/badge/yunohost-2.5.6_tested-orange.svg?style=flat)](https://github.com/YunoHost/yunohost)
 [![GitHub issues](https://img.shields.io/github/issues/YunoHost-Apps/mastodon_ynh.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/issues)
 
-:warning: Cette application ne fonctionne que sur x86, x86_64 et non sur ARM (Raspberry,Olimex,Labriqueinternet,...). T_T
+:warning: MAJ 05/06/17 :Cette application peut maintenant fonctionner sur ARM, mais l'installation prend plusieurs heures et il faut ajouter un swapfile de 1Go.
 
 :warning: Cette application utilise les packages backports de Debian, nous vous recommendons de ne pas installer cette application directement en production
 
-:warning: This app work only on x86, x86_64 and not on ARM (Raspberry,Olimex,InternetCube,...). T_T
+:warning: UPDATE 05/06/17 :This app can work now on ARM, but installation takes several hours and you must add a swapfile of 1GB.
 
 :warning: This application uses the Debian backports packages, do not install this application directly in production
 
@@ -21,13 +21,35 @@ Mastodon est un réseau social gratuit et open source. Une alternative décentra
 
 [Source code](https://github.com/tootsuite/mastodon)
 
+#### Ajout d'un "swapfile" si vous avez moins de 2Go de RAM
+```
+sudo dd if=/dev/zero of=/swapfile bs=1024 count=1024000
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+ajouter cette ligne dans /etc/fstab
+```
+/swapfile       none    swap    sw      0       0
+```
+
 ### Installation
 
-`$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git`
-
+#### Utilisation de __screen__ en cas de déconnection
+```
+$ sudo apt-get install screen
+$ screen
+$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git
+```
+Récuperer l'installation après une deconnection:
+```
+$ screen -d
+$ screen -r
+```
 L'utilisateur admin est crée automatiquement comme: user@domain.tld
 
 ### Mise à jour
+#### Utilisation de __screen__ fortement recommandé
 
 `$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
 
@@ -43,13 +65,34 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 
 [Source code](https://github.com/tootsuite/mastodon)
 
+#### Adding "swapfile" If you have less than 2Go of RAM
+```
+sudo dd if=/dev/zero of=/swapfile bs=1024 count=1024000
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+add this line on /etc/fstab
+```
+/swapfile       none    swap    sw      0       0
+```
+
 ### Install
-
-`$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git`
-
+#### Using __screen__ in case of disconnect
+```
+$ sudo apt-get install screen
+$ screen
+$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git
+```
+Recover after disconnect:
+```
+$ screen -d
+$ screen -r
+```
 The admin user is automatically created as: user@domain.tld
 
 ### Update
+#### Using __screen__ highly recommended
 
 `$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
 
