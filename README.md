@@ -7,7 +7,11 @@
 [![Yunohost version](https://img.shields.io/badge/yunohost-2.5.6_tested-orange.svg?style=flat)](https://github.com/YunoHost/yunohost)
 [![GitHub issues](https://img.shields.io/github/issues/YunoHost-Apps/mastodon_ynh.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/issues)
 
+:warning: Cette application ne fonctionne que sur x86, x86_64 et non sur ARM (Raspberry,Olimex,Labriqueinternet,...). T_T
+
 :warning: Cette application utilise les packages backports de Debian, nous vous recommendons de ne pas installer cette application directement en production
+
+:warning: This app work only on x86, x86_64 and not on ARM (Raspberry,Olimex,InternetCube,...). T_T
 
 :warning: This application uses the Debian backports packages, do not install this application directly in production
 
