@@ -1,13 +1,17 @@
 # Mastodon for YunoHost
 
-[![Latest Version](https://img.shields.io/badge/version-_--_-green.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/releases)
+[![Latest Version](https://img.shields.io/badge/version-1.4.7-green.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/releases)
 [![Status](https://img.shields.io/badge/status-testing-yellow.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/milestones)
 [![Dependencies](https://img.shields.io/badge/dependencies-includes-lightgrey.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh#dependencies)
 [![GitHub license](https://img.shields.io/badge/license-GPLv3-blue.svg?style=flat)](https://raw.githubusercontent.com/YunoHost-Apps/mastodon_ynh/master/LICENSE)
 [![Yunohost version](https://img.shields.io/badge/yunohost-2.5.6_tested-orange.svg?style=flat)](https://github.com/YunoHost/yunohost)
 [![GitHub issues](https://img.shields.io/github/issues/YunoHost-Apps/mastodon_ynh.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/issues)
 
+:warning: MAJ 05/06/17 :Cette application peut maintenant fonctionner sur ARM, mais l'installation prend plusieurs heures et il faut ajouter un swapfile de 1Go.
+
 :warning: Cette application utilise les packages backports de Debian, nous vous recommendons de ne pas installer cette application directement en production
+
+:warning: UPDATE 05/06/17 :This app can work now on ARM, but installation takes several hours and you must add a swapfile of 1GB.
 
 :warning: This application uses the Debian backports packages, do not install this application directly in production
 
@@ -17,27 +21,35 @@ Mastodon est un réseau social gratuit et open source. Une alternative décentra
 
 [Source code](https://github.com/tootsuite/mastodon)
 
+#### Ajout d'un "swapfile" si vous avez moins de 2Go de RAM
+```
+sudo dd if=/dev/zero of=/swapfile bs=1024 count=1024000
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+ajouter cette ligne dans /etc/fstab
+```
+/swapfile       none    swap    sw      0       0
+```
+
 ### Installation
 
-`$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git`
-
+#### Utilisation de __screen__ en cas de déconnection
+```
+$ sudo apt-get install screen
+$ screen
+$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git
+```
+Récuperer l'installation après une deconnection:
+```
+$ screen -d
+$ screen -r
+```
 L'utilisateur admin est crée automatiquement comme: user@domain.tld
 
-<del>Une fois l'installation effectuée, vous pouvez créer un compte manuellement sur Mastodon depuis votre navigateur. Lorsque vous avez crée le premier utilisateur vous pouvez créer l'administrateur de votre Mastodon. Pour celà, il faut impérativement passer par une interface en ligne de commande et taper les commandes suivantes :</del>
-
-<del>**se connecter en sudo sur l'utilisateur**</del>
-
-<del>`$ sudo su mastodon`</del>
-
-<del>**se placer dans le répertoire où est installé Mastodon**</del>
-
-<del>`$ cd /opt/mastodon/live`</del>
-
-<del>**lancer la commande de création de l'administrateur**</del>
-
-<del>`$ RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=*Nom de votre utilisateur*`</del>
-
 ### Mise à jour
+#### Utilisation de __screen__ fortement recommandé
 
 `$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
 
@@ -53,27 +65,34 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 
 [Source code](https://github.com/tootsuite/mastodon)
 
+#### Adding "swapfile" If you have less than 2Go of RAM
+```
+sudo dd if=/dev/zero of=/swapfile bs=1024 count=1024000
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+add this line on /etc/fstab
+```
+/swapfile       none    swap    sw      0       0
+```
+
 ### Install
-
-`$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git`
-
+#### Using __screen__ in case of disconnect
+```
+$ sudo apt-get install screen
+$ screen
+$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git
+```
+Recover after disconnect:
+```
+$ screen -d
+$ screen -r
+```
 The admin user is automatically created as: user@domain.tld
 
-<del>After installation, you can create an account manually on Mastodon from your browser. When you have created the first user you can create the administrator of your Mastodon. For this, it is imperative to go through a command line and type the following commands:</del>
-
-<del>**sudo to the user**</del>
-
-<del>`$ sudo su mastodon`</del>
-
-<del>**change directory where Mastodon is installed**</del>
-
-<del>`$ cd /opt/mastodon/live`</del>
-
-<del>**launch the command to create the administrator**</del>
-
-<del>`$ RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=*username*`</del>
-
 ### Update
+#### Using __screen__ highly recommended
 
 `$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
 

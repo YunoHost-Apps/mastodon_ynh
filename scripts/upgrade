@@ -31,7 +31,7 @@ db_name=$app
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sudo sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
-sudo sed -i "s@__FINALPATH__@$final_path/@g" ../conf/nginx.conf*
+sudo sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 
 # Stop Mastodon Services
@@ -71,6 +71,8 @@ sudo su - $app <<COMMANDS
 pushd ~/live
 bin/bundle install
 yarn install --pure-lockfile
+# For 1.4.1 -> 1.4.2 migration prepare_for_foreign_keys is needed
+RAILS_ENV=production bundle exec rails mastodon:maintenance:prepare_for_foreign_keys
 RAILS_ENV=production bundle exec rails assets:clean
 RAILS_ENV=production bundle exec rails assets:precompile
 RAILS_ENV=production bundle exec rails db:migrate

@@ -52,6 +52,13 @@ ynh_package_install postgresql postgresql-contrib
 # Install Ruby
 ynh_package_install autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
 
+# Import debian archive pubkey, need on ARM arch
+arch=$(uname -m)
+if [[ $arch = arm*  ]]; then
+	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B48AD6246925553
+	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7638D0442B90D010
+fi
+
 # Install source.list debian package backports & yarn
 sudo cp ../conf/backports.list /etc/apt/sources.list.d/
 sudo curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
@@ -206,7 +213,9 @@ RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_m
 RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon_mail
 ACOMMANDS
 
-# Copy nginx config
+# Modify Nginx configuration file and copy it to Nginx conf directory
+sudo sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
+sudo sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 
 # Install crontab

@@ -23,6 +23,9 @@ domain=$(ynh_app_setting_get "$app" domain)
 final_path="/opt/${app}"
 ynh_backup "$final_path" "sources" 1
 
+# final_path on nginx
+sudo sed -i "s@$final_path@__FINALPATH__@g" /etc/nginx/conf.d/${domain}.d/${app}.conf
+
 # Copy the nginx conf files
 ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf" "nginx.conf"
 ynh_backup "/etc/cron.d/${app}" "cron.conf"
@@ -32,9 +35,13 @@ ynh_backup "/etc/systemd/system/mastodon-streaming.service" "systemd_streaming.s
 ynh_backup "/etc/apt/sources.list.d/backports.list" "apt_backports.list"
 ynh_backup "/etc/apt/sources.list.d/yarn.list" "apt_yarn.list"
 
+# final_path on nginx
+sudo sed -i "s@__FINALPATH__@$final_path@g" /etc/nginx/conf.d/${domain}.d/${app}.conf
+
 # Backup db
 sudo su - postgres <<COMMANDS
 pg_dump --role=mastodon -U postgres --no-password mastodon_production > mastodon_db.sql
 COMMANDS
 ynh_backup "/var/lib/postgresql/${app}_db.sql" "${app}_db.sql"
-ynh_secure_remove /var/lib/postgresql/mastodon_db.sql
+# Fix backup fail on yunohost 2.6
+#ynh_secure_remove /var/lib/postgresql/mastodon_db.sql
