@@ -23,6 +23,9 @@ domain=$(ynh_app_setting_get "$app" domain)
 final_path="/opt/${app}"
 ynh_backup "$final_path" "sources" 1
 
+# final_path on nginx
+sudo sed -i "s@$final_path@__FINALPATH__@g" /etc/nginx/conf.d/${domain}.d/${app}.conf
+
 # Copy the nginx conf files
 ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf" "nginx.conf"
 ynh_backup "/etc/cron.d/${app}" "cron.conf"
@@ -31,6 +34,9 @@ ynh_backup "/etc/systemd/system/mastodon-sidekiq.service" "systemd_sidekiq.servi
 ynh_backup "/etc/systemd/system/mastodon-streaming.service" "systemd_streaming.service"
 ynh_backup "/etc/apt/sources.list.d/backports.list" "apt_backports.list"
 ynh_backup "/etc/apt/sources.list.d/yarn.list" "apt_yarn.list"
+
+# final_path on nginx
+sudo sed -i "s@__FINALPATH__@$final_path@g" /etc/nginx/conf.d/${domain}.d/${app}.conf
 
 # Backup db
 sudo su - postgres <<COMMANDS
