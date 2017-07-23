@@ -65,7 +65,7 @@ if [[ $node_version =~ ^v4.*$  ]]; then
 fi
 
 # add additional package for release 1.4
-ynh_package_install pkg-config libprotobuf-dev protobuf-compiler
+ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev
 
 # Apply Mastodon upgrade
 sudo su - $app <<COMMANDS
@@ -73,7 +73,7 @@ pushd ~/live
 bin/bundle install
 yarn install --pure-lockfile
 # For 1.4.1 -> 1.4.2 migration prepare_for_foreign_keys is needed
-RAILS_ENV=production bundle exec rails mastodon:maintenance:prepare_for_foreign_keys 
+RAILS_ENV=production bundle exec rails mastodon:maintenance:prepare_for_foreign_keys
 RAILS_ENV=production bundle exec rails assets:clean
 RAILS_ENV=production bundle exec rails assets:precompile
 RAILS_ENV=production bundle exec rails db:migrate
