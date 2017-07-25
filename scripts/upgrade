@@ -64,7 +64,7 @@ if [[ $node_version =~ ^v4.*$  ]]; then
 fi
 
 # add additional package for release 1.4
-ynh_package_install pkg-config libprotobuf-dev protobuf-compiler
+ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev
 
 # Apply Mastodon upgrade
 sudo su - $app <<COMMANDS
