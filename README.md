@@ -1,6 +1,6 @@
 # Mastodon for YunoHost
 
-[![Latest Version](https://img.shields.io/badge/version-1.4.7-green.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/releases)
+[![Latest Version](https://img.shields.io/badge/version-1.5.0-green.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/releases)
 [![Status](https://img.shields.io/badge/status-testing-yellow.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh/milestones)
 [![Dependencies](https://img.shields.io/badge/dependencies-includes-lightgrey.svg?style=flat)](https://github.com/YunoHost-Apps/mastodon_ynh#dependencies)
 [![GitHub license](https://img.shields.io/badge/license-GPLv3-blue.svg?style=flat)](https://raw.githubusercontent.com/YunoHost-Apps/mastodon_ynh/master/LICENSE)
@@ -34,7 +34,7 @@ ajouter cette ligne dans /etc/fstab
 ```
 /swapfile       none    swap    sw      0       0
 ```
-
+5
 ### Installation
 
 #### Utilisation de __screen__ en cas de déconnection
