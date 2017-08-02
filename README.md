@@ -34,7 +34,6 @@ ajouter cette ligne dans /etc/fstab
 ```
 /swapfile       none    swap    sw      0       0
 ```
-5
 ### Installation
 
 #### Utilisation de __screen__ en cas de déconnection
