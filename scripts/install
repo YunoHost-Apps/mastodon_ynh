@@ -47,7 +47,7 @@ ynh_package_install imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt
 ynh_package_install redis-server redis-tools
 
 # Install postgresql
-ynh_package_install postgresql postgresql-contrib
+ynh_package_install postgresql postgresql-contrib postgresql-server-dev-9.4
 
 # Install Ruby
 ynh_package_install autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
