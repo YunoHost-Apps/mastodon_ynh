@@ -64,8 +64,8 @@ if [[ $node_version =~ ^v4.*$  ]]; then
 	sudo apt-get -y install nodejs
 fi
 
-# add additional package for release 1.4
-ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev
+# add additional package for upgrade
+ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev postgresql-server-dev-9.4
 
 # Apply Mastodon upgrade
 sudo su - $app <<COMMANDS
