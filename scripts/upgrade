@@ -50,9 +50,10 @@ PULLCOMMANDS
 
 # Switch branch to tagged release
 cd $final_path/live
+version=$(curl -s https://api.github.com/repos/tootsuite/mastodon/releases/latest | grep tag_name | cut -d\" -f4)
 sudo su - $app <<SWITCHCOMMANDS
 pushd ~/live
-git checkout $(git tag -l | sort -V | tail -n 1)
+git checkout $version
 SWITCHCOMMANDS
 
 # upgrade Node.js v4 to v6
@@ -88,10 +89,6 @@ MCOMMANDS
 # Apply Mastodon upgrade
 sudo su - $app <<COMMANDS
 pushd ~/live
-#bin/bundle install
-#yarn install --pure-lockfile
-# For 1.4.1 -> 1.4.2 migration prepare_for_foreign_keys is needed
-# RAILS_ENV=production bundle exec rails mastodon:maintenance:prepare_for_foreign_keys
 RAILS_ENV=production bundle exec rails assets:clean
 RAILS_ENV=production bundle exec rails assets:precompile
 RAILS_ENV=production bundle exec rails db:migrate
