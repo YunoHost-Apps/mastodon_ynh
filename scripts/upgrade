@@ -70,7 +70,7 @@ ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libi
 sudo su - $app <<RCOMMANDS
 cd $final_path/.rbenv && git pull && cd -
 cd $final_path/.rbenv/plugins/ruby-build && git pull && cd -
-$final_path/.rbenv/bin/rbenv install 2.4.2
+$final_path/.rbenv/bin/rbenv install 2.4.2 || true
 $final_path/.rbenv/versions/2.4.2/bin/ruby -v
 RCOMMANDS
 
