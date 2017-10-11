@@ -82,14 +82,14 @@ sudo su - $app <<MCOMMANDS
 pushd ~/live
 $final_path/.rbenv/versions/2.4.2/bin/gem install bundler
 bin/bundle install --deployment --without development test
-yarn install --production
+yarn install --pure-lockfile
 MCOMMANDS
 
 # Apply Mastodon upgrade
 sudo su - $app <<COMMANDS
 pushd ~/live
-bin/bundle install
-yarn install --pure-lockfile
+#bin/bundle install
+#yarn install --pure-lockfile
 # For 1.4.1 -> 1.4.2 migration prepare_for_foreign_keys is needed
 # RAILS_ENV=production bundle exec rails mastodon:maintenance:prepare_for_foreign_keys
 RAILS_ENV=production bundle exec rails assets:clean
