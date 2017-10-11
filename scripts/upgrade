@@ -66,6 +66,23 @@ fi
 # add additional package for release 1.4
 ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev
 
+# Install ruby 2.5.2 for release 2.0
+sudo su - $app <<RCOMMANDS
+/opt/mastodon/.rbenv/bin/rbenv install 2.5.2
+/opt/mastodon/.rbenv/versions/2.5.2/bin/ruby -v
+RCOMMANDS
+
+# Create symlink for ruby 2.5.2
+sudo ln -s /opt/mastodon/.rbenv/versions/2.5.2/bin/ruby /usr/bin/ruby || true
+
+# Install Mastodon
+sudo su - $app <<MCOMMANDS
+pushd ~/live
+/opt/mastodon/.rbenv/versions/2.5.2/bin/gem install bundler
+bin/bundle install --deployment --without development test
+yarn install --production
+MCOMMANDS
+
 # Apply Mastodon upgrade
 sudo su - $app <<COMMANDS
 pushd ~/live
