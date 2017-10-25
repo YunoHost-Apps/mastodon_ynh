@@ -122,17 +122,17 @@ COMMANDS
 
 # Install ruby-build
 sudo su - $app <<RCOMMANDS
-/opt/mastodon/.rbenv/bin/rbenv install 2.4.1
-/opt/mastodon/.rbenv/versions/2.4.1/bin/ruby -v
+/opt/mastodon/.rbenv/bin/rbenv install 2.4.2
+/opt/mastodon/.rbenv/versions/2.4.2/bin/ruby -v
 RCOMMANDS
 
 # Create symlink for ruby
-sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
+sudo ln -s /opt/mastodon/.rbenv/versions/2.4.2/bin/ruby /usr/bin/ruby || true
 
 # Install Mastodon
 sudo su - $app <<MCOMMANDS
 pushd ~/live
-/opt/mastodon/.rbenv/versions/2.4.1/bin/gem install bundler
+/opt/mastodon/.rbenv/versions/2.4.2/bin/gem install bundler
 bin/bundle install --deployment --without development test
 yarn install --production
 MCOMMANDS
@@ -168,6 +168,7 @@ sudo sed -i "s@#SMTP_OPENSSL_VERIFY_MODE=peer@SMTP_OPENSSL_VERIFY_MODE=none@g" "
 # Preconfig CSS & JS
 sudo su - $app <<CCOMMANDS
 pushd ~/live
+echo "SAFETY_ASSURED=1">> .env.production
 RAILS_ENV=production bin/bundle exec rails db:setup
 RAILS_ENV=production bin/bundle exec rails --trace assets:precompile
 CCOMMANDS
