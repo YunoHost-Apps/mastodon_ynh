@@ -76,7 +76,7 @@ $final_path/.rbenv/versions/2.5.0/bin/ruby -v
 RCOMMANDS
 
 # Create symlink for ruby 2.5.0
-sudo rm /usr/bin/ruby
+sudo rm /usr/bin/ruby || true
 sudo ln -s $final_path/.rbenv/versions/2.5.0/bin/ruby /usr/bin/ruby || true
 
 # Install Mastodon
