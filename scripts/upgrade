@@ -67,21 +67,22 @@ fi
 # add additional package for upgrade
 ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev postgresql-server-dev-9.4
 
-# Install ruby 2.4.2 for release 2.0
+# Install ruby 2.5.0 for release 2.0
 sudo su - $app <<RCOMMANDS
 cd $final_path/.rbenv && git pull && cd -
 cd $final_path/.rbenv/plugins/ruby-build && git pull && cd -
-$final_path/.rbenv/bin/rbenv install 2.4.2 || true
-$final_path/.rbenv/versions/2.4.2/bin/ruby -v
+$final_path/.rbenv/bin/rbenv install 2.5.0 || true
+$final_path/.rbenv/versions/2.5.0/bin/ruby -v
 RCOMMANDS
 
-# Create symlink for ruby 2.4.2
-sudo ln -s $final_path/.rbenv/versions/2.4.2/bin/ruby /usr/bin/ruby || true
+# Create symlink for ruby 2.5.0
+sudo rm /usr/bin/ruby
+sudo ln -s $final_path/.rbenv/versions/2.5.0/bin/ruby /usr/bin/ruby || true
 
 # Install Mastodon
 sudo su - $app <<MCOMMANDS
 pushd ~/live
-$final_path/.rbenv/versions/2.4.2/bin/gem install bundler
+$final_path/.rbenv/versions/2.5.0/bin/gem install bundler
 bin/bundle install --deployment --without development test
 yarn install --pure-lockfile
 MCOMMANDS
