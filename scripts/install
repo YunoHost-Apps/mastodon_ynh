@@ -127,7 +127,7 @@ sudo su - $app <<RCOMMANDS
 RCOMMANDS
 
 # Create symlink for ruby
-sudo rm /usr/bin/ruby
+sudo rm /usr/bin/ruby || true
 sudo ln -s /opt/mastodon/.rbenv/versions/2.5.0/bin/ruby /usr/bin/ruby || true
 
 # Install Mastodon
