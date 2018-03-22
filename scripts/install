@@ -102,9 +102,10 @@ CLONECOMMANDS
 
 # Switch branch to tagged release
 cd $final_path/live
+version=$(curl -s https://api.github.com/repos/tootsuite/mastodon/releases/latest | grep tag_name | cut -d\" -f4)
 sudo su - $app <<SWITCHCOMMANDS
 pushd ~/live
-git checkout $(git tag -l | sort -V | tail -n 1)
+git checkout $version
 SWITCHCOMMANDS
 
 # Be king rewind (/var/cache/yunohost/from_file/scripts)
