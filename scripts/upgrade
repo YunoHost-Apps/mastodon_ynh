@@ -50,7 +50,8 @@ PULLCOMMANDS
 
 # Switch branch to tagged release
 cd $final_path/live
-version=$(curl -s https://api.github.com/repos/tootsuite/mastodon/releases/latest | grep tag_name | cut -d\" -f4)
+#version=$(curl -s https://api.github.com/repos/tootsuite/mastodon/releases/latest | grep tag_name | cut -d\" -f4)
+version=v2.3.2
 sudo su - $app <<SWITCHCOMMANDS
 pushd ~/live
 git checkout $version
