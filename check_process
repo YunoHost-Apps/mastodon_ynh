@@ -4,7 +4,7 @@
 		domain="domain.tld"	(DOMAIN)
 		admin="john"   (USER)
 		path="/path"	(PATH)
-		passwd="adminpassword"
+		passwd="():g9!co.'G{2+f/Wd\,e"
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=0
@@ -26,9 +26,9 @@
 	Level 1=auto
 	Level 2=auto
 	Level 3=auto
-	Level 4=na  
-	Level 5=1
-# level 5: le test ne semble pas tout à fait savoir ce qu'est vraiment un "exit".
+# Level 4: TODO: https://github.com/tootsuite/documentation/blob/master/Running-Mastodon/Enabling-LDAP-login.md
+	Level 4=0
+	Level 5=auto
 	Level 6=auto
 	Level 7=auto
 	Level 8=0

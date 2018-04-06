@@ -3,13 +3,13 @@
 # Exit on command errors and treat unset variables as an error
 set -u
 
-if [ ! -e .fonctions ]; then
+if [ ! -e _common.sh ]; then
 	# Get file fonction if not been to the current directory
-	sudo cp ../settings/scripts/.fonctions ./.fonctions
-	sudo chmod a+rx .fonctions
+	sudo cp ../settings/scripts/_common.sh ./_common.sh
+	sudo chmod a+rx _common.sh
 fi
 
-source .fonctions	# Loads the generic functions usually used in the script
+source _common.sh	# Loads the generic functions usually used in the script
 # Source app helpers
 source /usr/share/yunohost/helpers
 

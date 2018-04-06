@@ -1,17 +1,25 @@
 #!/bin/bash
 
-# Exit on command errors and treat unset variables as an error
-set -eu
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-source .fonctions	# Loads the generic functions usually used in the script
-source /usr/share/yunohost/helpers # Source app helpers
+source _common.sh
+source /usr/share/yunohost/helpers
 
-CLEAN_SETUP () {
-	# Clean installation residues that are not supported by the remove script.
-	# Clean hosts
-	echo ""
-}
-TRAP_ON	# Active trap to stop the script if an error is detected.
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+
+#=================================================
+# RETRIEVE ARGUMENTS FROM THE MANIFEST
+#================================================
 
 domain=$YNH_APP_ARG_DOMAIN
 admin_mastodon=$YNH_APP_ARG_ADMIN
@@ -19,217 +27,290 @@ admin_mastodon_mail=$(ynh_user_get_info $admin_mastodon 'mail')
 admin_pass=$YNH_APP_ARG_PASSWD
 language=$YNH_APP_ARG_LANGUAGE
 
+path_url="/"
+
 app=$YNH_APP_INSTANCE_NAME
 
-CHECK_VAR "$app" "app name not set"
+#=================================================
+# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
+#=================================================
 
-CHECK_USER "$admin_mastodon"
+final_path=/var/www/$app
+test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
-CHECK_DOMAINPATH
+[[ ${#admin_pass} -gt 7 ]] || ynh_die "Password is too weak, must be longer than 7 characters"
 
-CHECK_FINALPATH
+# Normalize the url path syntax
+path_url=$(ynh_normalize_url_path $path_url)
+
+# Check web path availability
+ynh_webpath_available $domain $path_url
+# Register (book) web path
+ynh_webpath_register $app $domain $path_url
+
+#=================================================
+# STORE SETTINGS FROM MANIFEST
+#=================================================
 
 ynh_app_setting_set $app domain $domain
 ynh_app_setting_set $app admin $admin_mastodon
 ynh_app_setting_set $app pass $admin_pass
 ynh_app_setting_set $app language $language
+ynh_app_setting_set $app path $path_url
 
-[[ ${#admin_pass} -gt 7 ]] || ynh_die \
-"The password is too weak, it must be longer than 7 characters"
 
-# Create user unix
-sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
+#=================================================
+# STANDARD MODIFICATIONS
+#=================================================
 
-# Install debian package
-ynh_package_install imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev
 
-# Install redis package
-ynh_package_install redis-server redis-tools
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
 
-# Install postgresql
-ynh_package_install postgresql postgresql-contrib postgresql-server-dev-9.4
-
-# Install Ruby
-ynh_package_install autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
+# TODO: add in a clean way backports and yarn
 
 # Import debian archive pubkey, need on ARM arch
 arch=$(uname -m)
 if [[ $arch = arm*  ]]; then
-	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B48AD6246925553
-	sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7638D0442B90D010
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B48AD6246925553
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7638D0442B90D010
 fi
 
 # Install source.list debian package backports & yarn
-sudo cp ../conf/backports.list /etc/apt/sources.list.d/
-sudo curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-sudo cp ../conf/yarn.list /etc/apt/sources.list.d/
+cp ../conf/backports.list /etc/apt/sources.list.d/
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+cp ../conf/yarn.list /etc/apt/sources.list.d/
 ynh_package_update
-
-# Install debian package backports
-sudo apt-get -t jessie-backports -y install ffmpeg
 
 # Creates the destination directory and stores its location.
 ynh_app_setting_set $app final_path $final_path
 
 # Install de Node.js
-pushd /opt
-curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
-sudo apt-get -y install nodejs
+# TODO: use https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/ynh_install_nodejs/ynh_install_nodejs
+(
+	cd /opt
+	curl -sL https://deb.nodesource.com/setup_6.x | bash -
+	apt-get -y install nodejs
+)
 
-# Install Yarn
-ynh_package_install yarn
+# TODO: use the same mecanism with other files
+ynh_install_app_dependencies \
+	`# debian packages ` \
+	imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev \
+	`# redis ` \
+	redis-server redis-tools \
+	`# postgresql ` \
+	postgresql postgresql-contrib postgresql-server-dev-9.4 \
+	`# Ruby ` \
+	autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev \
+	`# ffmpeg from backports ` \
+	ffmpeg \
+	`# Yarn ` \
+	yarn
 
+#=================================================
+# CREATE A DATABASE
+#=================================================
+
+# TODO: use non-official https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/postgres/postgres
+# TODO: this commands doesn't looks like a requirement, you may fully remove it
 # Set UTF8 encoding by default
-sudo su -c "psql" postgres <<< \
+su -c "psql" postgres <<< \
 			"update pg_database set datistemplate='false' where datname='template1';"
-sudo su -c "psql" postgres <<< \
+su -c "psql" postgres <<< \
 			"drop database template1;"
-sudo su -c "psql" postgres <<< \
+su -c "psql" postgres <<< \
 			"create database template1 encoding='UTF8' template template0;"
-sudo su -c "psql" postgres <<< \
+su -c "psql" postgres <<< \
 			"update pg_database set datistemplate='true' where datname='template1';"
 
 # Create DB without password
 ynh_psql_create_db_without_password "$app"
-sudo systemctl restart postgresql
+systemctl restart postgresql
 
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+
+# TODO: dont su as $app, work root and set corrects rights at the end of install
 # Download all sources rbenv, ruby and mastodon
-sudo su - $app <<CLONECOMMANDS
-git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
-git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
-git clone https://github.com/tootsuite/mastodon.git $final_path/live
-CLONECOMMANDS
+(
+	su $app
+	git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
+	git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
+	git clone https://github.com/tootsuite/mastodon.git $final_path/live
+)
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
+# TODO: use official helper
+# Modify Nginx configuration file and copy it to Nginx conf directory
+sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
+sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
+cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+
+# TODO: use official helper
+# TODO: AFAIK, no app should change should be in /opt don't use it
+# Create user unix
+adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
 
 # Switch branch to tagged release
 cd $final_path/live
 version=$(curl -s https://api.github.com/repos/tootsuite/mastodon/releases/latest | grep tag_name | cut -d\" -f4)
-sudo su - $app <<SWITCHCOMMANDS
-pushd ~/live
-git checkout $version
-SWITCHCOMMANDS
 
-# Be king rewind (/var/cache/yunohost/from_file/scripts)
-popd
+(
+	su $app
+	cd ~/live
+	git checkout $version
+)
 
 # Install de rbenv
-sudo su - $app <<COMMANDS
-pushd ~/.rbenv
-src/configure && make -C src
-echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.profile
-echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.bashrc
-echo 'eval "\$(rbenv init -)"' >> ~/.profile
-COMMANDS
+(
+	su $app
+	cd ~/.rbenv
+	src/configure && make -C src
+	echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.profile
+	echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.bashrc
+	echo 'eval "\$(rbenv init -)"' >> ~/.profile
+)
 
 # Install ruby-build
-sudo su - $app <<RCOMMANDS
-/opt/mastodon/.rbenv/bin/rbenv install 2.5.0
-/opt/mastodon/.rbenv/versions/2.5.0/bin/ruby -v
-RCOMMANDS
+# TODO: /opt/mastodon looks like /opt/$app which is WRONG.
+(
+	su $app
+	/opt/mastodon/.rbenv/bin/rbenv install 2.5.0
+	/opt/mastodon/.rbenv/versions/2.5.0/bin/ruby -v
+)
 
 # Create symlink for ruby
-sudo rm /usr/bin/ruby || true
-sudo ln -s /opt/mastodon/.rbenv/versions/2.5.0/bin/ruby /usr/bin/ruby || true
+rm /usr/bin/ruby || true
+ln -s /opt/mastodon/.rbenv/versions/2.5.0/bin/ruby /usr/bin/ruby || true
 
 # Install Mastodon
-sudo su - $app <<MCOMMANDS
-pushd ~/live
-/opt/mastodon/.rbenv/versions/2.5.0/bin/gem install bundler
-bin/bundle install --deployment --without development test
-yarn install --production
-MCOMMANDS
+# TODO: /opt/mastodon looks like /opt/$app which is WRONG.
+(
+	su $app
+	cd ~/live
+	/opt/mastodon/.rbenv/versions/2.5.0/bin/gem install bundler
+	bin/bundle install --deployment --without development test
+	yarn install --production
+)
 
 # Adjust Mastodon config
-pushd $final_path/live/
-sudo cp -a .env.production.sample .env.production
-sudo sed -i "s@REDIS_HOST=redis@REDIS_HOST=127.0.0.1@g" "${final_path}/live/.env.production"
-sudo sed -i "s@DB_HOST=db@DB_HOST=/var/run/postgresql@g" "${final_path}/live/.env.production"
-sudo sed -i "s@DB_USER=postgres@DB_USER=${app}@g" "${final_path}/live/.env.production"
-sudo sed -i "s@DB_NAME=postgres@DB_NAME=${app}_production@g" "${final_path}/live/.env.production"
-sudo sed -i "s@LOCAL_DOMAIN=example.com@LOCAL_DOMAIN=${domain}@g" "${final_path}/live/.env.production"
+# TODO: use official helper: ynh_replace_string
+cp -a $final_path/live/.env.production.sample $final_path/live/.env.production
+sed -i "s@REDIS_HOST=redis@REDIS_HOST=127.0.0.1@g" "${final_path}/live/.env.production"
+sed -i "s@DB_HOST=db@DB_HOST=/var/run/postgresql@g" "${final_path}/live/.env.production"
+sed -i "s@DB_USER=postgres@DB_USER=${app}@g" "${final_path}/live/.env.production"
+sed -i "s@DB_NAME=postgres@DB_NAME=${app}_production@g" "${final_path}/live/.env.production"
+sed -i "s@LOCAL_DOMAIN=example.com@LOCAL_DOMAIN=${domain}@g" "${final_path}/live/.env.production"
 
 language="$(echo $language | head -c 2)"
-sudo sed -i "s@# DEFAULT_LOCALE=de@DEFAULT_LOCALE=${language}@g" "${final_path}/live/.env.production"
+sed -i "s@# DEFAULT_LOCALE=de@DEFAULT_LOCALE=${language}@g" "${final_path}/live/.env.production"
 
 paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
-sudo sed -i "s@PAPERCLIP_SECRET=@PAPERCLIP_SECRET=${paperclip_secret}@g" "${final_path}/live/.env.production"
-sudo sed -i "s@SECRET_KEY_BASE=@SECRET_KEY_BASE=${secret_key_base}@g" "${final_path}/live/.env.production"
-sudo sed -i "s@OTP_SECRET=@OTP_SECRET=${otp_secret}@g" "${final_path}/live/.env.production"
+sed -i "s@PAPERCLIP_SECRET=@PAPERCLIP_SECRET=${paperclip_secret}@g" "${final_path}/live/.env.production"
+sed -i "s@SECRET_KEY_BASE=@SECRET_KEY_BASE=${secret_key_base}@g" "${final_path}/live/.env.production"
+sed -i "s@OTP_SECRET=@OTP_SECRET=${otp_secret}@g" "${final_path}/live/.env.production"
 
-sudo sed -i "s@SMTP_LOGIN=@#SMTP_LOGIN=@g" "${final_path}/live/.env.production"
-sudo sed -i "s@SMTP_PASSWORD=@#SMTP_PASSWORD=@g" "${final_path}/live/.env.production"
-sudo sed -i "s@SMTP_SERVER=smtp.mailgun.org@SMTP_SERVER=localhost@g" "${final_path}/live/.env.production"
-sudo sed -i "s@SMTP_PORT=587@SMTP_PORT=25@g" "${final_path}/live/.env.production"
-sudo sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${admin_mastodon}'@'${domain}',' "${final_path}/live/.env.production"
-sudo sed -i "s@#SMTP_AUTH_METHOD=plain@SMTP_AUTH_METHOD=none@g" "${final_path}/live/.env.production"
-sudo sed -i "s@#SMTP_OPENSSL_VERIFY_MODE=peer@SMTP_OPENSSL_VERIFY_MODE=none@g" "${final_path}/live/.env.production"
+sed -i "s@SMTP_LOGIN=@#SMTP_LOGIN=@g" "${final_path}/live/.env.production"
+sed -i "s@SMTP_PASSWORD=@#SMTP_PASSWORD=@g" "${final_path}/live/.env.production"
+sed -i "s@SMTP_SERVER=smtp.mailgun.org@SMTP_SERVER=localhost@g" "${final_path}/live/.env.production"
+sed -i "s@SMTP_PORT=587@SMTP_PORT=25@g" "${final_path}/live/.env.production"
+sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${admin_mastodon}'@'${domain}',' "${final_path}/live/.env.production"
+sed -i "s@#SMTP_AUTH_METHOD=plain@SMTP_AUTH_METHOD=none@g" "${final_path}/live/.env.production"
+sed -i "s@#SMTP_OPENSSL_VERIFY_MODE=peer@SMTP_OPENSSL_VERIFY_MODE=none@g" "${final_path}/live/.env.production"
 
-# Create database
 # Preconfig CSS & JS
-sudo su - $app <<CCOMMANDS
-pushd ~/live
-echo "SAFETY_ASSURED=1">> .env.production
-RAILS_ENV=production bin/bundle exec rails db:setup
-RAILS_ENV=production bin/bundle exec rails --trace assets:precompile
-CCOMMANDS
+(
+	su $app
+	cd  ~/live
+	echo "SAFETY_ASSURED=1">> .env.production
+	RAILS_ENV=production bin/bundle exec rails db:setup
+	RAILS_ENV=production bin/bundle exec rails --trace assets:precompile
+)
 
 # init rbenv & create bundle
-sudo su - $app <<BCOMMANDS
-. ~/.profile
-type rbenv
-BCOMMANDS
+(
+	su $app
+	. ~/.profile
+	type rbenv
+)
 
-# Add Services
-popd
+# TODO: use official helper ynh_add_systemd_config
+cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
+chown root: /etc/systemd/system/mastodon-web.service
+cp ../conf/mastodon-sidekiq.service /etc/systemd/system/mastodon-sidekiq.service
+chown root: /etc/systemd/system/mastodon-sidekiq.service
+cp ../conf/mastodon-streaming.service /etc/systemd/system/mastodon-streaming.service
+chown root: /etc/systemd/system/mastodon-streaming.service
 
-sudo cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
-sudo chown root: /etc/systemd/system/mastodon-web.service
-sudo cp ../conf/mastodon-sidekiq.service /etc/systemd/system/mastodon-sidekiq.service
-sudo chown root: /etc/systemd/system/mastodon-sidekiq.service
-sudo cp ../conf/mastodon-streaming.service /etc/systemd/system/mastodon-streaming.service
-sudo chown root: /etc/systemd/system/mastodon-streaming.service
-
-sudo systemctl daemon-reload
-sudo systemctl enable /etc/systemd/system/mastodon-*.service
-sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
+systemctl daemon-reload
+systemctl enable /etc/systemd/system/mastodon-*.service
+systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
 # debug
-sudo systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
-
-# Add service YunoHost
-sudo yunohost service add mastodon-web
-sudo yunohost service add mastodon-sidekiq
-sudo yunohost service add mastodon-streaming
+systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
 
 # Create user
-sudo su - $app <<UCOMMANDS
-pushd ~/live
-RAILS_ENV=production bundle exec rails c
-account = Account.create!(username: '$admin_mastodon')
-user = User.create!(email: '$admin_mastodon_mail', password: '$admin_pass', account: account)
-UCOMMANDS
+(
+	su $app
+	cd ~/live
+	RAILS_ENV=production bundle exec rails c
+	account = Account.create!(username: '$admin_mastodon')
+	user = User.create!(email: '$admin_mastodon_mail', password: '$admin_pass', account: account)
+)
 
 # Create administrator & confirm user
-sudo su - $app <<ACOMMANDS
-pushd ~/live
-RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
-RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon_mail
-ACOMMANDS
-
-# Modify Nginx configuration file and copy it to Nginx conf directory
-sudo sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
-sudo sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
-sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+(
+	su $app
+	cd ~/live
+	RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
+	RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon_mail
+)
 
 # Install crontab
-sudo cp ../conf/crontab_mastodon /etc/cron.d/$app
-sudo sed -i "s@__APP__@$app@g" /etc/cron.d/$app
+cp ../conf/crontab_mastodon /etc/cron.d/$app
+sed -i "s@__APP__@$app@g" /etc/cron.d/$app
 
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
+
+# TODO:Set permissions to app files
+
+
+#=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
+# Add service YunoHost
+yunohost service add mastodon-web
+yunohost service add mastodon-sidekiq
+yunohost service add mastodon-streaming
+
+#=================================================
+# SETUP SSOWAT
+#=================================================
+
+# TODO: all private install
 # Unprotected url
 ynh_app_setting_set "$app" unprotected_uris "/"
 
-# Reload SSOwat configuration
-sudo yunohost app ssowatconf
+#=================================================
+# RELOAD NGINX
+#=================================================
 
 # Reload Nginx
-sudo systemctl reload nginx
+systemctl reload nginx
