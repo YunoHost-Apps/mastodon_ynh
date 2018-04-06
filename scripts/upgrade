@@ -43,7 +43,7 @@ sudo chown -R $app: $final_path/live
 # Download Mastodon
 sudo su - $app <<PULLCOMMANDS
 pushd ~/live
-git fetch
+git fetch -t
 git reset --hard origin/master
 git pull https://github.com/tootsuite/mastodon.git master
 PULLCOMMANDS
