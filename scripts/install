@@ -3,7 +3,7 @@
 # Exit on command errors and treat unset variables as an error
 set -eu
 
-source .fonctions	# Loads the generic functions usually used in the script
+source _common.sh	# Loads the generic functions usually used in the script
 source /usr/share/yunohost/helpers # Source app helpers
 
 CLEAN_SETUP () {

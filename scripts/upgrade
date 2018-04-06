@@ -4,7 +4,7 @@
 set -eu
 
 # Loads the generic functions usually used in the script
-source .fonctions
+source _common.sh
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
 
