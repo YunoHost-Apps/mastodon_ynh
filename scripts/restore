@@ -1,111 +1,124 @@
 #!/bin/bash
-# This restore script is adapted to Yunohost >=2.4
 
-# Exit on command errors and treat unset variables as an error
-set -eu
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
 if [ ! -e _common.sh ]; then
-	# Get file fonction if not been to the current directory
-	sudo cp ../settings/scripts/_common.sh ./_common.sh
-	sudo chmod a+rx _common.sh
+	# Get the _common.sh file if it's not in the current directory
+	cp ../settings/scripts/_common.sh ./_common.sh
+	cp ../settings/scripts/_future.sh ./_future.sh
+	chmod a+rx _common.sh _future.sh
 fi
-# Loads the generic functions usually used in the script
 source _common.sh
-# Source app helpers
 source /usr/share/yunohost/helpers
+source _future.sh
 
-# The parameter $app is the id of the app instance ex: ynhexample__2
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
 app=$YNH_APP_INSTANCE_NAME
 
 # Get old parameter of the app
 domain=$(ynh_app_setting_get $app domain)
-path=$(ynh_app_setting_get $app path)
+path_url=$(ynh_app_setting_get $app path)
 is_public=$(ynh_app_setting_get $app is_public)
+final_path=$(ynh_app_setting_get "$app" final_path)
 
-# Check domain/path availability
-sudo yunohost app checkurl "${domain}${path}" -a "$app" \
-	|| ynh_die "Path not available: ${domain}${path}"
+#=================================================
+# CHECK IF THE APP CAN BE RESTORED
+#=================================================
 
-# Check $final_path
-final_path="/opt/${app}"
-if [ -d $final_path ]; then
-	ynh_die "There is already a directory: $final_path"
-fi
+ynh_webpath_available $domain $path_url \
+	|| ynh_die "Path not available: ${domain}${path_url}"
+test ! -d $final_path \
+|| ynh_die "There is already a directory: $final_path "
 
-# Check configuration files nginx
-nginx_conf="/etc/nginx/conf.d/${domain}.d/${app}.conf"
-if [ -f $nginx_conf ]; then
-	ynh_die "The NGINX configuration already exists at '${nginx_conf}'.
-	You should safely delete it before restoring this app."
-fi
-# Check configuration files php-fpm
-crontab_conf="/etc/cron.d/${app}"
-if [ -f $crontab_conf ]; then
-	ynh_die "The CRONTAB configuration already exists at '${crontab_conf}'.
-	You should safely delete it before restoring this app."
-fi
+#=================================================
+# STANDARD RESTORATION STEPS
+#=================================================
+# RESTORE THE NGINX CONFIGURATION
+#=================================================
 
-# Restore services
-web_systemd="/etc/systemd/system/${app}-web.service"
-if [ -f "${web_systemd}" ]; then
-	ynh_die "The MASTODON WEB configuration already exists at '${web_systemd}'.
-	You should safely delete it before restoring this app."
-fi
-sidekiq_systemd="/etc/systemd/system/${app}-sidekiq.service"
-if [ -f "${sidekiq_systemd}" ]; then
-	ynh_die "The MASTODON SIDEKIQ configuration already exists at '${sidekiq_systemd}'.
-	You should safely delete it before restoring this app."
-fi
-streaming_systemd="/etc/systemd/system/${app}-streaming.service"
-if [ -f "${streaming_systemd}" ]; then
-	ynh_die "The MASTODON STREAMING configuration already exists at '${streaming_systemd}'.
-	You should safely delete it before restoring this app."
-fi
+ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
+
+#=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
+
+ynh_restore_file "$final_path"
+
+#=================================================
+# RECREATE THE DEDICATED USER
+#=================================================
 
 # Create user unix
-sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
+adduser $app --home $final_path --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
 
-# Reinstall dependencies
-	# Install debian package
-	ynh_package_install imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler
+#=================================================
+# RESTORE USER RIGHTS
+#=================================================
 
-	# Install redis package
-	ynh_package_install redis-server redis-tools
+# Restore permissions on app files
+chown -R $app: $final_path
 
-	# Install postgresql
-	ynh_package_install postgresql postgresql-contrib
+#=================================================
+# SPECIFIC RESTORATION
+#=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
 
-	# Install Ruby
-	ynh_package_install autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
+# TODO: add in a clean way backports and yarn
 
-	# Install source.list debian package backports & yarn
-	sudo cp ./apt_backports.list /etc/apt/sources.list.d/backports.list
-	sudo curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-	sudo cp ./apt_yarn.list /etc/apt/sources.list.d/yarn.list
-	ynh_package_update
+# Import debian archive pubkey, need on ARM arch
+arch=$(uname -m)
+if [[ "$arch" = arm*  ]]; then
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B48AD6246925553
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7638D0442B90D010
+fi
 
-	# Install debian package backports
-	sudo apt-get -t jessie-backports -y install ffmpeg
+# Install source.list debian package backports & yarn
+cp ../conf/backports.list /etc/apt/sources.list.d/
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+cp ../conf/yarn.list /etc/apt/sources.list.d/
+ynh_package_update
 
-	# Install de Node.js
-	pushd /opt
-	curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
-	sudo apt-get -y install nodejs
+# Install de Node.js
+# TODO: use https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/ynh_install_nodejs/ynh_install_nodejs
+(
+	cd /opt
+	curl -sL https://deb.nodesource.com/setup_6.x | bash -
+	apt-get -y install nodejs
+)
 
-	# Install Yarn
-	ynh_package_install yarn
+# TODO: use the same mecanism with other files
+ynh_install_app_dependencies \
+	`# debian packages ` \
+	imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev \
+	`# redis ` \
+	redis-server redis-tools \
+	`# postgresql ` \
+	postgresql \
+	`# Ruby ` \
+	autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev \
+	`# ffmpeg from backports ` \
+	ffmpeg \
+	`# Yarn ` \
+	yarn
 
-	# Return to home
-	popd
-
- # Restore sources & data
-sudo cp -a ./sources/. "$final_path"
-
-# Set permissions
-sudo chown -R $app: "$final_path"
-
-# Debug
-sudo ls -alh "$final_path"
+#=================================================
+# RESTORE THE PostgreSQL DATABASE
+#=================================================
 
 # Restore PostgreSQL database
 db_user=$(ynh_sanitize_dbid "$app")
@@ -116,75 +129,34 @@ ynh_psql_test_if_first_run
 ynh_psql_setup_db "$db_name" "$db_name" "$db_pwd"
 ynh_psql_execute_file_as_root ./db.sql "$db_name"
 
-# Install rbenv
-sudo su - $app <<COMMANDS
-pushd ~/.rbenv
-src/configure && make -C src
-echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.profile
-echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.bashrc
-echo 'eval "\$(rbenv init -)"' >> ~/.profile
-COMMANDS
+#=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
 
-# Create user for db postgresql
-ynh_psql_create_db_without_password "$app"
+yunohost service add $app-web
+yunohost service add $app-sidekiq
+yunohost service add $app-streaming
 
-# Setup database
-#sudo su - $app <<SCOMMANDS
-#cd ~/live
-#RAILS_ENV=production bin/bundle exec rails db:setup
-#SCOMMANDS
+#=================================================
+# RESTORE SYSTEMD
+#=================================================
 
-# copy database dump
-sudo cp $YNH_APP_BACKUP_DIR/mastodon_db.sql $final_path
-sudo chmod a+r $final_path/mastodon_db.sql
+ynh_restore_file "/etc/systemd/system/$app-web.service"
+ynh_restore_file "/etc/systemd/system/$app-sidekiq.service"
+ynh_restore_file "/etc/systemd/system/$app-streaming.service"
+systemctl enable "$app-web" "$app-sidekiq" "$app-streaming"
 
-# Restore database dump
-sudo su - $app <<RECOMMANDS
-dropdb mastodon_production
-createdb mastodon_production
-psql mastodon_production < $final_path/mastodon_db.sql
-RECOMMANDS
+#=================================================
+# RESTORE THE CRON FILE
+#=================================================
 
-# Remove dump
-ynh_secure_remove $final_path/mastodon_db.sql
+ynh_restore_file "/etc/cron.d/$app"
 
-# Create symlink for ruby
-sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# RELOAD NGINX AND PHP-FPM
+#=================================================
 
-# Upgrade Mastodon
-sudo su - $app <<RCOMMANDS
-cd ~/live
-bin/bundle install
-yarn install --pure-lockfile
-#RAILS_ENV=production bin/bundle exec rails db:migrate
-#RAILS_ENV=production bundle exec rails assets:clean
-#RAILS_ENV=production bin/bundle exec rails assets:precompile
-RCOMMANDS
-
-# Modify Nginx configuration file and copy it to Nginx conf directory
-sudo sed -i "s@__PATH__@$app@g" ./nginx.conf
-sudo sed -i "s@__FINALPATH__@$final_path@g" ./nginx.conf
-sudo cp -a ./nginx.conf   "$nginx_conf"
-# Restore crontab
-sudo cp -a ./cron.conf "$crontab_conf"
-
-sudo cp ./systemd_web.service /etc/systemd/system/mastodon-web.service
-sudo chown root: /etc/systemd/system/mastodon-web.service
-sudo cp ./systemd_sidekiq.service /etc/systemd/system/mastodon-sidekiq.service
-sudo chown root: /etc/systemd/system/mastodon-sidekiq.service
-sudo cp ./systemd_streaming.service /etc/systemd/system/mastodon-streaming.service
-sudo chown root: /etc/systemd/system/mastodon-streaming.service
-
-sudo systemctl daemon-reload
-sudo systemctl enable /etc/systemd/system/mastodon-*.service
-sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
-# debug
-sudo systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
-
-# Add service YunoHost
-sudo yunohost service add mastodon-web
-sudo yunohost service add mastodon-sidekiq
-sudo yunohost service add mastodon-streaming
-
-# Reload services
-sudo systemctl reload nginx
+systemctl reload "$app-web" "$app-sidekiq" "$app-streaming"
+systemctl reload nginx
