@@ -65,8 +65,9 @@ then
 fi
 
 # delete postgresql database & user
-ynh_psql_drop_db "${app}_production"
-ynh_psql_drop_role "${app}"
+db_user=$(ynh_sanitize_dbid "$app")
+db_name=$(ynh_sanitize_dbid "$app")
+ynh_psql_remove_db "$db_name" "$db_user"
 
 # Remove Debian package
 sudo apt-get remove --purge -y yarn

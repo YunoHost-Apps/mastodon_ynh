@@ -116,31 +116,16 @@ ynh_install_app_dependencies \
 # TODO: use non-official https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/postgres/postgres
 # TODO: this commands doesn't looks like a requirement, you may fully remove it
 # Set UTF8 encoding by default
-su -c "psql" postgres <<< \
-			"update pg_database set datistemplate='false' where datname='template1';"
-su -c "psql" postgres <<< \
-			"drop database template1;"
-su -c "psql" postgres <<< \
-			"create database template1 encoding='UTF8' template template0;"
-su -c "psql" postgres <<< \
-			"update pg_database set datistemplate='true' where datname='template1';"
 
-# Create DB without password
-ynh_psql_create_db_without_password "$app"
-systemctl restart postgresql
+ynh_psql_test_if_first_run
 
-#=================================================
-# DOWNLOAD, CHECK AND UNPACK SOURCE
-#=================================================
+db_user=$(ynh_sanitize_dbid "$app")
+db_name=$(ynh_sanitize_dbid "$app")
+db_pwd=$(ynh_string_random)
+ynh_app_setting_set $app db_pwd $db_pwd
+ynh_psql_setup_db "$db_user" "$db_name" "$db_pwd"
 
-# TODO: dont su as $app, work root and set corrects rights at the end of install
-# Download all sources rbenv, ruby and mastodon
-(
-	su $app
-	git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
-	git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
-	git clone https://github.com/tootsuite/mastodon.git $final_path/live
-)
+
 
 #=================================================
 # NGINX CONFIGURATION
@@ -160,6 +145,19 @@ cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 # TODO: AFAIK, no app should change should be in /opt don't use it
 # Create user unix
 adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+
+# TODO: dont su as $app, work root and set corrects rights at the end of install
+# Download all sources rbenv, ruby and mastodon
+(
+	su $app
+	git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
+	git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
+	git clone https://github.com/tootsuite/mastodon.git $final_path/live
+)
 
 # Switch branch to tagged release
 cd $final_path/live
@@ -208,8 +206,9 @@ ln -s /opt/mastodon/.rbenv/versions/2.5.0/bin/ruby /usr/bin/ruby || true
 cp -a $final_path/live/.env.production.sample $final_path/live/.env.production
 sed -i "s@REDIS_HOST=redis@REDIS_HOST=127.0.0.1@g" "${final_path}/live/.env.production"
 sed -i "s@DB_HOST=db@DB_HOST=/var/run/postgresql@g" "${final_path}/live/.env.production"
-sed -i "s@DB_USER=postgres@DB_USER=${app}@g" "${final_path}/live/.env.production"
-sed -i "s@DB_NAME=postgres@DB_NAME=${app}_production@g" "${final_path}/live/.env.production"
+sed -i "s@DB_USER=postgres@DB_USER=${db_user}@g" "${final_path}/live/.env.production"
+sed -i "s@DB_NAME=postgres@DB_NAME=${db_name}@g" "${final_path}/live/.env.production"
+sed -i "s@DB_PASS=@DB_PASS=${db_name}@g" "${final_path}/live/.env.production"
 sed -i "s@LOCAL_DOMAIN=example.com@LOCAL_DOMAIN=${domain}@g" "${final_path}/live/.env.production"
 
 language="$(echo $language | head -c 2)"

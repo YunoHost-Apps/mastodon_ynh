@@ -39,9 +39,8 @@ ynh_backup "/etc/apt/sources.list.d/yarn.list" "apt_yarn.list"
 sudo sed -i "s@__FINALPATH__@$final_path@g" /etc/nginx/conf.d/${domain}.d/${app}.conf
 
 # Backup db
-sudo su - postgres <<COMMANDS
-pg_dump --role=mastodon -U postgres --no-password mastodon_production > mastodon_db.sql
-COMMANDS
-ynh_backup "/var/lib/postgresql/${app}_db.sql" "${app}_db.sql"
+db_name=$(ynh_sanitize_dbid "$app")
+ynh_psql_dump_db "$db_name"
+
 # Fix backup fail on yunohost 2.6
 #ynh_secure_remove /var/lib/postgresql/mastodon_db.sql

@@ -107,15 +107,14 @@ sudo chown -R $app: "$final_path"
 # Debug
 sudo ls -alh "$final_path"
 
-# Set UTF8 encoding by default
-sudo su -c "psql" postgres <<< \
-			"update pg_database set datistemplate='false' where datname='template1';"
-sudo su -c "psql" postgres <<< \
-			"drop database template1;"
-sudo su -c "psql" postgres <<< \
-			"create database template1 encoding='UTF8' template template0;"
-sudo su -c "psql" postgres <<< \
-			"update pg_database set datistemplate='true' where datname='template1';"
+# Restore PostgreSQL database
+db_user=$(ynh_sanitize_dbid "$app")
+db_name=$(ynh_sanitize_dbid "$app")
+db_pwd=$(ynh_app_setting_get "$app" db_pwd)
+
+ynh_psql_test_if_first_run
+ynh_psql_setup_db "$db_name" "$db_name" "$db_pwd"
+ynh_psql_execute_file_as_root ./db.sql "$db_name"
 
 # Install rbenv
 sudo su - $app <<COMMANDS
