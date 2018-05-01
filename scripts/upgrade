@@ -1,12 +1,17 @@
 #!/bin/bash
 
-# Exit on command errors and treat unset variables as an error
-set -eu
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-# Loads the generic functions usually used in the script
 source _common.sh
-# Source YunoHost helpers
 source /usr/share/yunohost/helpers
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
 
 # See comments in install script
 app=$YNH_APP_INSTANCE_NAME
@@ -16,8 +21,23 @@ domain=$(ynh_app_setting_get "$app" domain)
 path=$(ynh_app_setting_get "$app" path)
 admin=$(ynh_app_setting_get "$app" admin)
 language=$(ynh_app_setting_get "$app" language)
+final_path=$(ynh_app_setting_get "$app" final_path)
 
-CHECK_PATH	# Checks and corrects the syntax of the path.
+#=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+
+# If db_name doesn't exist, create it
+if [ -z "$db_name" ]; then
+	db_name=$(ynh_sanitize_dbid "$app")
+	ynh_app_setting_set "$app" db_name "$db_name"
+fi
+
+# If final_path doesn't exist, create it
+if [ -z "$final_path" ]; then
+	final_path=/var/www/$app
+	ynh_app_setting_set "$app" final_path "$final_path"
+fi
 
 # Check if admin is not null
 if [[ "$admin" = "" || "$language" = "" ]]; then
@@ -25,7 +45,31 @@ if [[ "$admin" = "" || "$language" = "" ]]; then
     ynh_die
 fi
 
-final_path=/opt/$app
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+
+# Backup the current version of the app
+ynh_backup_before_upgrade
+ynh_clean_setup () {
+	# restore it if the upgrade fails
+	ynh_restore_upgradebackup
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# CHECK THE PATH
+#=================================================
+
+# Normalize the URL path syntax
+path_url=$(ynh_normalize_url_path $path_url)
+
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# TODO TODO TODO
+#=================================================
 
 db_name=$app
 
