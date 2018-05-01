@@ -1,14 +1,14 @@
 [Unit]
- Description=mastodon-web
+ Description=__APP__-web
  After=network.target
 
 [Service]
  Type=simple
- User=mastodon
- WorkingDirectory=/opt/mastodon/live
+ User=__APP__
+ WorkingDirectory=__FINALPATH__/live
  Environment="RAILS_ENV=production"
  Environment="PORT=3000"
- ExecStart=/opt/mastodon/.rbenv/shims/bundle exec puma -C config/puma.rb
+ ExecStart=__FINALPATH__/live/bin/bundle exec puma -C config/puma.rb
  TimeoutSec=15
  Restart=always
  StandardError=syslog

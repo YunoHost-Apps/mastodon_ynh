@@ -8,6 +8,7 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
+source _future.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
@@ -38,6 +39,7 @@ app=$YNH_APP_INSTANCE_NAME
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
+# TODO: remove this test, don't as password anymore, generate it and send it by email to admin with: https://github.com/YunoHost-Apps/Experimental_helpers/tree/master/send_readme_to_admin
 [[ ${#admin_pass} -gt 7 ]] || ynh_die "Password is too weak, must be longer than 7 characters"
 
 # Normalize the url path syntax
@@ -72,7 +74,7 @@ ynh_app_setting_set $app path $path_url
 
 # Import debian archive pubkey, need on ARM arch
 arch=$(uname -m)
-if [[ $arch = arm*  ]]; then
+if [[ "$arch" = arm*  ]]; then
 	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B48AD6246925553
 	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7638D0442B90D010
 fi
@@ -84,7 +86,7 @@ cp ../conf/yarn.list /etc/apt/sources.list.d/
 ynh_package_update
 
 # Creates the destination directory and stores its location.
-ynh_app_setting_set $app final_path $final_path
+ynh_app_setting_set "$app" final_path "$final_path"
 
 # Install de Node.js
 # TODO: use https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/ynh_install_nodejs/ynh_install_nodejs
@@ -125,13 +127,21 @@ db_pwd=$(ynh_string_random)
 ynh_app_setting_set $app db_pwd $db_pwd
 ynh_psql_setup_db "$db_user" "$db_name" "$db_pwd"
 
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
 
+# Download all sources rbenv, ruby and mastodon
+
+ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
+ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
+ynh_setup_source "$final_path/live"                      "app-mastodon"
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
 
-# TODO: use official helper
+# TODO: use official helper ynh_add_nginx_config
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
 sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
@@ -141,74 +151,44 @@ cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 # CREATE DEDICATED USER
 #=================================================
 
-# TODO: use official helper
-# TODO: AFAIK, no app should change should be in /opt don't use it
+# TODO: use official helper ynh_system_user_create
 # Create user unix
-adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password --disabled-login
+adduser $app --home $final_path --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
 
-#=================================================
-# DOWNLOAD, CHECK AND UNPACK SOURCE
-#=================================================
+chown -R "$app" "$final_path"
 
-# TODO: dont su as $app, work root and set corrects rights at the end of install
-# Download all sources rbenv, ruby and mastodon
-(
-	su $app
-	git clone https://github.com/rbenv/rbenv.git $final_path/.rbenv
-	git clone https://github.com/rbenv/ruby-build.git $final_path/.rbenv/plugins/ruby-build
-	git clone https://github.com/tootsuite/mastodon.git $final_path/live
-)
-
-# Switch branch to tagged release
-cd $final_path/live
-version=$(curl -s https://api.github.com/repos/tootsuite/mastodon/releases/latest | grep tag_name | cut -d\" -f4)
-
-(
-	su $app
-	cd ~/live
-	git checkout $version
-)
-
+# TODO: try to use ynh_install_ruby from https://github.com/YunoHost-Apps/Experimental_helpers
 # Install de rbenv
 (
-	su $app
-	cd ~/.rbenv
+	cd $final_path/.rbenv
 	src/configure && make -C src
-	echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.profile
-	echo 'export PATH="/opt/mastodon/.rbenv/bin:/opt/mastodon/live/bin:$PATH"' >> ~/.bashrc
-	echo 'eval "\$(rbenv init -)"' >> ~/.profile
+
+	echo "export PATH=\"$final_path/.rbenv/bin:$final_path/live/bin:\$PATH\"
+eval \"\$(rbenv init -)\"" > $final_path/.profile
+	echo "export PATH=\"$final_path/.rbenv/bin:$final_path/live/bin:\$PATH\"" > $final_path/.bashrc
 )
 
 # Install ruby-build
-# TODO: /opt/mastodon looks like /opt/$app which is WRONG.
 (
-	su $app
-	/opt/mastodon/.rbenv/bin/rbenv install 2.5.0
-	/opt/mastodon/.rbenv/versions/2.5.0/bin/ruby -v
+	exec_as "$app" $final_path/.rbenv/bin/rbenv install 2.5.0
+	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.5.0
+	exec_as "$app" $final_path/.rbenv/versions/2.5.0/bin/ruby -v
 )
 
 # Create symlink for ruby
 rm /usr/bin/ruby || true
-ln -s /opt/mastodon/.rbenv/versions/2.5.0/bin/ruby /usr/bin/ruby || true
-
-# Install Mastodon
-# TODO: /opt/mastodon looks like /opt/$app which is WRONG.
-(
-	su $app
-	cd ~/live
-	/opt/mastodon/.rbenv/versions/2.5.0/bin/gem install bundler
-	bin/bundle install --deployment --without development test
-	yarn install --production
-)
+ln -s $final_path/.rbenv/versions/2.5.0/bin/ruby /usr/bin/ruby || true
 
 # Adjust Mastodon config
-# TODO: use official helper: ynh_replace_string
+# TODO: use official helper ynh_replace_string
+# TODO: save the config file in conf folder, to make replacement easier to read
+# TODO: use ynh_string_random
 cp -a $final_path/live/.env.production.sample $final_path/live/.env.production
 sed -i "s@REDIS_HOST=redis@REDIS_HOST=127.0.0.1@g" "${final_path}/live/.env.production"
 sed -i "s@DB_HOST=db@DB_HOST=/var/run/postgresql@g" "${final_path}/live/.env.production"
 sed -i "s@DB_USER=postgres@DB_USER=${db_user}@g" "${final_path}/live/.env.production"
 sed -i "s@DB_NAME=postgres@DB_NAME=${db_name}@g" "${final_path}/live/.env.production"
-sed -i "s@DB_PASS=@DB_PASS=${db_name}@g" "${final_path}/live/.env.production"
+sed -i "s@DB_PASS=@DB_PASS=${db_pwd}@g" "${final_path}/live/.env.production"
 sed -i "s@LOCAL_DOMAIN=example.com@LOCAL_DOMAIN=${domain}@g" "${final_path}/live/.env.production"
 
 language="$(echo $language | head -c 2)"
@@ -230,56 +210,45 @@ sed -i "s@#SMTP_AUTH_METHOD=plain@SMTP_AUTH_METHOD=none@g" "${final_path}/live/.
 sed -i "s@#SMTP_OPENSSL_VERIFY_MODE=peer@SMTP_OPENSSL_VERIFY_MODE=none@g" "${final_path}/live/.env.production"
 
 # Preconfig CSS & JS
+# Install Mastodon
 (
-	su $app
-	cd  ~/live
-	echo "SAFETY_ASSURED=1">> .env.production
-	RAILS_ENV=production bin/bundle exec rails db:setup
-	RAILS_ENV=production bin/bundle exec rails --trace assets:precompile
+	cd "$final_path/live"
+	su mastodon <<INSTALL
+$final_path/.rbenv/versions/2.5.0/bin/gem install bundler
+$final_path/live/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test
+yarn install --production --no-progress --non-interactive
+
+echo "SAFETY_ASSURED=1">> .env.production
+RAILS_ENV=production $final_path/live/bin/bundle exec rails db:migrate
+RAILS_ENV=production $final_path/live/bin/bundle exec rails assets:precompile
+INSTALL
 )
 
-# init rbenv & create bundle
-(
-	su $app
-	. ~/.profile
-	type rbenv
-)
+# TODO: use ynh_find_port to have generic port selection for RAILS
+ynh_add_systemd_config "$app-web"       "mastodon-web.service"
+# TODO: use ynh_find_port to have generic port selection for NODES
+ynh_add_systemd_config "$app-sidekiq"   "mastodon-sidekiq.service"
+ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
 
-# TODO: use official helper ynh_add_systemd_config
-cp ../conf/mastodon-web.service /etc/systemd/system/mastodon-web.service
-chown root: /etc/systemd/system/mastodon-web.service
-cp ../conf/mastodon-sidekiq.service /etc/systemd/system/mastodon-sidekiq.service
-chown root: /etc/systemd/system/mastodon-sidekiq.service
-cp ../conf/mastodon-streaming.service /etc/systemd/system/mastodon-streaming.service
-chown root: /etc/systemd/system/mastodon-streaming.service
-
-systemctl daemon-reload
-systemctl enable /etc/systemd/system/mastodon-*.service
-systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
-# debug
-systemctl status mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
+systemctl start "$app-web.service" "$app-sidekiq.service" "$app-streaming.service"
 
 # Create user
 (
-	su $app
-	cd ~/live
-	RAILS_ENV=production bundle exec rails c
-	account = Account.create!(username: '$admin_mastodon')
-	user = User.create!(email: '$admin_mastodon_mail', password: '$admin_pass', account: account)
-)
-
-# Create administrator & confirm user
-(
-	su $app
-	cd ~/live
-	RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
-	RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon_mail
+	cd "$final_path/live"
+	su mastodon <<CREATEUSER
+RAILS_ENV=production bin/bundle exec rails c
+account = Account.create!(username: '$admin_mastodon')
+user = User.create!(email: '$admin_mastodon_mail', password: '$admin_pass', account: account)
+CREATEUSER
+	su mastodon <<SETADMIN
+RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
+RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon_mail
+SETADMIN
 )
 
 # Install crontab
 cp ../conf/crontab_mastodon /etc/cron.d/$app
 sed -i "s@__APP__@$app@g" /etc/cron.d/$app
-
 
 #=================================================
 # GENERIC FINALIZATION
@@ -288,16 +257,16 @@ sed -i "s@__APP__@$app@g" /etc/cron.d/$app
 #=================================================
 
 # TODO:Set permissions to app files
-
+chown -R "$app" "$final_path"
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
 # Add service YunoHost
-yunohost service add mastodon-web
-yunohost service add mastodon-sidekiq
-yunohost service add mastodon-streaming
+yunohost service add "$app-web"
+yunohost service add "$app-sidekiq"
+yunohost service add "$app-streaming"
 
 #=================================================
 # SETUP SSOWAT

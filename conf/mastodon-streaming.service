@@ -1,11 +1,11 @@
 [Unit]
- Description=mastodon-streaming
+ Description=__APP__-streaming
  After=network.target
 
 [Service]
  Type=simple
- User=mastodon
- WorkingDirectory=/opt/mastodon/live
+ User=__APP__
+ WorkingDirectory=__FINALPATH__/live
  Environment="NODE_ENV=production"
  Environment="PORT=4000"
  ExecStart=/usr/bin/npm run start
