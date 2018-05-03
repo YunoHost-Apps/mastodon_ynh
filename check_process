@@ -4,7 +4,7 @@
 		domain="domain.tld"	(DOMAIN)
 		admin="john"   (USER)
 		path="/path"	(PATH)
-		passwd="():g9!co.'G{2+f/Wd\,e"
+		passwd="12345678"
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=0

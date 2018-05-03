@@ -1,47 +1,80 @@
 #!/bin/bash
 
-# Exit on command errors and treat unset variables as an error
-set -eu
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
 if [ ! -e _common.sh ]; then
-	# Get file fonction if not been to the current directory
-	sudo cp ../settings/scripts/_common.sh ./_common.sh
-	sudo chmod a+rx _common.sh
+	# Get the _common.sh file if it's not in the current directory
+	cp ../settings/scripts/_common.sh ./_common.sh
+	cp ../settings/scripts/_future.sh ./_future.sh
+	chmod a+rx _common.sh _future.sh
 fi
-# Loads the generic functions usually used in the script
 source _common.sh
-# Source app helpers
 source /usr/share/yunohost/helpers
+source _future.sh
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
 
 # Get multi-instances specific variables
 app=$YNH_APP_INSTANCE_NAME
 
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
+final_path=$(ynh_app_setting_get "$app" final_path)
+db_name=$(ynh_sanitize_dbid "$app")
 
-# Copy the app files
-final_path="/opt/${app}"
-ynh_backup "$final_path" "sources" 1
+#=================================================
+# STANDARD BACKUP STEPS
+#=================================================
+# BACKUP THE APP MAIN DIR
+#=================================================
 
-# final_path on nginx
-sudo sed -i "s@$final_path@__FINALPATH__@g" /etc/nginx/conf.d/${domain}.d/${app}.conf
+ynh_backup "$final_path"
+
+#=================================================
+# BACKUP THE NGINX CONFIGURATION
+#=================================================
+
+ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+
+#=================================================
+# BACKUP THE MYSQL DATABASE
+#=================================================
+
+ynh_psql_dump_db "$db_name" > db.sql
+
+#=================================================
+# SPECIFIC BACKUP
+#=================================================
+# BACKUP SYSTEMD
+#=================================================
+
+ynh_backup "/etc/systemd/system/$app-web.service"
+ynh_backup "/etc/systemd/system/$app-sidekiq.service"
+ynh_backup "/etc/systemd/system/$app-streaming.service"
+
+#=================================================
+# BACKUP THE CRON FILE
+#=================================================
 
 # Copy the nginx conf files
-ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf" "nginx.conf"
-ynh_backup "/etc/cron.d/${app}" "cron.conf"
-ynh_backup "/etc/systemd/system/mastodon-web.service" "systemd_web.service"
-ynh_backup "/etc/systemd/system/mastodon-sidekiq.service" "systemd_sidekiq.service"
-ynh_backup "/etc/systemd/system/mastodon-streaming.service" "systemd_streaming.service"
+ynh_backup "/etc/cron.d/$app"
+
+#=================================================
+# BACKUP THE sources.list FILES
+#=================================================
+
 ynh_backup "/etc/apt/sources.list.d/backports.list" "apt_backports.list"
 ynh_backup "/etc/apt/sources.list.d/yarn.list" "apt_yarn.list"
-
-# final_path on nginx
-sudo sed -i "s@__FINALPATH__@$final_path@g" /etc/nginx/conf.d/${domain}.d/${app}.conf
-
-# Backup db
-sudo su - postgres <<COMMANDS
-pg_dump --role=mastodon -U postgres --no-password mastodon_production > mastodon_db.sql
-COMMANDS
-ynh_backup "/var/lib/postgresql/${app}_db.sql" "${app}_db.sql"
-# Fix backup fail on yunohost 2.6
-#ynh_secure_remove /var/lib/postgresql/mastodon_db.sql
