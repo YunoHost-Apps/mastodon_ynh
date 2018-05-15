@@ -15,6 +15,7 @@ source /usr/share/yunohost/helpers
 
 # See comments in install script
 app=$YNH_APP_INSTANCE_NAME
+db_name=$app
 
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
@@ -66,41 +67,11 @@ ynh_abort_if_errors
 path_url=$(ynh_normalize_url_path $path_url)
 
 #=================================================
-# STANDARD UPGRADE STEPS
+# INSTALL DEPENDENCIES
 #=================================================
-# TODO TODO TODO
-#=================================================
-
-db_name=$app
-
-# Modify Nginx configuration file and copy it to Nginx conf directory
-sudo sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
-sudo sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
-sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
-
-# Stop Mastodon Services
-sudo systemctl stop mastodon-*.service
-
-# Change owner of live folder
-sudo chown -R $app: $final_path/live
-
-# Download Mastodon
-sudo su - $app <<PULLCOMMANDS
-pushd ~/live
-git fetch -t
-git reset --hard origin/master
-git pull https://github.com/tootsuite/mastodon.git master
-PULLCOMMANDS
-
-# Switch branch to tagged release
-cd $final_path/live
-version=$(curl -s https://api.github.com/repos/tootsuite/mastodon/releases/latest | grep tag_name | cut -d\" -f4)
-sudo su - $app <<SWITCHCOMMANDS
-pushd ~/live
-git checkout $version
-SWITCHCOMMANDS
 
 # upgrade Node.js v4 to v6
+# TODO: use https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/ynh_install_nodejs/ynh_install_nodejs
 node_version=$(nodejs --version)
 if [[ $node_version =~ ^v4.*$  ]]; then
 	pushd /opt
@@ -109,29 +80,62 @@ if [[ $node_version =~ ^v4.*$  ]]; then
 fi
 
 # add additional package for upgrade
-ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev postgresql-server-dev-9.4
+ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev postgresql-server-dev-all
 
-# Install ruby 2.5.0 for release 2.0
-sudo su - $app <<RCOMMANDS
-cd $final_path/.rbenv && git pull && cd -
-cd $final_path/.rbenv/plugins/ruby-build && git pull && cd -
-$final_path/.rbenv/bin/rbenv install 2.5.0 || true
-$final_path/.rbenv/versions/2.5.0/bin/ruby -v
-RCOMMANDS
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
 
-# Create symlink for ruby 2.5.0
-sudo rm /usr/bin/ruby || true
-sudo ln -s $final_path/.rbenv/versions/2.5.0/bin/ruby /usr/bin/ruby || true
+# Stop Mastodon Services
+# Restart Mastodon
+yunohost service stop "$app-web"
+yunohost service stop "$app-sidekiq"
+yunohost service stop "$app-streaming"
 
+# Change owner of live folder
+chown -R $app: $final_path/live
+
+# Download Mastodon
+ynh_setup_source "$final_path/live"                      "app-mastodon"
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
+# TODO: use official helper ynh_add_nginx_config
+# Modify Nginx configuration file and copy it to Nginx conf directory
+sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
+sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
+cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+
+# Upgrade rbenv and ruby plugins
+ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
+ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
+
+# Install ruby 2.5.0
+(
+	exec_as "$app" $final_path/.rbenv/bin/rbenv install 2.5.0
+	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.5.0
+	exec_as "$app" $final_path/.rbenv/versions/2.5.0/bin/ruby -v
+)
+
+# Create symlink for ruby
+rm /usr/bin/ruby || true
+ln -s $final_path/.rbenv/versions/2.5.0/bin/ruby /usr/bin/ruby || true
+
+# Preconfig CSS & JS
 # Install Mastodon
+(
 sudo su - $app <<MCOMMANDS
 pushd ~/live
 $final_path/.rbenv/versions/2.5.0/bin/gem install bundler
 bin/bundle install --deployment --without development test
 yarn install --pure-lockfile
 MCOMMANDS
+)
 
 # Apply Mastodon upgrade
+(
 sudo su - $app <<COMMANDS
 pushd ~/live
 RAILS_ENV=production bundle exec rails assets:clean
@@ -140,18 +144,32 @@ RAILS_ENV=production bundle exec rails db:migrate
 # Upgrade to 2.2.0
 RAILS_ENV=production bundle exec rails mastodon:maintenance:remove_regeneration_markers
 COMMANDS
+)
+#=================================================
+# RESTART MASTODON
+#=================================================
 
-# Restart Mastodon
-sudo systemctl start mastodon-*.service
+yunohost service start "$app-web"
+yunohost service start "$app-sidekiq"
+yunohost service start "$app-streaming"
 
 # Waiting start all services
 sleep 30
 
-# Reload Nginx
-sudo systemctl reload nginx
+#=================================================
+# RELOAD NGINX
+#=================================================
 
-# Set app public
+systemctl reload nginx
+
+#=================================================
+# SETUP SSOWAT
+#=================================================
+
 ynh_app_setting_set "$app" unprotected_uris "/"
 
-# Reload SSOwat configuration
+#=================================================
+# RELOAD ssowatconf
+#=================================================
+
 sudo yunohost app ssowatconf
