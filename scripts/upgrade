@@ -90,7 +90,7 @@ MCOMMANDS
 sudo su - $app <<COMMANDS
 pushd ~/live
 RAILS_ENV=production bundle exec rails assets:clean
-RAILS_ENV=production bundle exec rails assets:precompile
+RAILS_ENV=production bundle exec rails assets:precompile --trace
 RAILS_ENV=production bundle exec rails db:migrate
 # Upgrade to 2.2.0
 RAILS_ENV=production bundle exec rails mastodon:maintenance:remove_regeneration_markers
