@@ -3,15 +3,15 @@
 	"id": "mastodon",
 	"packaging_format": 1,
 	"requirements": {
-		"yunohost": ">= 2.4"
+		"yunohost": ">= 2.7.9"
 	},
 	"description": {
 		"en": "Mastodon is a free, open-source social network.",
 		"fr": "Mastodon est un réseau social gratuit et open source."
 	},
-	"version": "2.2.0",
+	"version": "2.3.3-1",
 	"url": "https://github.com/tootsuite/mastodon",
-	"license": "AGPL v3.0",
+	"license": "AGPL-3.0-or-later",
 	"maintainer": {
 		"name": "cyp, nemsia",
 		"email": "cyp@rouquin.me, nemsia@nemsia.org"

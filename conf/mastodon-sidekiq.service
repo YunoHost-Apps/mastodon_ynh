@@ -1,14 +1,14 @@
 [Unit]
- Description=mastodon-sidekiq
+ Description=__APP__-sidekiq
  After=network.target
 
 [Service]
  Type=simple
- User=mastodon
- WorkingDirectory=/opt/mastodon/live
+ User=__APP__
+ WorkingDirectory=__FINALPATH__/live
  Environment="RAILS_ENV=production"
  Environment="DB_POOL=20"
- ExecStart=/opt/mastodon/.rbenv/shims/bundle exec sidekiq -c 20 -q default -q mailers -q pull -q push
+ ExecStart=__FINALPATH__/live/bin/bundle exec sidekiq -c 20 -q default -q mailers -q pull -q push
  TimeoutSec=15
  Restart=always
  StandardError=syslog
