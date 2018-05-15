@@ -94,9 +94,12 @@ popd
 pushd $final_path/live
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:clean
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:precompile --trace
+
+sudo su - $app <<UCOMMANDS
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails db:migrate
 # Upgrade to 2.2.0
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails mastodon:maintenance:remove_regeneration_markers
+UCOMMANDS
 
 # Restart Mastodon
 sudo systemctl start mastodon-*.service
