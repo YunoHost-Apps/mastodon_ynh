@@ -83,18 +83,20 @@ sudo su - $app <<MCOMMANDS
 pushd ~/live
 $final_path/.rbenv/versions/2.5.1/bin/gem install bundler
 $final_path/.rbenv/versions/2.5.1/bin/bundle install --deployment --without development test
-yarn install --pure-lockfile
+#yarn install --pure-lockfile
 MCOMMANDS
 
+pushd $final_path/live
+yarn install --pure-lockfile
+popd
+
 # Apply Mastodon upgrade
-sudo su - $app <<COMMANDS
-pushd ~/live
-RAILS_ENV=production bundle exec rails assets:clean
-RAILS_ENV=production bundle exec rails assets:precompile --trace
-RAILS_ENV=production bundle exec rails db:migrate
+pushd $final_path/live
+RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:clean
+RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:precompile --trace
+RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails db:migrate
 # Upgrade to 2.2.0
-RAILS_ENV=production bundle exec rails mastodon:maintenance:remove_regeneration_markers
-COMMANDS
+RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails mastodon:maintenance:remove_regeneration_markers
 
 # Restart Mastodon
 sudo systemctl start mastodon-*.service
