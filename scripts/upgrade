@@ -23,6 +23,7 @@ path=$(ynh_app_setting_get "$app" path)
 admin=$(ynh_app_setting_get "$app" admin)
 language=$(ynh_app_setting_get "$app" language)
 final_path=$(ynh_app_setting_get "$app" final_path)
+path_url="/"
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
