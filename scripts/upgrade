@@ -113,23 +113,23 @@ cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
 ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
 
-# Install ruby 2.5.0
+# Install ruby 2.5.1
 (
-	exec_as "$app" $final_path/.rbenv/bin/rbenv install 2.5.0 || true
-	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.5.0 || true
-	exec_as "$app" $final_path/.rbenv/versions/2.5.0/bin/ruby -v
+	exec_as "$app" $final_path/.rbenv/bin/rbenv install 2.5.1 || true
+	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.5.1 || true
+	exec_as "$app" $final_path/.rbenv/versions/2.5.1/bin/ruby -v
 )
 
 # Create symlink for ruby
 rm /usr/bin/ruby || true
-ln -s $final_path/.rbenv/versions/2.5.0/bin/ruby /usr/bin/ruby || true
+ln -s $final_path/.rbenv/versions/2.5.1/bin/ruby /usr/bin/ruby || true
 
 # Preconfig CSS & JS
 # Install Mastodon
 (
 sudo su - $app <<MCOMMANDS
 pushd ~/live
-$final_path/.rbenv/versions/2.5.0/bin/gem install bundler
+$final_path/.rbenv/versions/2.5.1/bin/gem install bundler
 bin/bundle install --deployment --without development test
 yarn install --pure-lockfile
 MCOMMANDS
