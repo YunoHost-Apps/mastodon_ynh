@@ -139,11 +139,11 @@ MCOMMANDS
 (
 sudo su - $app <<COMMANDS
 pushd ~/live
-RAILS_ENV=production bundle exec rails assets:clean
-RAILS_ENV=production bundle exec rails assets:precompile
-RAILS_ENV=production bundle exec rails db:migrate
+RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:clean
+RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:precompile
+RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails db:migrate
 # Upgrade to 2.2.0
-RAILS_ENV=production bundle exec rails mastodon:maintenance:remove_regeneration_markers
+RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails mastodon:maintenance:remove_regeneration_markers
 COMMANDS
 )
 #=================================================
