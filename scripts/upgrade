@@ -65,7 +65,7 @@ if [[ $node_version =~ ^v4.*$  ]]; then
 fi
 
 # add additional package for upgrade
-ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev postgresql-server-dev-9.4
+ynh_package_install yarn pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev postgresql-server-dev-9.4
 
 # Install ruby 2.5.1 for release 2.4.0
 sudo su - $app <<RCOMMANDS
