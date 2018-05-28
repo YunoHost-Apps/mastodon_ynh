@@ -87,8 +87,10 @@ $final_path/.rbenv/versions/2.5.1/bin/bundle install --deployment --without deve
 #yarn install --pure-lockfile
 MCOMMANDS
 
+# Install package with yarn and restart postgresql
 pushd $final_path/live
 yarn install --pure-lockfile
+systemctl restart postgresql
 popd
 
 # Apply Mastodon upgrade
