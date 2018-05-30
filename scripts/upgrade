@@ -95,6 +95,7 @@ popd
 pushd $final_path/live
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:clean
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:precompile --trace
+popd
 
 sudo su - $app <<UCOMMANDS
 pushd ~/live

@@ -181,8 +181,12 @@ sudo su - $app <<CCOMMANDS
 pushd ~/live
 echo "SAFETY_ASSURED=1">> .env.production
 RAILS_ENV=production bin/bundle exec rails db:setup
-RAILS_ENV=production bin/bundle exec rails --trace assets:precompile
 CCOMMANDS
+
+# Rails precompile on root
+pushd $final_path/live
+RAILS_ENV=production bin/bundle exec rails --trace assets:precompile
+popd
 
 # init rbenv & create bundle
 sudo su - $app <<BCOMMANDS
