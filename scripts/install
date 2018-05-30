@@ -128,18 +128,18 @@ COMMANDS
 
 # Install ruby-build
 sudo su - $app <<RCOMMANDS
-/opt/mastodon/.rbenv/bin/rbenv install 2.5.0
-/opt/mastodon/.rbenv/versions/2.5.0/bin/ruby -v
+/opt/mastodon/.rbenv/bin/rbenv install 2.5.1
+/opt/mastodon/.rbenv/versions/2.5.1/bin/ruby -v
 RCOMMANDS
 
 # Create symlink for ruby
 sudo rm /usr/bin/ruby || true
-sudo ln -s /opt/mastodon/.rbenv/versions/2.5.0/bin/ruby /usr/bin/ruby || true
+sudo ln -s /opt/mastodon/.rbenv/versions/2.5.1/bin/ruby /usr/bin/ruby || true
 
 # Install Mastodon
 sudo su - $app <<MCOMMANDS
 pushd ~/live
-/opt/mastodon/.rbenv/versions/2.5.0/bin/gem install bundler
+/opt/mastodon/.rbenv/versions/2.5.1/bin/gem install bundler
 bin/bundle install --deployment --without development test
 yarn install --production
 MCOMMANDS
