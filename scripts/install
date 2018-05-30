@@ -141,8 +141,12 @@ sudo su - $app <<MCOMMANDS
 pushd ~/live
 /opt/mastodon/.rbenv/versions/2.5.1/bin/gem install bundler
 bin/bundle install --deployment --without development test
-yarn install --production
 MCOMMANDS
+
+# Yarn install on root
+pushd $final_path/live
+yarn install --pure-lockfile
+popd
 
 # Adjust Mastodon config
 pushd $final_path/live/
