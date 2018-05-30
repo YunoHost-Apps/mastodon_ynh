@@ -35,7 +35,6 @@ ynh_backup "/etc/systemd/system/mastodon-streaming.service" "systemd_streaming.s
 debian_version=$(lsb_release -c -s)
 if [[ $debian_version =  jessie ]]; then
 	ynh_backup "/etc/apt/sources.list.d/backports.list" "apt_backports.list"
-else
 fi
 ynh_backup "/etc/apt/sources.list.d/yarn.list" "apt_yarn.list"
 
