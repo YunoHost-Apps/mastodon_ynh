@@ -69,13 +69,10 @@ ynh_psql_drop_db "${app}_production"
 ynh_psql_drop_role "${app}"
 
 # Remove Debian package
-sudo apt-get remove --purge -y yarn
+#sudo apt-get remove --purge -y yarn
 #sudo apt-get remove --purge -y imagemagick ffmpeg libpq-dev libxml2-dev libxslt1-dev file curl git
-# Delete redis package
 #sudo apt-get remove --purge -y redis-server redis-tools
-# Delete postgresql package
 #sudo apt-get remove --purge -y postgresql postgresql-contrib
-# Delete Ruby package
 #sudo apt-get remove --purge -y autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
 
 # Delete app directory and configurations
@@ -89,10 +86,10 @@ REMOVE_NGINX_CONF
 ynh_secure_remove /etc/cron.d/$app
 # Delete source.list
 ynh_secure_remove /etc/apt/sources.list.d/backports.list
-ynh_secure_remove /etc/apt/sources.list.d/yarn.list
+#ynh_secure_remove /etc/apt/sources.list.d/yarn.list
 
 # Delete ruby exec
-ynh_secure_remove /usr/bin/ruby
+#ynh_secure_remove /usr/bin/ruby
 
 # Remove user
 sudo userdel -f $app

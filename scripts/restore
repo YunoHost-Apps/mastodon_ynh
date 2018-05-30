@@ -67,35 +67,46 @@ sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,Home
 
 # Reinstall dependencies
 	# Install debian package
-	ynh_package_install imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler
+	ynh_package_install imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev
 
 	# Install redis package
 	ynh_package_install redis-server redis-tools
 
 	# Install postgresql
-	ynh_package_install postgresql postgresql-contrib
+	ynh_package_install postgresql postgresql-contrib postgresql-server-dev-all
 
 	# Install Ruby
 	ynh_package_install autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
 
-	# Install source.list debian package backports & yarn
-	sudo cp ./apt_backports.list /etc/apt/sources.list.d/backports.list
+	# Import debian archive pubkey, need on ARM arch
+	arch=$(uname -m)
+	if [[ $arch = arm*  ]]; then
+		sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B48AD6246925553
+		sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7638D0442B90D010
+	fi
+
+	# Install source.list debian yarn package
 	sudo curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 	sudo cp ./apt_yarn.list /etc/apt/sources.list.d/yarn.list
-	ynh_package_update
 
-	# Install debian package backports
+	# Install source.list debian jessie package backports
+	debian_version=$(lsb_release -c -s)
+	if [[ $debian_version =  jessie ]]; then
+	sudo cp ./apt_backports.list /etc/apt/sources.list.d/backports.list
+	ynh_package_update
 	sudo apt-get -t jessie-backports -y install ffmpeg
+	else
+	ynh_package_update
+	ynh_package_install ffmpeg
+	fi
+
+	# Install Yarn
+	ynh_package_install yarn
 
 	# Install de Node.js
 	pushd /opt
 	curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
 	sudo apt-get -y install nodejs
-
-	# Install Yarn
-	ynh_package_install yarn
-
-	# Return to home
 	popd
 
  # Restore sources & data
@@ -106,6 +117,9 @@ sudo chown -R $app: "$final_path"
 
 # Debug
 sudo ls -alh "$final_path"
+
+# Restart postgresql
+sudo systemctl restart postgresql
 
 # Set UTF8 encoding by default
 sudo su -c "psql" postgres <<< \
@@ -149,18 +163,21 @@ RECOMMANDS
 # Remove dump
 ynh_secure_remove $final_path/mastodon_db.sql
 
-# Create symlink for ruby
-sudo ln -s /opt/mastodon/.rbenv/versions/2.4.1/bin/ruby /usr/bin/ruby || true
+# Create symlink for ruby 2.5.1
+sudo rm /usr/bin/ruby || true
+sudo ln -s /opt/mastodon/.rbenv/versions/2.5.1/bin/ruby /usr/bin/ruby || true
 
-# Upgrade Mastodon
-sudo su - $app <<RCOMMANDS
-cd ~/live
-bin/bundle install
+# Install Mastodon
+sudo su - $app <<MCOMMANDS
+pushd ~/live
+$final_path/.rbenv/versions/2.5.1/bin/gem install bundler
+$final_path/.rbenv/versions/2.5.1/bin/bundle install --deployment --without development test
+MCOMMANDS
+
+pushd $final_path/live
 yarn install --pure-lockfile
-#RAILS_ENV=production bin/bundle exec rails db:migrate
-#RAILS_ENV=production bundle exec rails assets:clean
-#RAILS_ENV=production bin/bundle exec rails assets:precompile
-RCOMMANDS
+systemctl restart postgresql
+popd
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sudo sed -i "s@__PATH__@$app@g" ./nginx.conf
