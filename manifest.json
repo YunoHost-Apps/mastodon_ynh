@@ -9,7 +9,7 @@
 		"en": "Mastodon is a free, open-source social network.",
 		"fr": "Mastodon est un réseau social gratuit et open source."
 	},
-	"version": "2.4.0",
+	"version": "2.4.1",
 	"url": "https://github.com/tootsuite/mastodon",
 	"license": "AGPL v3.0",
 	"maintainer": {

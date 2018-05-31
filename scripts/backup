@@ -32,7 +32,10 @@ ynh_backup "/etc/cron.d/${app}" "cron.conf"
 ynh_backup "/etc/systemd/system/mastodon-web.service" "systemd_web.service"
 ynh_backup "/etc/systemd/system/mastodon-sidekiq.service" "systemd_sidekiq.service"
 ynh_backup "/etc/systemd/system/mastodon-streaming.service" "systemd_streaming.service"
-ynh_backup "/etc/apt/sources.list.d/backports.list" "apt_backports.list"
+debian_version=$(lsb_release -c -s)
+if [[ $debian_version =  jessie ]]; then
+	ynh_backup "/etc/apt/sources.list.d/backports.list" "apt_backports.list"
+fi
 ynh_backup "/etc/apt/sources.list.d/yarn.list" "apt_yarn.list"
 
 # final_path on nginx
@@ -43,5 +46,3 @@ sudo su - postgres <<COMMANDS
 pg_dump --role=mastodon -U postgres --no-password mastodon_production > mastodon_db.sql
 COMMANDS
 ynh_backup "/var/lib/postgresql/${app}_db.sql" "${app}_db.sql"
-# Fix backup fail on yunohost 2.6
-#ynh_secure_remove /var/lib/postgresql/mastodon_db.sql
