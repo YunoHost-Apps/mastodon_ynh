@@ -35,7 +35,7 @@ sudo sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
 
 # Stop Mastodon Services
-sudo systemctl stop mastodon-*.service
+sudo systemctl stop mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
 
 # Change owner of live folder
 sudo chown -R $app: $final_path/live
@@ -105,7 +105,7 @@ RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails mas
 UCOMMANDS
 
 # Restart Mastodon
-sudo systemctl start mastodon-*.service
+sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
 
 # Waiting start all services
 sleep 30
