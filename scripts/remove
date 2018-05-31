@@ -23,24 +23,24 @@ domain=$(ynh_app_setting_get "$app" domain)
 if [ -e "/etc/systemd/system/mastodon-web.service" ]; then
 	echo "Delete systemd script"
 	sudo systemctl stop mastodon-web.service
-	ynh_secure_remove "/etc/systemd/system/mastodon-web.service"
 	sudo systemctl disable mastodon-web.service
+	ynh_secure_remove "/etc/systemd/system/mastodon-web.service"
 fi
 
 # Stop mastodon-sidekiq
 if [ -e "/etc/systemd/system/mastodon-sidekiq.service" ]; then
 	echo "Delete systemd script"
 	sudo systemctl stop mastodon-sidekiq.service
-	ynh_secure_remove "/etc/systemd/system/mastodon-sidekiq.service"
 	sudo systemctl disable mastodon-sidekiq.service
+	ynh_secure_remove "/etc/systemd/system/mastodon-sidekiq.service"
 fi
 
 # Stop mastodon-sidekiq
 if [ -e "/etc/systemd/system/mastodon-streaming.service" ]; then
 	echo "Delete systemd script"
 	sudo systemctl stop mastodon-streaming.service
-	ynh_secure_remove "/etc/systemd/system/mastodon-streaming.service"
 	sudo systemctl disable mastodon-streaming.service
+	ynh_secure_remove "/etc/systemd/system/mastodon-streaming.service"
 fi
 
 # Delete service on Yunohost monitoring
@@ -69,13 +69,10 @@ ynh_psql_drop_db "${app}_production"
 ynh_psql_drop_role "${app}"
 
 # Remove Debian package
-sudo apt-get remove --purge -y yarn
+#sudo apt-get remove --purge -y yarn
 #sudo apt-get remove --purge -y imagemagick ffmpeg libpq-dev libxml2-dev libxslt1-dev file curl git
-# Delete redis package
 #sudo apt-get remove --purge -y redis-server redis-tools
-# Delete postgresql package
 #sudo apt-get remove --purge -y postgresql postgresql-contrib
-# Delete Ruby package
 #sudo apt-get remove --purge -y autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
 
 # Delete app directory and configurations
@@ -89,10 +86,10 @@ REMOVE_NGINX_CONF
 ynh_secure_remove /etc/cron.d/$app
 # Delete source.list
 ynh_secure_remove /etc/apt/sources.list.d/backports.list
-ynh_secure_remove /etc/apt/sources.list.d/yarn.list
+#ynh_secure_remove /etc/apt/sources.list.d/yarn.list
 
 # Delete ruby exec
-ynh_secure_remove /usr/bin/ruby
+#ynh_secure_remove /usr/bin/ruby
 
 # Remove user
 sudo userdel -f $app
