@@ -90,6 +90,7 @@ else
 fi
 MCOMMANDS
 
+# Install package with yarn and restart postgresql
 pushd $final_path/live
 yarn install --pure-lockfile
 systemctl restart postgresql
