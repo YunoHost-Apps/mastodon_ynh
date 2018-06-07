@@ -90,8 +90,7 @@ sudo adduser $app --home /opt/$app --gecos "First Last,RoomNumber,WorkPhone,Home
 	sudo cp ./apt_yarn.list /etc/apt/sources.list.d/yarn.list
 
 	# Install source.list debian jessie package backports
-	debian_version=$(lsb_release -c -s)
-	if [[ $debian_version =  jessie ]]; then
+	if [ "$(lsb_release --codename --short)" == "jessie" ]; then
 	sudo cp ./apt_backports.list /etc/apt/sources.list.d/backports.list
 	ynh_package_update
 	sudo apt-get -t jessie-backports -y install ffmpeg

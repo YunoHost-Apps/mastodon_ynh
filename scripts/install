@@ -64,8 +64,7 @@ sudo curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 sudo cp ../conf/yarn.list /etc/apt/sources.list.d/
 
 # Install source.list debian jessie package backports
-debian_version=$(lsb_release -c -s)
-if [[ $debian_version =  jessie ]]; then
+if [ "$(lsb_release --codename --short)" == "jessie" ]; then
 sudo cp ../conf/backports.list /etc/apt/sources.list.d/
 ynh_package_update
 sudo apt-get -t jessie-backports -y install ffmpeg
