@@ -141,8 +141,10 @@ MCOMMANDS
 
 # Apply Mastodon upgrade
 (
+pushd $final_path/live
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:clean
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:precompile
+popd
 
 sudo su - $app <<COMMANDS
 pushd ~/live
