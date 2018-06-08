@@ -66,13 +66,6 @@ ynh_backup "/etc/systemd/system/$app-sidekiq.service"
 ynh_backup "/etc/systemd/system/$app-streaming.service"
 
 #=================================================
-# BACKUP THE CRON FILE
-#=================================================
-
-# Copy the nginx conf files
-ynh_backup "/etc/cron.d/$app"
-
-#=================================================
 # BACKUP THE sources.list FILES
 #=================================================
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then

@@ -149,12 +149,6 @@ ynh_restore_file "/etc/systemd/system/$app-streaming.service"
 systemctl enable "$app-web" "$app-sidekiq" "$app-streaming"
 
 #=================================================
-# RESTORE THE CRON FILE
-#=================================================
-
-ynh_restore_file "/etc/cron.d/$app"
-
-#=================================================
 # GENERIC FINALIZATION
 #=================================================
 # RELOAD NGINX AND PHP-FPM

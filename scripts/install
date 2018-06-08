@@ -247,10 +247,6 @@ RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$ad
 SETADMIN
 )
 
-# Install crontab
-cp ../conf/crontab_mastodon /etc/cron.d/$app
-sed -i "s@__APP__@$app@g" /etc/cron.d/$app
-
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
