@@ -75,6 +75,7 @@ ynh_backup "/etc/cron.d/$app"
 #=================================================
 # BACKUP THE sources.list FILES
 #=================================================
-
-ynh_backup "/etc/apt/sources.list.d/backports.list" "apt_backports.list"
+if [ "$(lsb_release --codename --short)" == "jessie" ]; then
+	ynh_backup "/etc/apt/sources.list.d/backports.list" "apt_backports.list"
+fi
 ynh_backup "/etc/apt/sources.list.d/yarn.list" "apt_yarn.list"

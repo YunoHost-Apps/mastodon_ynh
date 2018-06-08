@@ -88,7 +88,9 @@ if [[ "$arch" = arm*  ]]; then
 fi
 
 # Install source.list debian package backports & yarn
-cp ../conf/backports.list /etc/apt/sources.list.d/
+if [ "$(lsb_release --codename --short)" == "jessie" ]; then
+	cp ../conf/backports.list /etc/apt/sources.list.d/
+fi
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 cp ../conf/yarn.list /etc/apt/sources.list.d/
 ynh_package_update
