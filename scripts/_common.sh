@@ -162,7 +162,7 @@ ynh_psql_dump_db() {
 ynh_psql_create_user() {
 	user="$1"
 	pwd="$2"
-        sudo --login --user=postgres psql -c"CREATE USER $user WITH PASSWORD '$pwd'" postgres
+        sudo --login --user=postgres psql -c"CREATE USER $user WITH PASSWORD '$pwd';" postgres
 }
 
 # Drop a user
