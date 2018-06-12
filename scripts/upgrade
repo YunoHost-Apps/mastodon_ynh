@@ -115,7 +115,7 @@ ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
 
 # Install ruby 2.5.1
 (
-	exec_as "$app" $final_path/.rbenv/bin/rbenv install 2.5.1 || true
+	exec_as "$app" $final_path/.rbenv/bin/rbenv install -s 2.5.1 || true
 	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.5.1 || true
 	exec_as "$app" $final_path/.rbenv/versions/2.5.1/bin/ruby -v
 )
