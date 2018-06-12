@@ -124,8 +124,10 @@ ynh_install_app_dependencies \
 ynh_psql_test_if_first_run
 
 db_user=$(ynh_sanitize_dbid "$app")
-db_name=$(ynh_sanitize_dbid "$app")
+db_name="${app}_production"
+db_name=$(ynh_sanitize_dbid "$db_name")
 db_pwd=$(ynh_string_random)
+ynh_app_setting_set $app db_name $db_name
 ynh_app_setting_set $app db_pwd $db_pwd
 ynh_psql_setup_db "$db_user" "$db_name" "$db_pwd"
 
