@@ -15,7 +15,7 @@ source /usr/share/yunohost/helpers
 
 # See comments in install script
 app=$YNH_APP_INSTANCE_NAME
-db_name=$app
+db_name=$(ynh_app_setting_get "$app" db_name)
 
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
@@ -31,7 +31,7 @@ path_url="/"
 
 # If db_name doesn't exist, create it
 if [ -z "$db_name" ]; then
-	db_name=$(ynh_sanitize_dbid "$app")
+	db_name="${app}_production"
 	ynh_app_setting_set "$app" db_name "$db_name"
 fi
 
@@ -115,7 +115,7 @@ ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
 
 # Install ruby 2.5.1
 (
-	exec_as "$app" $final_path/.rbenv/bin/rbenv install 2.5.1 || true
+	exec_as "$app" $final_path/.rbenv/bin/rbenv install -s 2.5.1 || true
 	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.5.1 || true
 	exec_as "$app" $final_path/.rbenv/versions/2.5.1/bin/ruby -v
 )
