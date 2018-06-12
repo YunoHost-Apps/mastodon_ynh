@@ -83,7 +83,11 @@ sudo ln -s $final_path/.rbenv/versions/2.5.1/bin/ruby /usr/bin/ruby || true
 sudo su - $app <<MCOMMANDS
 pushd ~/live
 $final_path/.rbenv/versions/2.5.1/bin/gem install bundler
-$final_path/.rbenv/versions/2.5.1/bin/bundle install --deployment --without development test
+if [ "$(lsb_release --codename --short)" == "jessie" ]; then
+  $final_path/.rbenv/versions/2.5.1/bin/bundle install --deployment --without development test
+else
+  $final_path/.rbenv/versions/2.5.1/bin/bundle install --deployment --force --without development test
+fi
 MCOMMANDS
 
 # Install package with yarn and restart postgresql
