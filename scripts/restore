@@ -88,7 +88,9 @@ if [[ "$arch" = arm*  ]]; then
 fi
 
 # Install source.list debian package backports & yarn
-cp ../conf/backports.list /etc/apt/sources.list.d/
+if [ "$(lsb_release --codename --short)" == "jessie" ]; then
+	cp ../conf/backports.list /etc/apt/sources.list.d/
+fi
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 cp ../conf/yarn.list /etc/apt/sources.list.d/
 ynh_package_update
@@ -145,12 +147,6 @@ ynh_restore_file "/etc/systemd/system/$app-web.service"
 ynh_restore_file "/etc/systemd/system/$app-sidekiq.service"
 ynh_restore_file "/etc/systemd/system/$app-streaming.service"
 systemctl enable "$app-web" "$app-sidekiq" "$app-streaming"
-
-#=================================================
-# RESTORE THE CRON FILE
-#=================================================
-
-ynh_restore_file "/etc/cron.d/$app"
 
 #=================================================
 # GENERIC FINALIZATION

@@ -98,12 +98,13 @@ ynh_secure_remove /etc/cron.d/$app
 #=================================================
 # REMOVE source.list
 #=================================================
-
-ynh_secure_remove /etc/apt/sources.list.d/backports.list
+if [ "$(lsb_release --codename --short)" == "jessie" ]; then
+	ynh_secure_remove /etc/apt/sources.list.d/backports.list
+fi
 ynh_secure_remove /etc/apt/sources.list.d/yarn.list
 
 # Delete ruby exec
-ynh_secure_remove /usr/bin/ruby
+#ynh_secure_remove /usr/bin/ruby
 
 #=================================================
 # GENERIC FINALIZATION
