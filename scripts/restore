@@ -89,7 +89,7 @@ fi
 
 # Install source.list debian package backports & yarn
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	cp ./apt_backports.list /etc/apt/sources.list.d/
+	cp ./apt_backports.list /etc/apt/sources.list.d/backports.list
 fi
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 cp ./apt_yarn.list /etc/apt/sources.list.d/yarn.list
