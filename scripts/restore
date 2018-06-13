@@ -158,5 +158,5 @@ systemctl enable "$app-web" "$app-sidekiq" "$app-streaming"
 # RELOAD NGINX AND PHP-FPM
 #=================================================
 
-systemctl reload "$app-web" "$app-sidekiq" "$app-streaming"
+systemctl restart "$app-web" "$app-sidekiq" "$app-streaming"
 systemctl reload nginx
