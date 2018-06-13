@@ -89,10 +89,10 @@ fi
 
 # Install source.list debian package backports & yarn
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	cp ../conf/apt_backports.list /etc/apt/sources.list.d/
+	cp ./apt_backports.list /etc/apt/sources.list.d/
 fi
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-cp ../conf/apt_yarn.list /etc/apt/sources.list.d/yarn.list
+cp ./apt_yarn.list /etc/apt/sources.list.d/yarn.list
 ynh_package_update
 
 # Install de Node.js
