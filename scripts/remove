@@ -103,6 +103,7 @@ ynh_secure_remove /etc/cron.d/$app
 #=================================================
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
 	ynh_secure_remove /etc/apt/sources.list.d/backports.list
+	ynh_secure_remove /etc/apt/sources.list.d/jessie-backports.list
 fi
 ynh_secure_remove /etc/apt/sources.list.d/yarn.list
 

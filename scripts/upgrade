@@ -47,6 +47,14 @@ if [[ "$admin" = "" || "$language" = "" ]]; then
     ynh_die
 fi
 
+if [ "$(lsb_release --codename --short)" == "jessie" ]; then
+	echo "deb http://httpredir.debian.org/debian jessie-backports main" | tee /etc/apt/sources.list.d/jessie-backports.list
+	ynh_secure_remove /etc/apt/sources.list.d/backports.list
+fi
+
+# Add yarn repo
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================

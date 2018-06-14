@@ -81,10 +81,10 @@ fi
 
 # Install source.list debian package backports & yarn
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-sudo cp ../conf/backports.list /etc/apt/sources.list.d/
+	echo "deb http://httpredir.debian.org/debian jessie-backports main" | tee /etc/apt/sources.list.d/jessie-backports.list
 fi
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-cp ../conf/yarn.list /etc/apt/sources.list.d/
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 ynh_package_update
 
 # Creates the destination directory and stores its location.
