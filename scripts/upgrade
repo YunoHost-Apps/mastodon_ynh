@@ -47,14 +47,6 @@ if [[ "$admin" = "" || "$language" = "" ]]; then
     ynh_die
 fi
 
-if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	echo "deb http://httpredir.debian.org/debian jessie-backports main" | tee /etc/apt/sources.list.d/jessie-backports.list
-	ynh_secure_remove /etc/apt/sources.list.d/backports.list
-fi
-
-# Add yarn repo
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
@@ -69,11 +61,17 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# CHECK THE PATH
+# Remove repo Files
 #=================================================
 
-# Normalize the URL path syntax
-#path_url=$(ynh_normalize_url_path $path_url)
+if [ "$(lsb_release --codename --short)" == "jessie" ]; then
+	echo "deb http://httpredir.debian.org/debian jessie-backports main" | tee /etc/apt/sources.list.d/jessie-backports.list
+	ynh_secure_remove /etc/apt/sources.list.d/backports.list
+fi
+
+# Add yarn repo
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
 
 #=================================================
 # INSTALL DEPENDENCIES
