@@ -16,6 +16,7 @@ source /usr/share/yunohost/helpers
 # See comments in install script
 app=$YNH_APP_INSTANCE_NAME
 db_name=$(ynh_app_setting_get "$app" db_name)
+db_pwd=$(ynh_app_setting_get "$app" db_pwd)
 
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
@@ -45,6 +46,15 @@ fi
 if [[ "$admin" = "" || "$language" = "" ]]; then
     echo "Unable to upgrade, please contact support"
     ynh_die
+fi
+
+# If db_pwd doesn't exist, create it
+if [[ -z "$db_pwd" ]]; then
+	db_pwd=$(ynh_string_random)
+	ynh_app_setting_set $app db_pwd $db_pwd
+	ynh_psql_test_if_first_run
+	sudo --login --user=postgres psql -c"ALTER user $app WITH PASSWORD '$db_pwd'" postgres
+	sed -i "s@DB_PASS=@DB_PASS=${db_pwd}@g" "${final_path}/live/.env.production"
 fi
 
 #=================================================
