@@ -1,23 +1,46 @@
 #!/bin/bash
 
-# Exit on command errors and treat unset variables as an error
-set -eu
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-# Loads the generic functions usually used in the script
-source .fonctions
-# Source YunoHost helpers
+source _common.sh
 source /usr/share/yunohost/helpers
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
 
 # See comments in install script
 app=$YNH_APP_INSTANCE_NAME
+db_name=$(ynh_app_setting_get "$app" db_name)
+db_pwd=$(ynh_app_setting_get "$app" db_pwd)
 
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
 path=$(ynh_app_setting_get "$app" path)
 admin=$(ynh_app_setting_get "$app" admin)
 language=$(ynh_app_setting_get "$app" language)
+final_path=$(ynh_app_setting_get "$app" final_path)
+path_url="/"
 
-CHECK_PATH	# Checks and corrects the syntax of the path.
+#=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+
+# If db_name doesn't exist, create it
+if [ -z "$db_name" ]; then
+	db_name="${app}_production"
+	ynh_app_setting_set "$app" db_name "$db_name"
+fi
+
+# If final_path doesn't exist, create it
+if [ -z "$final_path" ]; then
+	final_path=/var/www/$app
+	ynh_app_setting_set "$app" final_path "$final_path"
+fi
 
 # Check if admin is not null
 if [[ "$admin" = "" || "$language" = "" ]]; then
@@ -25,38 +48,47 @@ if [[ "$admin" = "" || "$language" = "" ]]; then
     ynh_die
 fi
 
-final_path=/opt/$app
+# If db_pwd doesn't exist, create it
+if [[ -z "$db_pwd" ]]; then
+	db_pwd=$(ynh_string_random)
+	ynh_app_setting_set $app db_pwd $db_pwd
+	ynh_psql_test_if_first_run
+	sudo --login --user=postgres psql -c"ALTER user $app WITH PASSWORD '$db_pwd'" postgres
+	sed -i "s@DB_PASS=@DB_PASS=${db_pwd}@g" "${final_path}/live/.env.production"
+fi
 
-db_name=$app
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
 
-# Modify Nginx configuration file and copy it to Nginx conf directory
-sudo sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
-sudo sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
-sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+# Backup the current version of the app
+ynh_backup_before_upgrade
+ynh_clean_setup () {
+	# restore it if the upgrade fails
+	ynh_restore_upgradebackup
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
 
-# Stop Mastodon Services
-sudo systemctl stop mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
+#=================================================
+# Remove repo Files
+#=================================================
 
-# Change owner of live folder
-sudo chown -R $app: $final_path/live
+if [ "$(lsb_release --codename --short)" == "jessie" ]; then
+	echo "deb http://httpredir.debian.org/debian jessie-backports main" | tee /etc/apt/sources.list.d/jessie-backports.list
+	ynh_secure_remove /etc/apt/sources.list.d/backports.list
+fi
 
-# Download Mastodon
-sudo su - $app <<PULLCOMMANDS
-pushd ~/live
-git fetch -t
-git reset --hard origin/master
-git pull https://github.com/tootsuite/mastodon.git master
-PULLCOMMANDS
+# Add yarn repo
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 
-# Switch branch to tagged release
-cd $final_path/live
-version=$(curl -s https://api.github.com/repos/tootsuite/mastodon/releases/latest | grep tag_name | cut -d\" -f4)
-sudo su - $app <<SWITCHCOMMANDS
-pushd ~/live
-git checkout $version
-SWITCHCOMMANDS
+
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
 
 # upgrade Node.js v4 to v6
+# TODO: use https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/ynh_install_nodejs/ynh_install_nodejs
 node_version=$(nodejs --version)
 if [[ $node_version =~ ^v4.*$  ]]; then
 	pushd /opt
@@ -65,30 +97,63 @@ if [[ $node_version =~ ^v4.*$  ]]; then
 fi
 
 # add additional package for upgrade
-ynh_package_install yarn pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev postgresql-server-dev-all
+ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev postgresql-server-dev-all
 
-# Install ruby 2.5.1 for release 2.4.0
-sudo su - $app <<RCOMMANDS
-cd $final_path/.rbenv && git pull && cd -
-cd $final_path/.rbenv/plugins/ruby-build && git pull && cd -
-$final_path/.rbenv/bin/rbenv install 2.5.1 || true
-$final_path/.rbenv/versions/2.5.1/bin/ruby -v
-RCOMMANDS
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
 
-# Create symlink for ruby 2.5.1
-sudo rm /usr/bin/ruby || true
-sudo ln -s $final_path/.rbenv/versions/2.5.1/bin/ruby /usr/bin/ruby || true
+# Stop Mastodon Services
+# Restart Mastodon
+yunohost service stop "$app-web"
+yunohost service stop "$app-sidekiq"
+yunohost service stop "$app-streaming"
 
+# Change owner of live folder
+chown -R $app: $final_path/live
+
+# Download Mastodon
+ynh_setup_source "$final_path/live"                      "app-mastodon"
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
+# TODO: use official helper ynh_add_nginx_config
+# Modify Nginx configuration file and copy it to Nginx conf directory
+sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
+sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
+cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+
+# Upgrade rbenv and ruby plugins
+ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
+ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
+
+# Install ruby 2.5.1
+(
+	exec_as "$app" $final_path/.rbenv/bin/rbenv install -s 2.5.1 || true
+	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.5.1 || true
+	exec_as "$app" $final_path/.rbenv/versions/2.5.1/bin/ruby -v
+)
+
+# Create symlink for ruby
+rm /usr/bin/ruby || true
+ln -s $final_path/.rbenv/versions/2.5.1/bin/ruby /usr/bin/ruby || true
+
+# Preconfig CSS & JS
 # Install Mastodon
+(
 sudo su - $app <<MCOMMANDS
 pushd ~/live
 $final_path/.rbenv/versions/2.5.1/bin/gem install bundler
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-  $final_path/.rbenv/versions/2.5.1/bin/bundle install --deployment --without development test
+	$final_path/.rbenv/versions/2.5.1/bin/bundle install --deployment --without development test
 else
-  $final_path/.rbenv/versions/2.5.1/bin/bundle install --deployment --force --without development test
+	$final_path/.rbenv/versions/2.5.1/bin/bundle install --deployment --force --without development test
 fi
+yarn install --pure-lockfile
 MCOMMANDS
+)
 
 # Install package with yarn and restart postgresql
 pushd $final_path/live
@@ -97,29 +162,44 @@ systemctl restart postgresql
 popd
 
 # Apply Mastodon upgrade
+(
 pushd $final_path/live
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:clean
-RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:precompile --trace
+RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails assets:precompile
 popd
 
-sudo su - $app <<UCOMMANDS
+sudo su - $app <<COMMANDS
 pushd ~/live
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails db:migrate
 # Upgrade to 2.2.0
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails mastodon:maintenance:remove_regeneration_markers
-UCOMMANDS
+COMMANDS
+)
+#=================================================
+# RESTART MASTODON
+#=================================================
 
-# Restart Mastodon
-sudo systemctl start mastodon-web.service mastodon-sidekiq.service mastodon-streaming.service
+yunohost service start "$app-web"
+yunohost service start "$app-sidekiq"
+yunohost service start "$app-streaming"
 
 # Waiting start all services
 sleep 30
 
-# Reload Nginx
-sudo systemctl reload nginx
+#=================================================
+# RELOAD NGINX
+#=================================================
 
-# Set app public
+systemctl reload nginx
+
+#=================================================
+# SETUP SSOWAT
+#=================================================
+
 ynh_app_setting_set "$app" unprotected_uris "/"
 
-# Reload SSOwat configuration
+#=================================================
+# RELOAD ssowatconf
+#=================================================
+
 sudo yunohost app ssowatconf

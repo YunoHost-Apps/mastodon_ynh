@@ -1,100 +1,119 @@
 #!/bin/bash
 
-# Exit on command errors and treat unset variables as an error
-set -u
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-if [ ! -e .fonctions ]; then
-	# Get file fonction if not been to the current directory
-	sudo cp ../settings/scripts/.fonctions ./.fonctions
-	sudo chmod a+rx .fonctions
-fi
-
-source .fonctions	# Loads the generic functions usually used in the script
+source _common.sh	# Loads the generic functions usually used in the script
 # Source app helpers
 source /usr/share/yunohost/helpers
+source _future.sh
 
-# Get multi-instances specific variables
+
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
 app=$YNH_APP_INSTANCE_NAME
 
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
-
-# Stop mastodon-web
-if [ -e "/etc/systemd/system/mastodon-web.service" ]; then
-	echo "Delete systemd script"
-	sudo systemctl stop mastodon-web.service
-	sudo systemctl disable mastodon-web.service
-	ynh_secure_remove "/etc/systemd/system/mastodon-web.service"
+db_name=$(ynh_app_setting_get "$app" db_name)
+if [ -z "$db_name" ]; then
+	db_name="${app}_production"
+	ynh_app_setting_set "$app" db_name "$db_name"
 fi
+db_user=$(ynh_sanitize_dbid "$app")
+final_path=$(ynh_app_setting_get "$app" final_path)
 
-# Stop mastodon-sidekiq
-if [ -e "/etc/systemd/system/mastodon-sidekiq.service" ]; then
-	echo "Delete systemd script"
-	sudo systemctl stop mastodon-sidekiq.service
-	sudo systemctl disable mastodon-sidekiq.service
-	ynh_secure_remove "/etc/systemd/system/mastodon-sidekiq.service"
-fi
+#=================================================
+# STANDARD REMOVE
+#=================================================
+# STOP AND REMOVE SERVICE
+#=================================================
 
-# Stop mastodon-sidekiq
-if [ -e "/etc/systemd/system/mastodon-streaming.service" ]; then
-	echo "Delete systemd script"
-	sudo systemctl stop mastodon-streaming.service
-	sudo systemctl disable mastodon-streaming.service
-	ynh_secure_remove "/etc/systemd/system/mastodon-streaming.service"
-fi
+ynh_remove_systemd_config "$app-web"
+ynh_remove_systemd_config "$app-sidekiq"
+ynh_remove_systemd_config "$app-streaming"
 
-# Delete service on Yunohost monitoring
-if sudo yunohost service status | grep -q mastodon-web
+#=================================================
+# REMOVE SERVICE FROM ADMIN PANEL
+#==============================================
+
+if yunohost service status | grep -q "$app-web"
 then
-	echo "Remove mastodon-web service"
-	sudo yunohost service remove mastodon-web
+	echo "Remove $app-web service"
+	yunohost service remove "$app-web"
 fi
 
-# Delete service on Yunohost monitoring
-if sudo yunohost service status | grep -q mastodon-sidekiq
+if yunohost service status | grep -q "$app-sidekiq"
 then
-	echo "Remove mastodon-sidekiq service"
-	sudo yunohost service remove mastodon-sidekiq
+	echo "Remove $app-sidekiq service"
+	yunohost service remove "$app-sidekiq"
 fi
 
-# Delete service on Yunohost monitoring
-if sudo yunohost service status | grep -q mastodon-streaming
+if yunohost service status | grep -q "$app-streaming"
 then
-	echo "Remove mastodon-streaming service"
-	sudo yunohost service remove mastodon-streaming
+	echo "Remove $app-streaming service"
+	yunohost service remove "$app-streaming"
 fi
+
+#=================================================
+# REMOVE DEPENDENCIES
+#=================================================
+
+# Remove metapackage and its dependencies
+ynh_remove_app_dependencies
+
+#=================================================
+# REMOVE THE PostgreSQL DATABASE
+#=================================================
 
 # delete postgresql database & user
-ynh_psql_drop_db "${app}_production"
-ynh_psql_drop_role "${app}"
+ynh_psql_remove_db "$db_name" "$db_user"
 
-# Remove Debian package
-#sudo apt-get remove --purge -y yarn
-#sudo apt-get remove --purge -y imagemagick ffmpeg libpq-dev libxml2-dev libxslt1-dev file curl git
-#sudo apt-get remove --purge -y redis-server redis-tools
-#sudo apt-get remove --purge -y postgresql postgresql-contrib
-#sudo apt-get remove --purge -y autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev
+#=================================================
+# REMOVE APP MAIN DIR
+#=================================================
 
-# Delete app directory and configurations
-ynh_secure_remove /opt/$app
-[[ -n $domain ]] && sudo rm -f "/etc/nginx/conf.d/${domain}.d/${app}.conf"
+# Remove the app directory securely
+ynh_secure_remove "$final_path"
 
-# Delete nginx configuration
-REMOVE_NGINX_CONF
+#=================================================
+# REMOVE NGINX CONFIGURATION
+#=================================================
+
+ynh_secure_remove "/etc/nginx/conf.d/${domain}.d/${app}.conf"
+systemctl reload nginx
+
+#=================================================
+# SPECIFIC REMOVE
+#=================================================
+# REMOVE THE CRON FILE
+#=================================================
 
 # Delete cronlog
 ynh_secure_remove /etc/cron.d/$app
-# Delete source.list
-ynh_secure_remove /etc/apt/sources.list.d/backports.list
-#ynh_secure_remove /etc/apt/sources.list.d/yarn.list
+
+#=================================================
+# REMOVE source.list
+#=================================================
+if [ "$(lsb_release --codename --short)" == "jessie" ]; then
+	ynh_secure_remove /etc/apt/sources.list.d/backports.list
+	ynh_secure_remove /etc/apt/sources.list.d/jessie-backports.list
+fi
+ynh_secure_remove /etc/apt/sources.list.d/yarn.list
 
 # Delete ruby exec
 #ynh_secure_remove /usr/bin/ruby
 
-# Remove user
-sudo userdel -f $app
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# REMOVE DEDICATED USER
+#=================================================
 
-# Reload services
-sudo systemctl reload nginx
-
-echo -e "\e[0m"	# Restore normal color
+userdel -f $app
