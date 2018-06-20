@@ -82,7 +82,6 @@ fi
 # Add yarn repo
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 
-
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
@@ -103,17 +102,20 @@ ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libi
 # STANDARD UPGRADE STEPS
 #=================================================
 
+# Change owner of live folder
+chown -R $app: $final_path/live
+
 # Stop Mastodon Services
 # Restart Mastodon
 yunohost service stop "$app-web"
 yunohost service stop "$app-sidekiq"
 yunohost service stop "$app-streaming"
 
-# Change owner of live folder
-chown -R $app: $final_path/live
-
 # Download Mastodon
 ynh_setup_source "$final_path/live"                      "app-mastodon"
+
+# Clean un-need Files
+ynh_secure_remove $final_path/live/config/initializers/timeout.rb
 
 #=================================================
 # NGINX CONFIGURATION
@@ -171,8 +173,6 @@ popd
 sudo su - $app <<COMMANDS
 pushd ~/live
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails db:migrate
-# Upgrade to 2.2.0
-RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails mastodon:maintenance:remove_regeneration_markers
 COMMANDS
 )
 #=================================================
