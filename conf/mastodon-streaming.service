@@ -7,7 +7,7 @@
  User=__APP__
  WorkingDirectory=__FINALPATH__/live
  Environment="NODE_ENV=production"
- Environment="PORT=4000"
+ Environment="PORT=__PORT_STREAM__"
  ExecStart=/usr/bin/npm run start
  TimeoutSec=15
  Restart=always

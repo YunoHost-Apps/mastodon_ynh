@@ -7,7 +7,7 @@
  User=__APP__
  WorkingDirectory=__FINALPATH__/live
  Environment="RAILS_ENV=production"
- Environment="PORT=3000"
+ Environment="PORT=__PORT_WEB__"
  ExecStart=__FINALPATH__/live/bin/bundle exec puma -C config/puma.rb
  TimeoutSec=15
  Restart=always

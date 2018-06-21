@@ -62,7 +62,6 @@ ynh_restore_file "$final_path"
 # RECREATE THE DEDICATED USER
 #=================================================
 
-# Create user unix
 adduser $app --home $final_path --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
 
 #=================================================
@@ -95,13 +94,8 @@ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 ynh_package_update
 
-# Install de Node.js
-# TODO: use https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/ynh_install_nodejs/ynh_install_nodejs
-(
-	cd /opt
-	curl -sL https://deb.nodesource.com/setup_6.x | bash -
-	apt-get -y install nodejs
-)
+# install nodejs
+ynh_install_nodejs 8
 
 # TODO: use the same mecanism with other files
 ynh_install_app_dependencies \
@@ -123,25 +117,17 @@ ynh_install_app_dependencies \
 #=================================================
 
 # Restore PostgreSQL database
-db_user=$(ynh_sanitize_dbid "$app")
+
 db_name=$(ynh_app_setting_get "$app" db_name)
-if [ -z "$db_name" ]; then
-	db_name="${app}_production"
-	ynh_app_setting_set "$app" db_name "$db_name"
-fi
 db_pwd=$(ynh_app_setting_get "$app" db_pwd)
 
 ynh_psql_test_if_first_run
-ynh_psql_setup_db "$db_user" "$db_name" "$db_pwd"
+ynh_psql_create_user "$app" "$db_pwd"
+ynh_psql_execute_as_root \
+"CREATE DATABASE $db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $app;"
 ynh_psql_execute_file_as_root ./db.sql "$db_name"
 
-#=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
-#=================================================
 
-yunohost service add $app-web
-yunohost service add $app-sidekiq
-yunohost service add $app-streaming
 
 #=================================================
 # RESTORE SYSTEMD
@@ -153,10 +139,20 @@ ynh_restore_file "/etc/systemd/system/$app-streaming.service"
 systemctl enable "$app-web" "$app-sidekiq" "$app-streaming"
 
 #=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
+yunohost service add $app-web
+yunohost service add $app-sidekiq
+yunohost service add $app-streaming
+
+#=================================================
 # GENERIC FINALIZATION
 #=================================================
-# RELOAD NGINX AND PHP-FPM
+# RELOAD NGINX AND services
 #=================================================
 
 systemctl restart "$app-web" "$app-sidekiq" "$app-streaming"
+# Waiting start all services
+sleep 30
 systemctl reload nginx
