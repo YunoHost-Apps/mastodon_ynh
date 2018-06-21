@@ -112,12 +112,6 @@ ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
 ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/nginx.conf"
 ynh_add_nginx_config
 
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-
-# Create a system user
-ynh_system_user_create $app
 
 # Upgrade rbenv and ruby plugins
 ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"

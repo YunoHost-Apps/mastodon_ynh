@@ -62,7 +62,7 @@ ynh_restore_file "$final_path"
 # RECREATE THE DEDICATED USER
 #=================================================
 
-ynh_system_user_create $app
+adduser $app --home $final_path --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
 
 #=================================================
 # RESTORE USER RIGHTS
