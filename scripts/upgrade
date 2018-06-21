@@ -50,6 +50,14 @@ if [[ "$admin" = "" || "$language" = "" ]]; then
     ynh_die
 fi
 
+# If db_pwd doesn't exist, create it, need for old install
+if [[ -z "$db_pwd" ]]; then
+	db_pwd=$(ynh_string_random)
+	ynh_app_setting_set $app db_pwd $db_pwd
+	ynh_psql_test_if_first_run
+	sudo --login --user=postgres psql -c"ALTER user $app WITH PASSWORD '$db_pwd'" postgres
+	sed -i "s@DB_PASS=@DB_PASS=${db_pwd}@g" "${final_path}/live/.env.production"
+fi
 
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
