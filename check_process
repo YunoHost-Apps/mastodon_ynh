@@ -2,9 +2,9 @@
 	auto_remove=1
 	; Manifest
 		domain="domain.tld"	(DOMAIN)
-		admin="john"   (USER)
 		path="/path"	(PATH)
-		passwd="12345678"
+		admin="john"   (USER)
+	    language="fr_FR"
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=0

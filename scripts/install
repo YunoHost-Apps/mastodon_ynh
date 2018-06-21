@@ -25,8 +25,10 @@ ynh_abort_if_errors
 domain=$YNH_APP_ARG_DOMAIN
 admin_mastodon=$YNH_APP_ARG_ADMIN
 admin_mastodon_mail=$(ynh_user_get_info $admin_mastodon 'mail')
-admin_pass=$YNH_APP_ARG_PASSWD
+admin_pass=$(ynh_string_random 24)
 language=$YNH_APP_ARG_LANGUAGE
+port_web=$(ynh_find_port 3000)
+port_stream=$(ynh_find_port 4000)
 
 path_url="/"
 
@@ -38,9 +40,6 @@ app=$YNH_APP_INSTANCE_NAME
 
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
-
-# TODO: remove this test, don't as password anymore, generate it and send it by email to admin with: https://github.com/YunoHost-Apps/Experimental_helpers/tree/master/send_readme_to_admin
-[[ ${#admin_pass} -gt 7 ]] || ynh_die "Password is too weak, must be longer than 7 characters"
 
 # Normalize the url path syntax
 path_url=$(ynh_normalize_url_path $path_url)
@@ -54,11 +53,11 @@ ynh_webpath_register $app $domain $path_url
 # STORE SETTINGS FROM MANIFEST
 #=================================================
 
-ynh_app_setting_set $app domain $domain
-ynh_app_setting_set $app admin $admin_mastodon
-ynh_app_setting_set $app pass $admin_pass
-ynh_app_setting_set $app language $language
-ynh_app_setting_set $app path $path_url
+ynh_app_setting_set $app domain      $domain
+ynh_app_setting_set $app admin       $admin_mastodon
+ynh_app_setting_set $app language    $language
+ynh_app_setting_set $app port_web    $port_web
+ynh_app_setting_set $app port_stream $port_stream
 
 
 #=================================================
@@ -87,16 +86,8 @@ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 ynh_package_update
 
-# Creates the destination directory and stores its location.
-ynh_app_setting_set "$app" final_path "$final_path"
-
-# Install de Node.js
-# TODO: use https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/ynh_install_nodejs/ynh_install_nodejs
-(
-	cd /opt
-	curl -sL https://deb.nodesource.com/setup_6.x | bash -
-	apt-get -y install nodejs
-)
+# install nodejs
+ynh_install_nodejs 8
 
 # TODO: use the same mecanism with other files
 ynh_install_app_dependencies \
@@ -112,29 +103,27 @@ ynh_install_app_dependencies \
 	ffmpeg \
 	`# Yarn ` \
 	yarn
-
+	
 #=================================================
-# CREATE A DATABASE
+# DATABASE SETUP
 #=================================================
 
-# TODO: use non-official https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/postgres/postgres
-# TODO: this commands doesn't looks like a requirement, you may fully remove it
-# Set UTF8 encoding by default
-
-ynh_psql_test_if_first_run
-
-db_user=$(ynh_sanitize_dbid "$app")
+# Create postgresql database
 db_name="${app}_production"
-db_name=$(ynh_sanitize_dbid "$db_name")
-db_pwd=$(ynh_string_random)
-ynh_app_setting_set $app db_name $db_name
-ynh_app_setting_set $app db_pwd $db_pwd
-ynh_psql_setup_db "$db_user" "$db_name" "$db_pwd"
+db_pwd=$(ynh_string_random 30)
+ynh_app_setting_set "$app" db_name "$db_name"
+ynh_app_setting_set "$app" db_pwd "$db_pwd"
+ynh_psql_test_if_first_run
+ynh_psql_create_user "$app" "$db_pwd"
+ynh_psql_execute_as_root \
+"CREATE DATABASE $db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $app;"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
+# Creates the destination directory and stores its location.
+ynh_app_setting_set "$app" final_path "$final_path"
 # Download all sources rbenv, ruby and mastodon
 
 ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
@@ -145,19 +134,17 @@ ynh_setup_source "$final_path/live"                      "app-mastodon"
 # NGINX CONFIGURATION
 #=================================================
 
-# TODO: use official helper ynh_add_nginx_config
-# Modify Nginx configuration file and copy it to Nginx conf directory
-sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
-sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
-cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+# Create a dedicated nginx config
+ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
+ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/nginx.conf"
+ynh_add_nginx_config
 
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
 
-# TODO: use official helper ynh_system_user_create
-# Create user unix
-adduser $app --home $final_path --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
+# Create a system user
+ynh_system_user_create $app
 
 chown -R "$app" "$final_path"
 
@@ -189,34 +176,32 @@ yarn install --pure-lockfile
 popd
 
 # Adjust Mastodon config
-# TODO: use official helper ynh_replace_string
-# TODO: save the config file in conf folder, to make replacement easier to read
-# TODO: use ynh_string_random
+
 cp -a $final_path/live/.env.production.sample $final_path/live/.env.production
-sed -i "s@REDIS_HOST=redis@REDIS_HOST=127.0.0.1@g" "${final_path}/live/.env.production"
-sed -i "s@DB_HOST=db@DB_HOST=/var/run/postgresql@g" "${final_path}/live/.env.production"
-sed -i "s@DB_USER=postgres@DB_USER=${db_user}@g" "${final_path}/live/.env.production"
-sed -i "s@DB_NAME=postgres@DB_NAME=${db_name}@g" "${final_path}/live/.env.production"
-sed -i "s@DB_PASS=@DB_PASS=${db_pwd}@g" "${final_path}/live/.env.production"
-sed -i "s@LOCAL_DOMAIN=example.com@LOCAL_DOMAIN=${domain}@g" "${final_path}/live/.env.production"
+ynh_replace_string "REDIS_HOST=redis"         "REDIS_HOST=127.0.0.1"        "${final_path}/live/.env.production"
+ynh_replace_string "DB_HOST=db"               "DB_HOST=/var/run/postgresql" "${final_path}/live/.env.production"
+ynh_replace_string "DB_USER=postgres"         "DB_USER=${app}"              "${final_path}/live/.env.production"
+ynh_replace_string "DB_NAME=postgres"         "DB_NAME=${db_name}"          "${final_path}/live/.env.production"
+ynh_replace_string "DB_PASS="                 "DB_PASS=${db_pwd}"           "${final_path}/live/.env.production"
+ynh_replace_string "LOCAL_DOMAIN=example.com" "LOCAL_DOMAIN=${domain}"      "${final_path}/live/.env.production"
 
 language="$(echo $language | head -c 2)"
-sed -i "s@# DEFAULT_LOCALE=de@DEFAULT_LOCALE=${language}@g" "${final_path}/live/.env.production"
+ynh_replace_string "# DEFAULT_LOCALE=de"      "DEFAULT_LOCALE=${language}"  "${final_path}/live/.env.production"
 
 paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
-sed -i "s@PAPERCLIP_SECRET=@PAPERCLIP_SECRET=${paperclip_secret}@g" "${final_path}/live/.env.production"
-sed -i "s@SECRET_KEY_BASE=@SECRET_KEY_BASE=${secret_key_base}@g" "${final_path}/live/.env.production"
-sed -i "s@OTP_SECRET=@OTP_SECRET=${otp_secret}@g" "${final_path}/live/.env.production"
+ynh_replace_string "PAPERCLIP_SECRET=" "PAPERCLIP_SECRET=$paperclip_secret" "${final_path}/live/.env.production"
+ynh_replace_string "SECRET_KEY_BASE="  "SECRET_KEY_BASE=$secret_key_base"   "${final_path}/live/.env.production"
+ynh_replace_string "OTP_SECRET="       "OTP_SECRET=$otp_secret"             "${final_path}/live/.env.production"
 
-sed -i "s@SMTP_LOGIN=@#SMTP_LOGIN=@g" "${final_path}/live/.env.production"
-sed -i "s@SMTP_PASSWORD=@#SMTP_PASSWORD=@g" "${final_path}/live/.env.production"
-sed -i "s@SMTP_SERVER=smtp.mailgun.org@SMTP_SERVER=localhost@g" "${final_path}/live/.env.production"
-sed -i "s@SMTP_PORT=587@SMTP_PORT=25@g" "${final_path}/live/.env.production"
-sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${admin_mastodon}'@'${domain}',' "${final_path}/live/.env.production"
-sed -i "s@#SMTP_AUTH_METHOD=plain@SMTP_AUTH_METHOD=none@g" "${final_path}/live/.env.production"
-sed -i "s@#SMTP_OPENSSL_VERIFY_MODE=peer@SMTP_OPENSSL_VERIFY_MODE=none@g" "${final_path}/live/.env.production"
+ynh_replace_string "SMTP_LOGIN="                                 "#SMTP_LOGIN="                                     "${final_path}/live/.env.production"
+ynh_replace_string "SMTP_PASSWORD="                              "#SMTP_PASSWORD="                                  "${final_path}/live/.env.production"
+ynh_replace_string "SMTP_SERVER=smtp.mailgun.org"                "SMTP_SERVER=localhost"                            "${final_path}/live/.env.production"
+ynh_replace_string "SMTP_PORT=587"                               "SMTP_PORT=25"                                     "${final_path}/live/.env.production"
+ynh_replace_string "SMTP_FROM_ADDRESS=notifications@example.com" "SMTP_FROM_ADDRESS=$admin_mastodon@$domain"        "${final_path}/live/.env.production"
+ynh_replace_string "#SMTP_AUTH_METHOD=plain"                     "SMTP_AUTH_METHOD=none"                            "${final_path}/live/.env.production"
+ynh_replace_string "#SMTP_OPENSSL_VERIFY_MODE=peer"              "SMTP_OPENSSL_VERIFY_MODE=none"                    "${final_path}/live/.env.production"
 
 # Preconfig CSS & JS
 # Install Mastodon
@@ -232,9 +217,14 @@ sed -i "s@#SMTP_OPENSSL_VERIFY_MODE=peer@SMTP_OPENSSL_VERIFY_MODE=none@g" "${fin
 INSTALL
 )
 
-# TODO: use ynh_find_port to have generic port selection for RAILS
+#=================================================
+# SETUP SYSTEMD
+#=================================================
+
+# Create a dedicated systemd config
+ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
+ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/mastodon-streaming.service"
 ynh_add_systemd_config "$app-web"       "mastodon-web.service"
-# TODO: use ynh_find_port to have generic port selection for NODES
 ynh_add_systemd_config "$app-sidekiq"   "mastodon-sidekiq.service"
 ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
 
@@ -286,3 +276,15 @@ ynh_app_setting_set "$app" unprotected_uris "/"
 
 # Reload Nginx
 systemctl reload nginx
+
+#=================================================
+# SEND A README FOR THE ADMIN
+#=================================================
+
+message="Mastodon was successfully installed :)
+Please open 'https://$domain$path_url'
+The admin username is: '$admin_mastodon_mail'
+The admin password is: '$admin_pass'
+If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/mastodon_ynh"
+
+ynh_send_readme_to_admin "$message" "$admin_mastodon"

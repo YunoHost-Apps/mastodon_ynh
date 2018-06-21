@@ -34,10 +34,13 @@ app=$YNH_APP_INSTANCE_NAME
 domain=$(ynh_app_setting_get "$app" domain)
 final_path=$(ynh_app_setting_get "$app" final_path)
 db_name=$(ynh_app_setting_get "$app" db_name)
-if [ -z "$db_name" ]; then
-	db_name="${app}_production"
-	ynh_app_setting_set "$app" db_name "$db_name"
-fi
+
+# Stop Mastodon Services
+# Restart Mastodon
+yunohost service stop "$app-web"
+yunohost service stop "$app-sidekiq"
+yunohost service stop "$app-streaming"
+
 
 #=================================================
 # STANDARD BACKUP STEPS
@@ -58,6 +61,7 @@ ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 
 ynh_psql_dump_db "$db_name" > db.sql
+ynh_backup "db.sql"
 
 #=================================================
 # SPECIFIC BACKUP
@@ -74,3 +78,16 @@ ynh_backup "/etc/systemd/system/$app-streaming.service"
 #=================================================
 
 ynh_backup "/etc/apt/sources.list.d/yarn.list" "apt_yarn.list"
+
+yunohost service start "$app-web"
+yunohost service start "$app-sidekiq"
+yunohost service start "$app-streaming"
+
+# Waiting start all services
+sleep 30
+
+#=================================================
+# RELOAD NGINX
+#=================================================
+
+systemctl reload nginx

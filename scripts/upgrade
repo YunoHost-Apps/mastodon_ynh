@@ -25,6 +25,8 @@ admin=$(ynh_app_setting_get "$app" admin)
 language=$(ynh_app_setting_get "$app" language)
 final_path=$(ynh_app_setting_get "$app" final_path)
 path_url="/"
+port_web=$(ynh_app_setting_get "$app" port_web)
+port_stream=$(ynh_app_setting_get "$app" port_stream)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -48,14 +50,6 @@ if [[ "$admin" = "" || "$language" = "" ]]; then
     ynh_die
 fi
 
-# If db_pwd doesn't exist, create it
-if [[ -z "$db_pwd" ]]; then
-	db_pwd=$(ynh_string_random)
-	ynh_app_setting_set $app db_pwd $db_pwd
-	ynh_psql_test_if_first_run
-	sudo --login --user=postgres psql -c"ALTER user $app WITH PASSWORD '$db_pwd'" postgres
-	sed -i "s@DB_PASS=@DB_PASS=${db_pwd}@g" "${final_path}/live/.env.production"
-fi
 
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
@@ -86,14 +80,7 @@ echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.lis
 # INSTALL DEPENDENCIES
 #=================================================
 
-# upgrade Node.js v4 to v6
-# TODO: use https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/ynh_install_nodejs/ynh_install_nodejs
-node_version=$(nodejs --version)
-if [[ $node_version =~ ^v4.*$  ]]; then
-	pushd /opt
-	curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
-	sudo apt-get -y install nodejs
-fi
+ynh_install_nodejs 8
 
 # add additional package for upgrade
 ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev postgresql-server-dev-all
@@ -112,20 +99,25 @@ yunohost service stop "$app-sidekiq"
 yunohost service stop "$app-streaming"
 
 # Download Mastodon
-ynh_setup_source "$final_path/live"                      "app-mastodon"
+ynh_setup_source "$final_path/live"  "app-mastodon"
 
-# Clean un-need Files
+# Clean files which are not needed anymore
 ynh_secure_remove $final_path/live/config/initializers/timeout.rb
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
 
-# TODO: use official helper ynh_add_nginx_config
-# Modify Nginx configuration file and copy it to Nginx conf directory
-sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
-sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
-cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
+ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/nginx.conf"
+ynh_add_nginx_config
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+
+# Create a system user
+ynh_system_user_create $app
 
 # Upgrade rbenv and ruby plugins
 ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
@@ -176,8 +168,24 @@ RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails db:
 COMMANDS
 )
 #=================================================
-# RESTART MASTODON
+# SETUP SYSTEMD
 #=================================================
+
+# Create a dedicated systemd config
+ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
+ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/mastodon-streaming.service"
+ynh_add_systemd_config "$app-web"       "mastodon-web.service"
+ynh_add_systemd_config "$app-sidekiq"   "mastodon-sidekiq.service"
+ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
+
+#=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
+# Add service YunoHost
+yunohost service add "$app-web"
+yunohost service add "$app-sidekiq"
+yunohost service add "$app-streaming"
 
 yunohost service start "$app-web"
 yunohost service start "$app-sidekiq"
