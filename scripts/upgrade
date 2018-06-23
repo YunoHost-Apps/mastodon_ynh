@@ -56,7 +56,7 @@ if [[ -z "$db_pwd" ]]; then
 	ynh_app_setting_set $app db_pwd $db_pwd
 	ynh_psql_test_if_first_run
 	sudo --login --user=postgres psql -c"ALTER user $app WITH PASSWORD '$db_pwd'" postgres
-	sed -i "s@DB_PASS=@DB_PASS=${db_pwd}@g" "${final_path}/live/.env.production"
+	ynh_replace_string "DB_PASS=" "DB_PASS=${db_pwd}" "${final_path}/live/.env.production"
 fi
 
 #=================================================
