@@ -116,6 +116,8 @@ ynh_secure_remove $final_path/live/config/initializers/timeout.rb
 # NGINX CONFIGURATION
 #=================================================
 
+ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
+ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/nginx.conf"
 ynh_add_nginx_config
 
 #=================================================
