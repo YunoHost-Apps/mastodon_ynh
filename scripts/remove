@@ -12,7 +12,6 @@ source /usr/share/yunohost/helpers
 source _future.sh
 
 
-
 #=================================================
 # LOAD SETTINGS
 #=================================================
@@ -22,11 +21,6 @@ app=$YNH_APP_INSTANCE_NAME
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
 db_name=$(ynh_app_setting_get "$app" db_name)
-if [ -z "$db_name" ]; then
-	db_name="${app}_production"
-	ynh_app_setting_set "$app" db_name "$db_name"
-fi
-db_user=$(ynh_sanitize_dbid "$app")
 final_path=$(ynh_app_setting_get "$app" final_path)
 
 #=================================================
@@ -67,13 +61,13 @@ fi
 
 # Remove metapackage and its dependencies
 ynh_remove_app_dependencies
-
+ynh_remove_nodejs
 #=================================================
 # REMOVE THE PostgreSQL DATABASE
 #=================================================
 
 # delete postgresql database & user
-ynh_psql_remove_db "$db_name" "$db_user"
+ynh_psql_remove_db "$db_name" "$app"
 
 #=================================================
 # REMOVE APP MAIN DIR
@@ -85,18 +79,12 @@ ynh_secure_remove "$final_path"
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
-
-ynh_secure_remove "/etc/nginx/conf.d/${domain}.d/${app}.conf"
-systemctl reload nginx
+ynh_remove_nginx_config
 
 #=================================================
 # SPECIFIC REMOVE
 #=================================================
-# REMOVE THE CRON FILE
-#=================================================
 
-# Delete cronlog
-ynh_secure_remove /etc/cron.d/$app
 
 #=================================================
 # REMOVE source.list
@@ -115,5 +103,4 @@ ynh_secure_remove /etc/apt/sources.list.d/yarn.list
 #=================================================
 # REMOVE DEDICATED USER
 #=================================================
-
-userdel -f $app
+ynh_system_user_delete $app
