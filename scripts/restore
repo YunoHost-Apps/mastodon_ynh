@@ -99,7 +99,7 @@ ynh_package_update
 # TODO: use https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/ynh_install_nodejs/ynh_install_nodejs
 (
 	cd /opt
-	curl -sL https://deb.nodesource.com/setup_6.x | bash -
+	curl -sL https://deb.nodesource.com/setup_8.x | bash -
 	apt-get -y install nodejs
 )
 

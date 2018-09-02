@@ -86,14 +86,12 @@ echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.lis
 # INSTALL DEPENDENCIES
 #=================================================
 
-# upgrade Node.js v4 to v6
+# upgrade Node.js to v8
 # TODO: use https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/ynh_install_nodejs/ynh_install_nodejs
-node_version=$(nodejs --version)
-if [[ $node_version =~ ^v4.*$  ]]; then
-	pushd /opt
-	curl -sL https://deb.nodesource.com/setup_6.x | sudo bash -
-	sudo apt-get -y install nodejs
-fi
+pushd /opt
+curl -sL https://deb.nodesource.com/setup_8.x | sudo bash -
+sudo apt-get -y install nodejs
+popd
 
 # add additional package for upgrade
 ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev postgresql-server-dev-all
