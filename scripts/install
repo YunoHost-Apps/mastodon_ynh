@@ -274,8 +274,6 @@ ynh_app_setting_set "$app" unprotected_uris "/"
 # RELOAD NGINX
 #=================================================
 
-ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
-ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/nginx.conf"
 # Reload Nginx
 systemctl reload nginx
 
