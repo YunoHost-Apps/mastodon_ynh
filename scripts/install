@@ -222,8 +222,6 @@ INSTALL
 #=================================================
 
 # Create a dedicated systemd config
-ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
-ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/mastodon-streaming.service"
 ynh_add_systemd_config "$app-web"       "mastodon-web.service"
 ynh_add_systemd_config "$app-sidekiq"   "mastodon-sidekiq.service"
 ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
