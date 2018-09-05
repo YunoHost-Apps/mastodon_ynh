@@ -104,10 +104,9 @@ ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libi
 chown -R $app: $final_path/live
 
 # Stop Mastodon Services
-# Restart Mastodon
-yunohost service stop "$app-web"
-yunohost service stop "$app-sidekiq"
-yunohost service stop "$app-streaming"
+#yunohost service stop "$app-web"
+#yunohost service stop "$app-sidekiq"
+#yunohost service stop "$app-streaming"
 
 # Download Mastodon
 ynh_setup_source "$final_path/live"                      "app-mastodon"
@@ -170,19 +169,30 @@ popd
 
 sudo su - $app <<COMMANDS
 pushd ~/live
-RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails db:migrate
+SKIP_POST_DEPLOYMENT_MIGRATIONS=true RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails db:migrate
 COMMANDS
 )
 #=================================================
 # RESTART MASTODON
 #=================================================
 
+yunohost service stop "$app-web"
+yunohost service stop "$app-sidekiq"
+yunohost service stop "$app-streaming"
 yunohost service start "$app-web"
 yunohost service start "$app-sidekiq"
 yunohost service start "$app-streaming"
 
 # Waiting start all services
 sleep 30
+#=================================================
+# DB:Migrate after restart 2.5.0
+#=================================================
+
+sudo su - $app <<COMMANDS
+pushd ~/live
+RAILS_ENV=production $final_path/.rbenv/versions/2.5.1/bin/bundle exec rails db:migrate
+COMMANDS
 
 #=================================================
 # RELOAD NGINX
