@@ -154,6 +154,7 @@ MCOMMANDS
 # Install package with yarn and restart postgresql
 pushd $final_path/live
 yarn install --pure-lockfile
+npm install -D babel-loader @babel/core @babel/preset-env webpack
 systemctl restart postgresql
 popd
 
