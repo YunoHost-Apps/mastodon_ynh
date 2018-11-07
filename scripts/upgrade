@@ -107,7 +107,11 @@ yunohost service stop "$app-sidekiq"
 yunohost service stop "$app-streaming"
 
 # Download Mastodon
+mv "$final_path/live" "$final_path/live_back"
 ynh_setup_source "$final_path/live"  "app-mastodon"
+rsync -a "$final_path/live_back/public/system" "$final_path/live_back/public/."
+rsync -a "$final_path/live_back/.env.production" "$final_path/live/."
+rm -Rf "$final_path/live_back"
 
 # Clean files which are not needed anymore
 ynh_secure_remove $final_path/live/config/initializers/timeout.rb
@@ -154,7 +158,6 @@ MCOMMANDS
 # Install package with yarn and restart postgresql
 pushd $final_path/live
 yarn install --pure-lockfile
-npm install -D babel-loader @babel/core @babel/preset-env webpack
 systemctl restart postgresql
 popd
 
@@ -196,6 +199,11 @@ yunohost service start "$app-streaming"
 
 # Waiting start all services
 sleep 30
+
+# SETUP CRON JOB FOR REMOVING CACHE
+ynh_replace_string  "__FINAL_PATH__" "$final_path" ../conf/cron
+ynh_replace_string "__USER__" "$app"  ../conf/cron
+sudo cp -f ../conf/cron /etc/cron.d/$app 
 
 #=================================================
 # RELOAD NGINX

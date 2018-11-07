@@ -147,6 +147,12 @@ yunohost service add $app-sidekiq
 yunohost service add $app-streaming
 
 #=================================================
+# RESTORE THE CRON FILE
+#=================================================
+
+ynh_restore_file "/etc/cron.d/$app"
+
+#=================================================
 # GENERIC FINALIZATION
 #=================================================
 # RELOAD NGINX AND services

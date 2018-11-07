@@ -74,6 +74,12 @@ ynh_backup "/etc/systemd/system/$app-sidekiq.service"
 ynh_backup "/etc/systemd/system/$app-streaming.service"
 
 #=================================================
+# BACKUP THE CRON FILE
+#=================================================
+
+ynh_backup "/etc/cron.d/$app"
+
+#=================================================
 # BACKUP THE sources.list FILES
 #=================================================
 

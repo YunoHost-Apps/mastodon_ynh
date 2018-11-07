@@ -1,0 +1,2 @@
+RAILS_ENV=production
+@daily cd __FINAL__PATH__/live && __FINAL__PATH__/.rbenv/shims/bundle exec rake __USER__:media:remove_remote

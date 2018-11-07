@@ -161,14 +161,14 @@ eval \"\$(rbenv init -)\"" > $final_path/.profile
 
 # Install ruby-build
 (
-	exec_as "$app" $final_path/.rbenv/bin/rbenv install 2.5.1
-	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.5.1
-	exec_as "$app" $final_path/.rbenv/versions/2.5.1/bin/ruby -v
+	exec_as "$app" $final_path/.rbenv/bin/rbenv install 2.5.3
+	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.5.3
+	exec_as "$app" $final_path/.rbenv/versions/2.5.3/bin/ruby -v
 )
 
 # Create symlink for ruby
 rm /usr/bin/ruby || true
-ln -s $final_path/.rbenv/versions/2.5.1/bin/ruby /usr/bin/ruby || true
+ln -s $final_path/.rbenv/versions/2.5.3/bin/ruby /usr/bin/ruby || true
 
 # Yarn install on root
 pushd $final_path/live
@@ -259,6 +259,11 @@ chown -R "$app" "$final_path"
 yunohost service add "$app-web"
 yunohost service add "$app-sidekiq"
 yunohost service add "$app-streaming"
+
+# SETUP CRON JOB FOR REMOVING CACHE
+ynh_replace_string  "__FINAL_PATH__" "$final_path" ../conf/cron
+ynh_replace_string "__USER__" "$app"  ../conf/cron
+sudo cp -f ../conf/cron /etc/cron.d/$app 
 
 #=================================================
 # SETUP SSOWAT

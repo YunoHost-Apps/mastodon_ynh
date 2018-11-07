@@ -85,6 +85,8 @@ ynh_remove_nginx_config
 # SPECIFIC REMOVE
 #=================================================
 
+# Remove a cron file
+ynh_secure_remove "/etc/cron.d/$app"
 
 #=================================================
 # REMOVE source.list
