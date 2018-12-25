@@ -88,15 +88,6 @@ ynh_remove_nginx_config
 # Remove a cron file
 ynh_secure_remove "/etc/cron.d/$app"
 
-#=================================================
-# REMOVE source.list
-#=================================================
-if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	ynh_secure_remove /etc/apt/sources.list.d/backports.list
-	ynh_secure_remove /etc/apt/sources.list.d/jessie-backports.list
-fi
-ynh_secure_remove /etc/apt/sources.list.d/yarn.list
-
 # Delete ruby exec
 #ynh_secure_remove /usr/bin/ruby
 
