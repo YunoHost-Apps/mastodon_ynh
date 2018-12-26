@@ -237,8 +237,8 @@ account = Account.create!(username: '$admin_mastodon')
 user = User.create!(email: '$admin_mastodon_mail', password: '$admin_pass', account: account)
 CREATEUSER
 	su mastodon <<SETADMIN
-RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
-RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon_mail
+RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --confirmed
+RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --role admin
 SETADMIN
 )
 
