@@ -90,8 +90,20 @@ echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.lis
 
 ynh_install_nodejs 8
 
-# add additional package for upgrade
-ynh_package_install pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev postgresql-server-dev-all
+# TODO: use the same mecanism with other files
+ynh_install_app_dependencies \
+	`# debian packages ` \
+	imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev \
+	`# redis ` \
+	redis-server redis-tools \
+	`# postgresql ` \
+	postgresql postgresql-contrib \
+	`# Ruby ` \
+	autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev \
+	`# ffmpeg from backports ` \
+	ffmpeg \
+	`# Yarn ` \
+	yarn
 
 #=================================================
 # STANDARD UPGRADE STEPS
@@ -109,7 +121,9 @@ yunohost service stop "$app-streaming"
 # Download Mastodon
 mv "$final_path/live" "$final_path/live_back"
 ynh_setup_source "$final_path/live"  "app-mastodon"
-rsync -a "$final_path/live_back/public/system" "$final_path/live_back/public/."
+if [ -z $final_path/live_back/public/system ]; then
+	rsync -a "$final_path/live_back/public/system" "$final_path/live_back/public/."
+fi
 rsync -a "$final_path/live_back/.env.production" "$final_path/live/."
 rm -Rf "$final_path/live_back"
 
@@ -119,7 +133,6 @@ ynh_secure_remove $final_path/live/config/initializers/timeout.rb
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-
 ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
 ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/nginx.conf"
 ynh_add_nginx_config
@@ -189,6 +202,8 @@ ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
 #=================================================
 
 # Add service YunoHost
+ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
+ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/mastodon-streaming.service"
 yunohost service add "$app-web"
 yunohost service add "$app-sidekiq"
 yunohost service add "$app-streaming"
