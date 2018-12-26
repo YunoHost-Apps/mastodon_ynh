@@ -109,8 +109,6 @@ ynh_install_app_dependencies \
 # STANDARD UPGRADE STEPS
 #=================================================
 
-# Change owner of live folder
-chown -R $app: $final_path/live
 
 # Stop Mastodon Services
 # Restart Mastodon
@@ -141,6 +139,8 @@ ynh_add_nginx_config
 # Upgrade rbenv and ruby plugins
 ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
 ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
+
+chown -R "$app": "$final_path"
 
 # Install ruby 2.5.1
 (
@@ -186,6 +186,10 @@ pushd ~/live
 RAILS_ENV=production $final_path/.rbenv/versions/2.5.3/bin/bundle exec rails db:migrate
 COMMANDS
 )
+
+# permissions to app files
+chown -R "$app": "$final_path"
+
 #=================================================
 # SETUP SYSTEMD
 #=================================================
