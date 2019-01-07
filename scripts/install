@@ -205,10 +205,12 @@ ynh_replace_string "#SMTP_OPENSSL_VERIFY_MODE=peer"              "SMTP_OPENSSL_V
 
 # Preconfig CSS & JS
 # Install Mastodon
+# Give right permission for the app
+chown -R "$app": "$final_path"
+
 (
 	cd "$final_path/live"
 	su mastodon <<INSTALL
-	    $final_path/.rbenv/versions/2.5.3/bin/gem install bundler:1.16.5
 		$final_path/.rbenv/versions/2.5.3/bin/gem install bundler
 		$final_path/live/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test 
 		yarn install --production --no-progress --non-interactive --silent
