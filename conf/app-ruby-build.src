@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20181225.tar.gz
-SOURCE_SUM=5ace4787ace47384dc419b20f5eb5a59f1174e00bfabcfed74a175033cd0b18a
+SOURCE_URL=https://github.com/rbenv/ruby-build/releases/tag/v20181019
+SOURCE_SUM=042232519a1c4623562fb533fff5e7764d8136c9b70a4e74a924a36d520af7a3
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
