@@ -153,9 +153,10 @@ chown -R "$app": "$final_path"
 (
 	cd $final_path/.rbenv
 	src/configure && make -C src
-    echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
-    echo 'eval "$(rbenv init -)"' >> ~/.bashrc
-    exec bash
+
+	echo "export PATH=\"$final_path/.rbenv/bin:$final_path/live/bin:\$PATH\"
+eval \"\$(rbenv init -)\"" > $final_path/.profile
+	echo "export PATH=\"$final_path/.rbenv/bin:$final_path/live/bin:\$PATH\"" > $final_path/.bashrc
 )
 
 # Install ruby-build
@@ -206,10 +207,11 @@ chown -R "$app": "$final_path"
 	cd "$final_path/live"
 	su mastodon <<INSTALL
 		$final_path/.rbenv/versions/2.5.3/bin/gem install bundler --no-ri --no-rdoc
-		$final_path/live/bin/bundle install \
-		-j$(getconf _NPROCESSORS_ONLN) \
+		bundle install \
+	    -j$(getconf _NPROCESSORS_ONLN) \
 		--deployment --without development test
 		yarn install --pure-lockfile
+		echo "SAFETY_ASSURED=1">> .env.production
 		RAILS_ENV=production $final_path/live/bin/bundle exec rails db:migrate --quiet
 		RAILS_ENV=production $final_path/live/bin/bundle exec rails assets:precompile --quiet
 INSTALL
