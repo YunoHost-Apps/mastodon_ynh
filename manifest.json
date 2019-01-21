@@ -3,7 +3,7 @@
 	"id": "mastodon",
 	"packaging_format": 1,
 	"requirements": {
-		"yunohost": ">= 2.7.9"
+		"yunohost": ">= 2.7.0"
 	},
 	"description": {
 		"en": "Mastodon is a free, open-source social network.",
