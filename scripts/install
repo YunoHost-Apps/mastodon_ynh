@@ -206,7 +206,7 @@ chown -R "$app": "$final_path"
 (
 	cd "$final_path/live"
 	su mastodon <<INSTALL
-		$final_path/.rbenv/versions/2.6.0/bin/gem install bundler:1.16.6 --no-ri --no-rdoc
+		$final_path/.rbenv/versions/2.6.0/bin/gem install bundler:1.16.6 
 		$final_path/.rbenv/versions/2.6.0/bin/gem install bundler
 		$final_path/.rbenv/versions/2.6.0/bin/bundle install bundler \
 		-j$(getconf _NPROCESSORS_ONLN) \
