@@ -8,7 +8,7 @@
  WorkingDirectory=__FINALPATH__/live
  Environment="RAILS_ENV=production"
  Environment="PORT=__PORT_WEB__"
- ExecStart=__FINALPATH__/live/bin/bundle exec puma -C config/puma.rb
+ ExecStart=__FINALPATH__/.rbenv/versions/2.6.0/bin/bundle exec puma -C config/puma.rb
  TimeoutSec=15
  Restart=always
  StandardError=syslog

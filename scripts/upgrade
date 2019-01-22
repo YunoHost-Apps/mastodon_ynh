@@ -142,7 +142,7 @@ ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
 
 chown -R "$app": "$final_path"
 
-# Install ruby 2.5.1
+# Install ruby 2.6.0
 (
 	exec_as "$app" $final_path/.rbenv/bin/rbenv install -s 2.6.0 || true
 	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.6.0 || true
