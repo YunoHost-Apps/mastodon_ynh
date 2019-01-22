@@ -25,7 +25,6 @@ ynh_abort_if_errors
 domain=$YNH_APP_ARG_DOMAIN
 admin_mastodon=$YNH_APP_ARG_ADMIN
 admin_mastodon_mail=$(ynh_user_get_info $admin_mastodon 'mail')
-admin_pass=$(ynh_string_random 24)
 language=$YNH_APP_ARG_LANGUAGE
 port_web=$(ynh_find_port 3000)
 port_stream=$(ynh_find_port 4000)
@@ -234,17 +233,15 @@ systemctl start "$app-web.service" "$app-sidekiq.service" "$app-streaming.servic
 # Create user
 (
 	cd "$final_path/live"
-	su mastodon <<CREATEUSER
-RAILS_ENV=production $final_path/.rbenv/versions/2.6.0/bin/bundle exec rails c
-account = Account.create!(username: '$admin_mastodon')
-user = User.create!(email: '$admin_mastodon_mail', password: '$admin_pass', account: account)
-CREATEUSER
 	su mastodon <<SETADMIN
+( RAILS_ENV=production bin/tootctl accounts create '$admin_mastodon' --email='$admin_mastodon_mail' > acc.txt )
 RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --confirm
 RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --role admin
 SETADMIN
 )
+admin_pass=$( cd $final_path/live && tail -1 acc.txt | head -1 | cut -c 15- )
 
+(cd $final_path/live && rm -f acc.txt)
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
