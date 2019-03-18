@@ -26,8 +26,8 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info "Loading installation settings..."
 
-# Get multi-instances specific variables
 app=$YNH_APP_INSTANCE_NAME
 
 # Retrieve app settings
@@ -47,18 +47,21 @@ yunohost service stop "$app-streaming"
 #=================================================
 # BACKUP THE APP MAIN DIR
 #=================================================
+ynh_print_info "Backing up the main app directory..."
 
 ynh_backup "$final_path"
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
+ynh_print_info "Backing up nginx web server configuration..."
 
 ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
-# BACKUP THE MYSQL DATABASE
+# BACKUP THE POSTGRESQL DATABASE
 #=================================================
+ynh_print_info "Backing up the PostgreSQL database..."
 
 ynh_psql_dump_db "$db_name" > db.sql
 ynh_backup "db.sql"
@@ -68,6 +71,7 @@ ynh_backup "db.sql"
 #=================================================
 # BACKUP SYSTEMD
 #=================================================
+ynh_print_info "Backing up systemd configuration..."
 
 ynh_backup "/etc/systemd/system/$app-web.service"
 ynh_backup "/etc/systemd/system/$app-sidekiq.service"
@@ -97,3 +101,9 @@ sleep 30
 #=================================================
 
 systemctl reload nginx
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info "Backup script completed for $app. (YunoHost will then actually copy those files to the archive)."

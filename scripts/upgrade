@@ -12,6 +12,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info "Loading installation settings..."
 
 # See comments in install script
 app=$YNH_APP_INSTANCE_NAME
@@ -31,6 +32,7 @@ port_stream=$(ynh_app_setting_get "$app" port_stream)
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
+ynh_print_info "Ensuring downward compatibility..."
 
 # If db_name doesn't exist, create it
 if [ -z "$db_name" ]; then
@@ -62,6 +64,7 @@ fi
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
+ynh_print_info "Backing up the app before upgrading (may take a while)..."
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
@@ -85,8 +88,53 @@ fi
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 
 #=================================================
-# INSTALL DEPENDENCIES
+# STANDARD UPGRADE STEPS
 #=================================================
+
+
+# Stop Mastodon Services
+# Restart Mastodon
+yunohost service stop "$app-web"
+yunohost service stop "$app-sidekiq"
+yunohost service stop "$app-streaming"
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+ynh_print_info "Upgrading source files..."
+
+# Download Mastodon
+mv "$final_path/live" "$final_path/live_back"
+ynh_setup_source "$final_path/live"  "app-mastodon"
+if [ -z $final_path/live_back/public/system ]; then
+	rsync -a "$final_path/live_back/public/system" "$final_path/live_back/public/."
+fi
+rsync -a "$final_path/live_back/.env.production" "$final_path/live/."
+rm -Rf "$final_path/live_back"
+
+# Clean files which are not needed anymore
+ynh_secure_remove $final_path/live/config/initializers/timeout.rb
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+ynh_print_info "Upgrading nginx web server configuration..."
+
+ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
+ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/nginx.conf"
+ynh_add_nginx_config
+
+
+# Upgrade rbenv and ruby plugins
+ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
+ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
+
+chown -R "$app": "$final_path"
+
+#=================================================
+# UPGRADE DEPENDENCIES
+#=================================================
+ynh_print_info "Upgrading dependencies..."
 
 ynh_install_nodejs 8
 
@@ -106,41 +154,18 @@ ynh_install_app_dependencies \
 	yarn
 
 #=================================================
-# STANDARD UPGRADE STEPS
+# CREATE DEDICATED USER
 #=================================================
+ynh_print_info "Making sure dedicated system user exists..."
 
-
-# Stop Mastodon Services
-# Restart Mastodon
-yunohost service stop "$app-web"
-yunohost service stop "$app-sidekiq"
-yunohost service stop "$app-streaming"
-
-# Download Mastodon
-mv "$final_path/live" "$final_path/live_back"
-ynh_setup_source "$final_path/live"  "app-mastodon"
-if [ -z $final_path/live_back/public/system ]; then
-	rsync -a "$final_path/live_back/public/system" "$final_path/live_back/public/."
-fi
-rsync -a "$final_path/live_back/.env.production" "$final_path/live/."
-rm -Rf "$final_path/live_back"
-
-# Clean files which are not needed anymore
-ynh_secure_remove $final_path/live/config/initializers/timeout.rb
+# Create a dedicated user (if not existing)
+ynh_system_user_create $app
 
 #=================================================
-# NGINX CONFIGURATION
+# SPECIFIC UPGRADE
 #=================================================
-ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
-ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/nginx.conf"
-ynh_add_nginx_config
-
-
-# Upgrade rbenv and ruby plugins
-ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
-ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
-
-chown -R "$app": "$final_path"
+# ...
+#=================================================
 
 # Install ruby 2.6.0
 (
@@ -193,6 +218,7 @@ chown -R "$app": "$final_path"
 #=================================================
 # SETUP SYSTEMD
 #=================================================
+ynh_print_info "Upgrading systemd configuration..."
 
 # Create a dedicated systemd config
 ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
@@ -225,19 +251,36 @@ ynh_replace_string "__USER__" "$app"  ../conf/cron
 sudo cp -f ../conf/cron /etc/cron.d/$app 
 
 #=================================================
-# RELOAD NGINX
+# GENERIC FINALIZATION
+#=================================================
+# SECURE FILES AND DIRECTORIES
 #=================================================
 
-systemctl reload nginx
+# Set permissions on app files
+#chown -R root: $final_path
 
 #=================================================
 # SETUP SSOWAT
 #=================================================
+ynh_print_info "Upgrading SSOwat configuration..."
 
 ynh_app_setting_set "$app" unprotected_uris "/"
 
 #=================================================
-# RELOAD ssowatconf
+# RELOAD SSOWATCONF
 #=================================================
 
 sudo yunohost app ssowatconf
+
+#=================================================
+# RELOAD NGINX
+#=================================================
+ynh_print_info "Reloading nginx web server..."
+
+systemctl reload nginx
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info "Upgrade of $app completed"

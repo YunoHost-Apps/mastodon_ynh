@@ -15,6 +15,7 @@ source _future.sh
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info "Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -26,16 +27,8 @@ final_path=$(ynh_app_setting_get "$app" final_path)
 #=================================================
 # STANDARD REMOVE
 #=================================================
-# STOP AND REMOVE SERVICE
-#=================================================
-
-ynh_remove_systemd_config "$app-web"
-ynh_remove_systemd_config "$app-sidekiq"
-ynh_remove_systemd_config "$app-streaming"
-
-#=================================================
 # REMOVE SERVICE FROM ADMIN PANEL
-#==============================================
+#=================================================
 
 if yunohost service status | grep -q "$app-web"
 then
@@ -56,22 +49,36 @@ then
 fi
 
 #=================================================
-# REMOVE DEPENDENCIES
+# STOP AND REMOVE SERVICE
 #=================================================
+ynh_print_info "Stopping and removing the systemd service"
 
-# Remove metapackage and its dependencies
-ynh_remove_app_dependencies
-ynh_remove_nodejs
+# Remove the dedicated systemd config
+ynh_remove_systemd_config "$app-web"
+ynh_remove_systemd_config "$app-sidekiq"
+ynh_remove_systemd_config "$app-streaming"
+
 #=================================================
-# REMOVE THE PostgreSQL DATABASE
+# REMOVE THE POSTGRESQL DATABASE
 #=================================================
+ynh_print_info "Removing the PostgreSQL database"
 
 # delete postgresql database & user
 ynh_psql_remove_db "$db_name" "$app"
 
 #=================================================
+# REMOVE DEPENDENCIES
+#=================================================
+ynh_print_info "Removing dependencies"
+
+# Remove metapackage and its dependencies
+ynh_remove_app_dependencies
+ynh_remove_nodejs
+
+#=================================================
 # REMOVE APP MAIN DIR
 #=================================================
+ynh_print_info "Removing app main directory"
 
 # Remove the app directory securely
 ynh_secure_remove "$final_path"
@@ -79,10 +86,15 @@ ynh_secure_remove "$final_path"
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
+ynh_print_info "Removing nginx web server configuration"
+
+# Remove the dedicated nginx config
 ynh_remove_nginx_config
 
 #=================================================
 # SPECIFIC REMOVE
+#=================================================
+# REMOVE THE CRON FILE
 #=================================================
 
 # Remove a cron file
@@ -96,4 +108,13 @@ ynh_secure_remove "/etc/cron.d/$app"
 #=================================================
 # REMOVE DEDICATED USER
 #=================================================
+ynh_print_info "Removing the dedicated system user"
+
+# Delete a system user
 ynh_system_user_delete $app
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info "Removal of $app completed"

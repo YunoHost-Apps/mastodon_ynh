@@ -17,25 +17,26 @@ source _future.sh
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
-
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
-#================================================
+#=================================================
 
 domain=$YNH_APP_ARG_DOMAIN
+path_url="/"
 admin_mastodon=$YNH_APP_ARG_ADMIN
-admin_mastodon_mail=$(ynh_user_get_info $admin_mastodon 'mail')
 language=$YNH_APP_ARG_LANGUAGE
+
+admin_mastodon_mail=$(ynh_user_get_info $admin_mastodon 'mail')
 port_web=$(ynh_find_port 3000)
 port_stream=$(ynh_find_port 4000)
 
-path_url="/"
 
 app=$YNH_APP_INSTANCE_NAME
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
+ynh_print_info "Validating installation parameters..."
 
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
@@ -51,6 +52,7 @@ ynh_webpath_register $app $domain $path_url
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
+ynh_print_info "Storing installation settings..."
 
 ynh_app_setting_set $app domain      $domain
 ynh_app_setting_set $app admin       $admin_mastodon
@@ -67,6 +69,7 @@ ynh_app_setting_set $app port_stream $port_stream
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
+ynh_print_info "Installing dependencies..."
 
 # TODO: add in a clean way backports and yarn
 
@@ -103,9 +106,11 @@ ynh_install_app_dependencies \
 	`# Yarn ` \
 	yarn
 	
+
 #=================================================
-# DATABASE SETUP
+# CREATE A POSTGRESQL DATABASE
 #=================================================
+ynh_print_info "Creating a PostgreSQL database..."
 
 # Create postgresql database
 db_name="${app}_production"
@@ -120,6 +125,7 @@ ynh_psql_execute_as_root \
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
+ynh_print_info "Setting up source files..."
 
 # Creates the destination directory and stores its location.
 ynh_app_setting_set "$app" final_path "$final_path"
@@ -132,6 +138,7 @@ ynh_setup_source "$final_path/live"                      "app-mastodon"
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
+ynh_print_info "Configuring nginx web server..."
 
 # Create a dedicated nginx config
 ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
@@ -141,11 +148,18 @@ ynh_add_nginx_config
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
+ynh_print_info "Configuring system user..."
 
 # Create a system user
 adduser $app --home $final_path --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
 
 chown -R "$app": "$final_path"
+
+#=================================================
+# SPECIFIC SETUP
+#=================================================
+# ...
+#=================================================
 
 # TODO: try to use ynh_install_ruby from https://github.com/YunoHost-Apps/Experimental_helpers
 # Install de rbenv
@@ -242,6 +256,7 @@ SETADMIN
 admin_pass=$( cd $final_path/live && tail -1 acc.txt | head -1 | cut -c 15- )
 
 (cd $final_path/live && rm -f acc.txt)
+
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
@@ -268,6 +283,7 @@ sudo cp -f ../conf/cron /etc/cron.d/$app
 #=================================================
 # SETUP SSOWAT
 #=================================================
+ynh_print_info "Configuring SSOwat..."
 
 # TODO: all private install
 # Unprotected url
@@ -276,6 +292,7 @@ ynh_app_setting_set "$app" unprotected_uris "/"
 #=================================================
 # RELOAD NGINX
 #=================================================
+ynh_print_info "Reloading nginx web server..."
 
 # Reload Nginx
 systemctl reload nginx
@@ -291,3 +308,9 @@ The admin password is: $admin_pass
 If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/mastodon_ynh"
 
 ynh_send_readme_to_admin "$message" "$admin_mastodon"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info "Installation of $app completed"

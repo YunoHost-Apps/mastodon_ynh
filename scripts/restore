@@ -26,10 +26,10 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info "Loading settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
-# Get old parameter of the app
 domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
 is_public=$(ynh_app_setting_get $app is_public)
@@ -38,6 +38,7 @@ final_path=$(ynh_app_setting_get "$app" final_path)
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
+ynh_print_info "Validating restoration parameters..."
 
 ynh_webpath_available $domain $path_url \
 	|| ynh_die "Path not available: ${domain}${path_url}"
@@ -55,12 +56,14 @@ ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
+ynh_print_info "Restoring the app main directory..."
 
 ynh_restore_file "$final_path"
 
 #=================================================
 # RECREATE THE DEDICATED USER
 #=================================================
+ynh_print_info "Recreating the dedicated system user..."
 
 adduser $app --home $final_path --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
 
@@ -76,6 +79,7 @@ chown -R $app: $final_path
 #=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
+ynh_print_info "Reinstalling dependencies..."
 
 # TODO: add in a clean way backports and yarn
 
@@ -113,10 +117,9 @@ ynh_install_app_dependencies \
 	yarn
 
 #=================================================
-# RESTORE THE PostgreSQL DATABASE
+# RESTORE THE POSTGRESQL DATABASE
 #=================================================
-
-# Restore PostgreSQL database
+ynh_print_info "Restoring the PostgreSQL database..."
 
 db_name=$(ynh_app_setting_get "$app" db_name)
 db_pwd=$(ynh_app_setting_get "$app" db_pwd)
@@ -132,6 +135,7 @@ ynh_psql_execute_file_as_root ./db.sql "$db_name"
 #=================================================
 # RESTORE SYSTEMD
 #=================================================
+ynh_print_info "Restoring the systemd configuration..."
 
 ynh_restore_file "/etc/systemd/system/$app-web.service"
 ynh_restore_file "/etc/systemd/system/$app-sidekiq.service"
@@ -155,10 +159,17 @@ ynh_restore_file "/etc/cron.d/$app"
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
-# RELOAD NGINX AND services
+# RELOAD NGINX AND SERVICES
 #=================================================
+ynh_print_info "Reloading nginx web server and services..."
 
 systemctl restart "$app-web" "$app-sidekiq" "$app-streaming"
 # Waiting start all services
 sleep 30
 systemctl reload nginx
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info "Restoration completed for $app"
