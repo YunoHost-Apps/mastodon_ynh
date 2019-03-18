@@ -71,7 +71,6 @@ Il semble important de fermer les inscriptions pour votre Mastodon, pour que Ã�
 ## Documentation
 
  * Documentation officielle: https://docs.joinmastodon.org/
- * Documentation YunoHost: Si une documentation spécifique est nécessaire, n'hésitez pas à contribuer.
 
 ## Caractéristiques spécifiques YunoHost
 
@@ -84,7 +83,8 @@ Il semble important de fermer les inscriptions pour votre Mastodon, pour que Ã�
 ## Links
 
  * Signaler un bug: https://github.com/YunoHost-Apps/mastodon_ynh/issues
- * Site de l'application: Lien vers le site officiel de cette application
+ * Site de l'application: https://joinmastodon.org/
+ * Site Github de l'application: https://github.com/tootsuite/mastodon
  * Site web YunoHost: https://yunohost.org/
 
 ---

@@ -20,6 +20,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 :warning: This application uses the Debian backports packages, do not install this application directly in production
 
 ## Overview
+Mastodon is a free, open-source social network. A decentralized alternative to commercial platforms, it avoids the risks of a single company monopolizing your communication. Pick a server that you trust — whichever you choose, you can interact with everyone else. Anyone can run their own Mastodon instance and participate in the social network seamlessly.
 
 **Shipped version:** 2.7.4
 
@@ -27,14 +28,11 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 
 ![](https://framalibre.org/sites/default/files/mastodon.png)
 
-
 [Source code](https://github.com/tootsuite/mastodon)
 
 ## Configuration
 
 ## What is Mastodon?
-
-Mastodon is a free, open-source social network. A decentralized alternative to commercial platforms, it avoids the risks of a single company monopolizing your communication. Pick a server that you trust — whichever you choose, you can interact with everyone else. Anyone can run their own Mastodon instance and participate in the social network seamlessly.
 
 [Source code](https://github.com/tootsuite/mastodon)
 
@@ -90,7 +88,8 @@ It seems important to close the inscriptions for your Mastodon, so that it remai
 ## Links
 
  * Report a bug: https://github.com/YunoHost-Apps/mastodon_ynh/issues
- * App website: Link to the official website of this app
+ * App website: https://joinmastodon.org/
+ * Github App website: https://github.com/tootsuite/mastodon
  * YunoHost website: https://yunohost.org/
 
 ---
