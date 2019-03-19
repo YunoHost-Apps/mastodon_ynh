@@ -6,9 +6,9 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-source _common.sh	# Loads the generic functions usually used in the script
-# Source app helpers
+source _common.sh
 source /usr/share/yunohost/helpers
+source ynh_install_ruby
 
 #=================================================
 # LOAD SETTINGS
@@ -17,10 +17,9 @@ ynh_print_info "Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
-# Retrieve app settings
-domain=$(ynh_app_setting_get "$app" domain)
-db_name=$(ynh_app_setting_get "$app" db_name)
-final_path=$(ynh_app_setting_get "$app" final_path)
+domain=$(ynh_app_setting_get $app domain)
+db_name=$(ynh_app_setting_get $app db_name)
+final_path=$(ynh_app_setting_get $app final_path)
 
 #=================================================
 # STANDARD REMOVE
@@ -28,21 +27,21 @@ final_path=$(ynh_app_setting_get "$app" final_path)
 # REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
 
-if yunohost service status | grep -q "$app-web"
+if yunohost service status "$app-web" >/dev/null 2>&1
 then
-	echo "Remove $app-web service"
+	ynh_print_info "Removing $app-web service"
 	yunohost service remove "$app-web"
 fi
 
-if yunohost service status | grep -q "$app-sidekiq"
+if yunohost service status "$app-sidekiq" >/dev/null 2>&1
 then
-	echo "Remove $app-sidekiq service"
+	ynh_print_info "Removing $app-sidekiq service"
 	yunohost service remove "$app-sidekiq"
 fi
 
-if yunohost service status | grep -q "$app-streaming"
+if yunohost service status "$app-streaming" >/dev/null 2>&1
 then
-	echo "Remove $app-streaming service"
+	ynh_print_info "Removing $app-streaming service"
 	yunohost service remove "$app-streaming"
 fi
 
@@ -62,7 +61,7 @@ ynh_remove_systemd_config "$app-streaming"
 ynh_print_info "Removing the PostgreSQL database"
 
 # delete postgresql database & user
-ynh_psql_remove_db "$db_name" "$app"
+ynh_psql_remove_db $db_name $db_name
 
 #=================================================
 # REMOVE DEPENDENCIES
@@ -70,6 +69,7 @@ ynh_psql_remove_db "$db_name" "$app"
 ynh_print_info "Removing dependencies"
 
 # Remove metapackage and its dependencies
+ynh_remove_ruby
 ynh_remove_app_dependencies
 ynh_remove_nodejs
 
