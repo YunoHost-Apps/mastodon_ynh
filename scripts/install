@@ -14,6 +14,11 @@ source _future.sh
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	### Remove this function if there's nothing to clean before calling the remove script.
+	read -p "Press any key..."
+	true
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
