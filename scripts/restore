@@ -102,19 +102,7 @@ ynh_package_update
 ynh_install_nodejs 8
 
 # TODO: use the same mecanism with other files
-ynh_install_app_dependencies \
-	`# debian packages ` \
-	imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev \
-	`# redis ` \
-	redis-server redis-tools \
-	`# postgresql ` \
-	postgresql \
-	`# Ruby ` \
-	autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev \
-	`# ffmpeg from backports ` \
-	ffmpeg \
-	`# Yarn ` \
-	yarn
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
