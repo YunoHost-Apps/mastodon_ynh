@@ -9,8 +9,6 @@
 source _common.sh	# Loads the generic functions usually used in the script
 # Source app helpers
 source /usr/share/yunohost/helpers
-source _future.sh
-
 
 #=================================================
 # LOAD SETTINGS

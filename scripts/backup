@@ -6,15 +6,9 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-if [ ! -e _common.sh ]; then
-	# Get the _common.sh file if it's not in the current directory
-	cp ../settings/scripts/_common.sh ./_common.sh
-	cp ../settings/scripts/_future.sh ./_future.sh
-	chmod a+rx _common.sh _future.sh
-fi
-source _common.sh
+#Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
+source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
-source _future.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
