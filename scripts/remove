@@ -74,6 +74,14 @@ ynh_remove_app_dependencies
 ynh_remove_nodejs
 
 #=================================================
+# REMOVE APT SOURCES
+#=================================================
+ynh_print_info "Removing apt sources"
+
+ynh_secure_remove "/etc/apt/sources.list.d/jessie-backports.list"
+ynh_secure_remove "/etc/apt/sources.list.d/yarn.list"
+
+#=================================================
 # REMOVE APP MAIN DIR
 #=================================================
 ynh_print_info "Removing app main directory"
