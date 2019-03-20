@@ -232,9 +232,9 @@ systemctl start "$app-web.service" "$app-sidekiq.service" "$app-streaming.servic
 (
 	cd "$final_path/live"
 	su mastodon <<SETADMIN
-( RAILS_ENV=production bin/tootctl accounts create '$admin_mastodon' --email='$admin_mastodon_mail' > acc.txt )
-RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --confirm
-RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --role admin
+( env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create '$admin_mastodon' --email='$admin_mastodon_mail' > acc.txt )
+env PATH=$PATH RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --confirm
+env PATH=$PATH RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --role admin
 SETADMIN
 )
 admin_pass=$( cd $final_path/live && tail -1 acc.txt | head -1 | cut -c 15- )
