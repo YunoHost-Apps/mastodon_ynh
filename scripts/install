@@ -160,8 +160,8 @@ ynh_system_user_create $app $final_path
 
 ynh_install_ruby --ruby_version=2.6.0
 
-/opt/rbenv/versions/2.6.0/bin/gem update --system
-/opt/rbenv/versions/2.6.0/bin/gem install bundler --no-document
+#/opt/rbenv/versions/2.6.0/bin/gem update --system
+#/opt/rbenv/versions/2.6.0/bin/gem install bundler --no-document
 
 #=================================================
 # MODIFY A CONFIG FILE

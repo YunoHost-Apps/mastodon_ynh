@@ -149,10 +149,12 @@ ynh_system_user_create $app
 #=================================================
 # SPECIFIC UPGRADE
 #=================================================
-# INSTALLING RUBY
+# INSTALLING RUBY AND BUNDLER
 #=================================================
 
 ynh_install_ruby --ruby_version=2.6.0
+/opt/rbenv/versions/2.6.0/bin/gem update --system
+/opt/rbenv/versions/2.6.0/bin/gem install bundler
 
 #=================================================
 # UPGRADE MASTODON
@@ -163,8 +165,6 @@ chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
     ynh_use_nodejs
-        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem update --system
-        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem install bundler
         if [ "$(lsb_release --codename --short)" == "jessie" ]; then
 	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --without development test
         else
