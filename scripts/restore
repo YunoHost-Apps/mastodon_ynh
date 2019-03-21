@@ -99,6 +99,11 @@ ynh_install_nodejs 8
 # TODO: use the same mecanism with other files
 ynh_install_app_dependencies $pkg_dependencies
 
+
+ynh_install_ruby --ruby_version=2.6.0
+
+/opt/rbenv/versions/2.6.0/bin/gem update --system
+
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
 #=================================================
