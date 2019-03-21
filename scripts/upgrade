@@ -110,10 +110,6 @@ rm -Rf "$final_path/live_back"
 # Clean files which are not needed anymore
 ynh_secure_remove $final_path/live/config/initializers/timeout.rb
 
-# Upgrade rbenv and ruby plugins
-ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
-ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
-
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
@@ -139,6 +135,9 @@ ynh_package_update
 # install nodejs
 ynh_install_nodejs 8
 
+# install ruby
+ynh_install_ruby --ruby_version=2.6.0
+
 # TODO: use the same mecanism with other files
 ynh_install_app_dependencies $pkg_dependencies
 
@@ -153,12 +152,6 @@ ynh_system_user_create $app
 #=================================================
 # SPECIFIC UPGRADE
 #=================================================
-# INSTALLING RUBY
-#=================================================
-
-ynh_install_ruby --ruby_version=2.6.0
-
-#=================================================
 # UPGRADE MASTODON
 #=================================================
 ynh_print_info "Upgrading Mastodon..."
@@ -166,20 +159,18 @@ ynh_print_info "Upgrading Mastodon..."
 chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
-    su mastodon <<UPGRADE
-        ynh_use_nodejs
-        env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem update --system
-        env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem install bundler
+    ynh_use_nodejs
+        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem update --system
+        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem install bundler
         if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	        env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --without development test
+	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --without development test
         else
-	        env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --force --without development test
+	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --force --without development test
         fi
-        env PATH=$PATH yarn install --pure-lockfile
-        env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:clean
-        env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile
-        env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate
-UPGRADE
+        sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:clean
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate
 popd
 
 ### Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.

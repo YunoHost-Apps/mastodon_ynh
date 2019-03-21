@@ -16,6 +16,7 @@ source ynh_install_ruby
 
 ynh_clean_setup () {
 	### Remove this function if there's nothing to clean before calling the remove script.
+	read -p "Press any key..."
 	true
 }
 # Exit if an error occurs during the execution of the script
@@ -99,6 +100,9 @@ ynh_package_update
 # install nodejs
 ynh_install_nodejs 8
 
+# install ruby
+ynh_install_ruby --ruby_version=2.6.0
+
 # TODO: use the same mecanism with other files
 ynh_install_app_dependencies $pkg_dependencies	
 
@@ -122,18 +126,21 @@ ynh_psql_execute_as_root \
 #=================================================
 ynh_print_info "Setting up source files..."
 
-# Creates the destination directory and stores its location.
-ynh_app_setting_set "$app" final_path "$final_path"
-# Download all sources rbenv, ruby and mastodon
+### `ynh_setup_source` is used to install an app from a zip or tar.gz file,
+### downloaded from an upstream source, like a git repository.
+### `ynh_setup_source` use the file conf/app.src
 
-ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
-ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
+ynh_app_setting_set $app final_path $final_path
+# Download, check integrity, uncompress and patch the source from app.src
+
 ynh_setup_source "$final_path/live"                      "app-mastodon"
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
 ynh_print_info "Configuring nginx web server..."
+
+### `ynh_add_nginx_config` will use the file conf/nginx.conf
 
 # Create a dedicated nginx config
 ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
@@ -150,12 +157,6 @@ ynh_system_user_create $app $final_path
 
 #=================================================
 # SPECIFIC SETUP
-#=================================================
-# INSTALLING RUBY
-#=================================================
-
-ynh_install_ruby --ruby_version=2.6.0
-
 #=================================================
 # MODIFY A CONFIG FILE
 #=================================================
@@ -194,18 +195,14 @@ ynh_print_info "Installing Mastodon..."
 chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
-	su mastodon <<INSTALL
-	    ynh_use_nodejs
-		env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem update --system
-		env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem install bundler --no-document
-		env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install \
-		-j$(getconf _NPROCESSORS_ONLN) \
-		--deployment --without development test
-		env PATH=$PATH yarn install --pure-lockfile
-		echo "SAFETY_ASSURED=1">> .env.production
-		env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate --quiet
-		env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile --quiet
-INSTALL
+	ynh_use_nodejs
+	sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem update --system
+	sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem install bundler --no-document
+	sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test
+	sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
+	sudo -u "$app" echo "SAFETY_ASSURED=1">> .env.production
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate --quiet
+	sudo -u "$app" env PATH=$PTH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile --quiet
 popd
 
 #=================================================
@@ -215,14 +212,12 @@ ynh_print_info "Creating Mastodon Admin User..."
 
 # Create user
 pushd "$final_path/live"
-	su mastodon <<SETADMIN
-        env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create '$admin_mastodon' --email='$admin_mastodon_mail' > acc.txt
-        env PATH=$PATH RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --confirm
-        env PATH=$PATH RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --role admin
-SETADMIN
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create '$admin_mastodon' --email='$admin_mastodon_mail' > acc.txt
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --confirm
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --role admin
 popd
 
-admin_pass=$( cd $final_path/live && tail -1 acc.txt | head -1 | cut -c 15- )
+admin_pass=$( tail -1 $final_path/live/acc.txt | head -1 | cut -c 15- )
 ynh_secure_remove "$final_path/live/acc.txt"
 
 #=================================================
@@ -238,6 +233,17 @@ sudo cp -f ../conf/cron /etc/cron.d/$app
 # SETUP SYSTEMD
 #=================================================
 ynh_print_info "Configuring a systemd service..."
+
+### `ynh_systemd_config` is used to configure a systemd script for an app.
+### It can be used for apps that use sysvinit (with adaptation) or systemd.
+### Have a look at the app to be sure this app needs a systemd script.
+### `ynh_systemd_config` will use the file conf/systemd.service
+### If you're not using these lines:
+###		- You can remove those files in conf/.
+###		- Remove the section "BACKUP SYSTEMD" in the backup script
+###		- Remove also the section "STOP AND REMOVE SERVICE" in the remove script
+###		- As well as the section "RESTORE SYSTEMD" in the restore script
+###		- And the section "SETUP SYSTEMD" in the upgrade script
 
 # Create a dedicated systemd config
 ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
