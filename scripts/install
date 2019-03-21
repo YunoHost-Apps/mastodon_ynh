@@ -206,7 +206,7 @@ pushd "$final_path/live"
 	sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
 	sudo -u "$app" echo "SAFETY_ASSURED=1">> .env.production
 	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate --quiet
-	sudo -u "$app" env PATH=$PTH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile --quiet
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile --quiet
 popd
 
 #=================================================
