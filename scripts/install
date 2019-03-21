@@ -200,18 +200,7 @@ pushd "$final_path/live"
 	sudo -u "$app" echo "SAFETY_ASSURED=1">> .env.production
 	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate --quiet
 	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile --quiet
-popd
-
-#=================================================
-# CREATE MASTODON ADMIN USER
-#=================================================
-ynh_print_info "Creating Mastodon Admin User..."
-
-# Create user
-pushd "$final_path/live"
-	sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create '$admin_mastodon' --email='$admin_mastodon_mail' > acc.txt
-    sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --confirm
-    sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --role admin
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create "$admin_mastodon" --email="$admin_mastodon_mail" --confirmed --role=admin > acc.txt
 popd
 
 admin_pass=$( tail -1 $final_path/live/acc.txt | head -1 | cut -c 15- )
