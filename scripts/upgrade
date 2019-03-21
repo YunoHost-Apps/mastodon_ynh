@@ -135,11 +135,11 @@ ynh_package_update
 # install nodejs
 ynh_install_nodejs 8
 
-# install ruby
-ynh_install_ruby --ruby_version=2.6.0
-
 # TODO: use the same mecanism with other files
 ynh_install_app_dependencies $pkg_dependencies
+
+# install ruby
+ynh_install_ruby --ruby_version=2.6.0
 
 #=================================================
 # CREATE DEDICATED USER
