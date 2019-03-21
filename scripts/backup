@@ -24,13 +24,15 @@ ynh_print_info "Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
-# Retrieve app settings
-domain=$(ynh_app_setting_get "$app" domain)
-final_path=$(ynh_app_setting_get "$app" final_path)
-db_name=$(ynh_app_setting_get "$app" db_name)
+final_path=$(ynh_app_setting_get $app final_path)
+domain=$(ynh_app_setting_get $app domain)
+db_name=$(ynh_app_setting_get $app db_name)
 
-# Stop Mastodon Services
-# Restart Mastodon
+#=================================================
+# STOP MASTODON SERVICES
+#=================================================
+ynh_print_info "Stopping Mastodon Services..."
+
 yunohost service stop "$app-web"
 yunohost service stop "$app-sidekiq"
 yunohost service stop "$app-streaming"
@@ -58,7 +60,6 @@ ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 ynh_print_info "Backing up the PostgreSQL database..."
 
 ynh_psql_dump_db "$db_name" > db.sql
-ynh_backup "db.sql"
 
 #=================================================
 # SPECIFIC BACKUP
@@ -72,16 +73,15 @@ ynh_backup "/etc/systemd/system/$app-sidekiq.service"
 ynh_backup "/etc/systemd/system/$app-streaming.service"
 
 #=================================================
-# BACKUP THE CRON FILE
+# BACKUP A CRON FILE
 #=================================================
 
 ynh_backup "/etc/cron.d/$app"
 
 #=================================================
-# BACKUP THE sources.list FILES
+# START MASTODON SERVICES
 #=================================================
-
-ynh_backup "/etc/apt/sources.list.d/yarn.list" "apt_yarn.list"
+ynh_print_info "Starting Mastodon Services..."
 
 yunohost service start "$app-web"
 yunohost service start "$app-sidekiq"
@@ -89,12 +89,6 @@ yunohost service start "$app-streaming"
 
 # Waiting start all services
 sleep 30
-
-#=================================================
-# RELOAD NGINX
-#=================================================
-
-systemctl reload nginx
 
 #=================================================
 # END OF SCRIPT

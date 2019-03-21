@@ -8,24 +8,24 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
+source ynh_install_ruby
 
 #=================================================
 # LOAD SETTINGS
 #=================================================
 ynh_print_info "Loading installation settings..."
 
-# See comments in install script
 app=$YNH_APP_INSTANCE_NAME
-db_name=$(ynh_app_setting_get "$app" db_name)
-db_pwd=$(ynh_app_setting_get "$app" db_pwd)
 
-# Retrieve app settings
-domain=$(ynh_app_setting_get "$app" domain)
-path=$(ynh_app_setting_get "$app" path)
-admin=$(ynh_app_setting_get "$app" admin)
-language=$(ynh_app_setting_get "$app" language)
-final_path=$(ynh_app_setting_get "$app" final_path)
-path_url="/"
+domain=$(ynh_app_setting_get $app domain)
+path_url=$(ynh_app_setting_get $app path)
+admin=$(ynh_app_setting_get $app admin)
+is_public=$(ynh_app_setting_get $app is_public)
+final_path=$(ynh_app_setting_get $app final_path)
+language=$(ynh_app_setting_get $app language)
+db_name=$(ynh_app_setting_get $app db_name)
+
+db_pwd=$(ynh_app_setting_get $app db_pwd)
 port_web=$(ynh_app_setting_get "$app" port_web)
 port_stream=$(ynh_app_setting_get "$app" port_stream)
 
@@ -35,15 +35,15 @@ port_stream=$(ynh_app_setting_get "$app" port_stream)
 ynh_print_info "Ensuring downward compatibility..."
 
 # If db_name doesn't exist, create it
-if [ -z "$db_name" ]; then
-	db_name="${app}_production"
-	ynh_app_setting_set "$app" db_name "$db_name"
+if [ -z $db_name ]; then
+	db_name=$(ynh_sanitize_dbid $app)
+	ynh_app_setting_set $app db_name $db_name
 fi
 
 # If final_path doesn't exist, create it
-if [ -z "$final_path" ]; then
+if [ -z $final_path ]; then
 	final_path=/var/www/$app
-	ynh_app_setting_set "$app" final_path "$final_path"
+	ynh_app_setting_set $app final_path $final_path
 fi
 
 # Check if admin is not null
@@ -76,24 +76,19 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# Remove repo Files
+# CHECK THE PATH
 #=================================================
 
-if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	echo "deb http://httpredir.debian.org/debian jessie-backports main" | tee /etc/apt/sources.list.d/jessie-backports.list
-	ynh_secure_remove /etc/apt/sources.list.d/backports.list
-fi
-
-# Add yarn repo
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+# Normalize the URL path syntax
+path_url=$(ynh_normalize_url_path $path_url)
 
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
+# STOP MASTODON SERVICES
+#=================================================
+ynh_print_info "Stopping Mastodon services..."
 
-
-# Stop Mastodon Services
-# Restart Mastodon
 yunohost service stop "$app-web"
 yunohost service stop "$app-sidekiq"
 yunohost service stop "$app-streaming"
@@ -115,6 +110,10 @@ rm -Rf "$final_path/live_back"
 # Clean files which are not needed anymore
 ynh_secure_remove $final_path/live/config/initializers/timeout.rb
 
+# Upgrade rbenv and ruby plugins
+ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
+ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
@@ -124,18 +123,20 @@ ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
 ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/nginx.conf"
 ynh_add_nginx_config
 
-
-# Upgrade rbenv and ruby plugins
-ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
-ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
-
-chown -R "$app": "$final_path"
-
 #=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
 ynh_print_info "Upgrading dependencies..."
 
+# Install source.list debian package backports & yarn
+if [ "$(lsb_release --codename --short)" == "jessie" ]; then
+	echo "deb http://httpredir.debian.org/debian jessie-backports main" | tee /etc/apt/sources.list.d/jessie-backports.list
+fi
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+ynh_package_update
+
+# install nodejs
 ynh_install_nodejs 8
 
 # TODO: use the same mecanism with other files
@@ -152,56 +153,49 @@ ynh_system_user_create $app
 #=================================================
 # SPECIFIC UPGRADE
 #=================================================
-# ...
+# INSTALLING RUBY
 #=================================================
 
-# Install ruby 2.6.0
-(
-	exec_as "$app" $final_path/.rbenv/bin/rbenv install -s 2.6.0 || true
-	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.6.0 || true
-	exec_as "$app" $final_path/.rbenv/versions/2.6.0/bin/ruby -v
-)
+ynh_install_ruby --ruby_version=2.6.0
 
-# Create symlink for ruby
-rm /usr/bin/ruby || true
-ln -s $final_path/.rbenv/versions/2.6.0/bin/ruby /usr/bin/ruby || true
+#=================================================
+# UPGRADE MASTODON
+#=================================================
+ynh_print_info "Upgrading Mastodon..."
 
-# Preconfig CSS & JS
-# Install Mastodon
-(
-sudo su - $app <<MCOMMANDS
-pushd ~/live
-$final_path/.rbenv/versions/2.6.0/bin/gem install bundler
-if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	$final_path/.rbenv/versions/2.6.0/bin/bundle install --deployment --without development test
-else
-	$final_path/.rbenv/versions/2.6.0/bin/bundle install --deployment --force --without development test
-fi
-yarn install --pure-lockfile
-MCOMMANDS
-)
-
-# Install package with yarn and restart postgresql
-pushd $final_path/live
-yarn install --pure-lockfile
-systemctl restart postgresql
-popd
-
-# Apply Mastodon upgrade
-(
-pushd $final_path/live
-RAILS_ENV=production $final_path/.rbenv/versions/2.6.0/bin/bundle exec rails assets:clean
-RAILS_ENV=production $final_path/.rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile
-popd
-
-sudo su - $app <<COMMANDS
-pushd ~/live
-RAILS_ENV=production $final_path/.rbenv/versions/2.6.0/bin/bundle exec rails db:migrate
-COMMANDS
-)
-
-# permissions to app files
 chown -R "$app": "$final_path"
+
+pushd "$final_path/live"
+    su mastodon <<UPGRADE
+        ynh_use_nodejs
+        env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem update --system
+        env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem install bundler
+        if [ "$(lsb_release --codename --short)" == "jessie" ]; then
+	        env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --without development test
+        else
+	        env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --force --without development test
+        fi
+        env PATH=$PATH yarn install --pure-lockfile
+        env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:clean
+        env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile
+        env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate
+UPGRADE
+popd
+
+### Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.
+### And create a backup of this file if the checksum is different. So the file will be backed up if the admin had modified it.
+ynh_backup_if_checksum_is_different "${final_path}/live/.env.production"
+# Recalculate and store the checksum of the file for the next upgrade.
+ynh_store_file_checksum "${final_path}/live/.env.production"
+
+#=================================================
+# SETUP CRON JOB FOR REMOVING CACHE
+#=================================================
+ynh_print_info "Setuping a cron job for remiving cache..."
+
+ynh_replace_string  "__FINAL_PATH__" "$final_path" ../conf/cron
+ynh_replace_string "__USER__" "$app"  ../conf/cron
+sudo cp -f ../conf/cron /etc/cron.d/$app 
 
 #=================================================
 # SETUP SYSTEMD
@@ -215,28 +209,12 @@ ynh_add_systemd_config "$app-web"       "mastodon-web.service"
 ynh_add_systemd_config "$app-sidekiq"   "mastodon-sidekiq.service"
 ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
 
-#=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
-#=================================================
-
-# Add service YunoHost
-ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
-ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/mastodon-streaming.service"
-yunohost service add "$app-web"
-yunohost service add "$app-sidekiq"
-yunohost service add "$app-streaming"
-
 yunohost service start "$app-web"
 yunohost service start "$app-sidekiq"
 yunohost service start "$app-streaming"
 
 # Waiting start all services
 sleep 30
-
-# SETUP CRON JOB FOR REMOVING CACHE
-ynh_replace_string  "__FINAL_PATH__" "$final_path" ../conf/cron
-ynh_replace_string "__USER__" "$app"  ../conf/cron
-sudo cp -f ../conf/cron /etc/cron.d/$app 
 
 #=================================================
 # GENERIC FINALIZATION
@@ -245,20 +223,19 @@ sudo cp -f ../conf/cron /etc/cron.d/$app
 #=================================================
 
 # Set permissions on app files
-#chown -R root: $final_path
+chown -R $app: $final_path
 
 #=================================================
 # SETUP SSOWAT
 #=================================================
 ynh_print_info "Upgrading SSOwat configuration..."
 
-ynh_app_setting_set "$app" unprotected_uris "/"
-
-#=================================================
-# RELOAD SSOWATCONF
-#=================================================
-
-sudo yunohost app ssowatconf
+# Make app public if necessary
+if [ $is_public -eq 1 ]
+then
+	# unprotected_uris allows SSO credentials to be passed anyway
+	ynh_app_setting_set $app unprotected_uris "/"
+fi
 
 #=================================================
 # RELOAD NGINX

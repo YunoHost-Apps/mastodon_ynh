@@ -16,7 +16,6 @@ source ynh_install_ruby
 
 ynh_clean_setup () {
 	### Remove this function if there's nothing to clean before calling the remove script.
-	read -p "Press any key..."
 	true
 }
 # Exit if an error occurs during the execution of the script
@@ -29,6 +28,7 @@ ynh_abort_if_errors
 domain=$YNH_APP_ARG_DOMAIN
 path_url="/"
 admin_mastodon=$YNH_APP_ARG_ADMIN
+is_public=true
 language=$YNH_APP_ARG_LANGUAGE
 
 admin_mastodon_mail=$(ynh_user_get_info $admin_mastodon 'mail')
@@ -43,6 +43,8 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 ynh_print_info "Validating installation parameters..."
 
+### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
+### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
@@ -60,11 +62,12 @@ ynh_webpath_register $app $domain $path_url
 ynh_print_info "Storing installation settings..."
 
 ynh_app_setting_set $app domain      $domain
+ynh_app_setting_set $app path $path_url
 ynh_app_setting_set $app admin       $admin_mastodon
+ynh_app_setting_set $app is_public $is_public
 ynh_app_setting_set $app language    $language
 ynh_app_setting_set $app port_web    $port_web
 ynh_app_setting_set $app port_stream $port_stream
-
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -143,9 +146,7 @@ ynh_add_nginx_config
 ynh_print_info "Configuring system user..."
 
 # Create a system user
-adduser $app --home $final_path --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
-
-chown -R "$app": "$final_path"
+ynh_system_user_create $app $final_path
 
 #=================================================
 # SPECIFIC SETUP
@@ -186,21 +187,13 @@ ynh_replace_string "#SMTP_AUTH_METHOD=plain"                     "SMTP_AUTH_METH
 ynh_replace_string "#SMTP_OPENSSL_VERIFY_MODE=peer"              "SMTP_OPENSSL_VERIFY_MODE=none"                    "${final_path}/live/.env.production"
 
 #=================================================
-# STORE THE CONFIG FILE CHECKSUM
-#=================================================
-
-# Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum "${final_path}/live/.env.production"
-
-#=================================================
 # INSTALLING MASTODON
 #=================================================
 ynh_print_info "Installing Mastodon..."
 
 chown -R "$app": "$final_path"
 
-(
-	cd "$final_path/live"
+pushd "$final_path/live"
 	su mastodon <<INSTALL
 	    ynh_use_nodejs
 		env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/gem update --system
@@ -213,11 +206,38 @@ chown -R "$app": "$final_path"
 		env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate --quiet
 		env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile --quiet
 INSTALL
-)
+popd
+
+#=================================================
+# CREATE MASTODON ADMIN USER
+#=================================================
+ynh_print_info "Creating Mastodon Admin User..."
+
+# Create user
+pushd "$final_path/live"
+	su mastodon <<SETADMIN
+        env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create '$admin_mastodon' --email='$admin_mastodon_mail' > acc.txt
+        env PATH=$PATH RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --confirm
+        env PATH=$PATH RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --role admin
+SETADMIN
+popd
+
+admin_pass=$( cd $final_path/live && tail -1 acc.txt | head -1 | cut -c 15- )
+ynh_secure_remove "$final_path/live/acc.txt"
+
+#=================================================
+# SETUP CRON JOB FOR REMOVING CACHE
+#=================================================
+ynh_print_info "Setuping a cron job for remiving cache..."
+
+ynh_replace_string  "__FINAL_PATH__" "$final_path" ../conf/cron
+ynh_replace_string "__USER__" "$app"  ../conf/cron
+sudo cp -f ../conf/cron /etc/cron.d/$app 
 
 #=================================================
 # SETUP SYSTEMD
 #=================================================
+ynh_print_info "Configuring a systemd service..."
 
 # Create a dedicated systemd config
 ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
@@ -228,18 +248,12 @@ ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
 
 systemctl start "$app-web.service" "$app-sidekiq.service" "$app-streaming.service"
 
-# Create user
-(
-	cd "$final_path/live"
-	su mastodon <<SETADMIN
-( env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create '$admin_mastodon' --email='$admin_mastodon_mail' > acc.txt )
-env PATH=$PATH RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --confirm
-env PATH=$PATH RAILS_ENV=production bin/tootctl accounts modify $admin_mastodon --role admin
-SETADMIN
-)
-admin_pass=$( cd $final_path/live && tail -1 acc.txt | head -1 | cut -c 15- )
+#=================================================
+# STORE THE CONFIG FILE CHECKSUM
+#=================================================
 
-(cd $final_path/live && rm -f acc.txt)
+# Calculate and store the config file checksum into the app settings
+ynh_store_file_checksum "${final_path}/live/.env.production"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -247,7 +261,11 @@ admin_pass=$( cd $final_path/live && tail -1 acc.txt | head -1 | cut -c 15- )
 # SECURE FILES AND DIRECTORIES
 #=================================================
 
-# TODO:Set permissions to app files
+### For security reason, any app should set the permissions to root: before anything else.
+### Then, if write authorization is needed, any access should be given only to directories
+### that really need such authorization.
+
+# Set permissions to app files
 chown -R "$app": "$final_path"
 
 #=================================================
@@ -259,26 +277,23 @@ yunohost service add "$app-web"
 yunohost service add "$app-sidekiq"
 yunohost service add "$app-streaming"
 
-# SETUP CRON JOB FOR REMOVING CACHE
-ynh_replace_string  "__FINAL_PATH__" "$final_path" ../conf/cron
-ynh_replace_string "__USER__" "$app"  ../conf/cron
-sudo cp -f ../conf/cron /etc/cron.d/$app 
-
 #=================================================
 # SETUP SSOWAT
 #=================================================
 ynh_print_info "Configuring SSOwat..."
 
-# TODO: all private install
-# Unprotected url
-ynh_app_setting_set "$app" unprotected_uris "/"
+# Make app public if necessary
+if [ $is_public -eq 1 ]
+then
+	# unprotected_uris allows SSO credentials to be passed anyway.
+	ynh_app_setting_set $app unprotected_uris "/"
+fi
 
 #=================================================
 # RELOAD NGINX
 #=================================================
 ynh_print_info "Reloading nginx web server..."
 
-# Reload Nginx
 systemctl reload nginx
 
 #=================================================
@@ -287,7 +302,7 @@ systemctl reload nginx
 
 message="Mastodon was successfully installed :)
 Please open 'https://$domain$path_url'
-The admin username is: $admin_mastodon_mail
+The admin email is: $admin_mastodon_mail
 The admin password is: $admin_pass
 If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/mastodon_ynh"
 

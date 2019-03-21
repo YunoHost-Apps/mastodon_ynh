@@ -27,6 +27,7 @@ final_path=$(ynh_app_setting_get $app final_path)
 # REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
 
+# Remove a service from the admin panel, added by `yunohost service add`
 if yunohost service status "$app-web" >/dev/null 2>&1
 then
 	ynh_print_info "Removing $app-web service"
@@ -108,9 +109,6 @@ ynh_remove_nginx_config
 
 # Remove a cron file
 ynh_secure_remove "/etc/cron.d/$app"
-
-# Delete ruby exec
-#ynh_secure_remove /usr/bin/ruby
 
 #=================================================
 # GENERIC FINALIZATION

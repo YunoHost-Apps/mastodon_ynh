@@ -26,8 +26,8 @@ app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
-is_public=$(ynh_app_setting_get $app is_public)
-final_path=$(ynh_app_setting_get "$app" final_path)
+final_path=$(ynh_app_setting_get $app final_path)
+db_name=$(ynh_app_setting_get $app db_name)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
@@ -59,7 +59,8 @@ ynh_restore_file "$final_path"
 #=================================================
 ynh_print_info "Recreating the dedicated system user..."
 
-adduser $app --home $final_path --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
+# Create the dedicated user (if not existing)
+ynh_system_user_create $app $final_path
 
 #=================================================
 # RESTORE USER RIGHTS
@@ -103,7 +104,6 @@ ynh_install_app_dependencies $pkg_dependencies
 #=================================================
 ynh_print_info "Restoring the PostgreSQL database..."
 
-db_name=$(ynh_app_setting_get "$app" db_name)
 db_pwd=$(ynh_app_setting_get "$app" db_pwd)
 
 ynh_psql_test_if_first_run
@@ -111,8 +111,6 @@ ynh_psql_create_user "$app" "$db_pwd"
 ynh_psql_execute_as_root \
 "CREATE DATABASE $db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $app;"
 ynh_psql_execute_file_as_root ./db.sql "$db_name"
-
-
 
 #=================================================
 # RESTORE SYSTEMD
