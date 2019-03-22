@@ -32,10 +32,6 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 
 ## Configuration
 
-## What is Mastodon?
-
-[Source code](https://github.com/tootsuite/mastodon)
-
 #### Adding "swapfile" If you have less than 2Go of RAM
 ```
 sudo dd if=/dev/zero of=/swapfile bs=1024 count=1024000
