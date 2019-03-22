@@ -92,12 +92,11 @@ if [[ "$arch" = arm*  ]]; then
 	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7638D0442B90D010
 fi
 
-# Install source.list debian package backports & yarn
+# Install extra_repo debian package backports & yarn
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	echo "deb http://httpredir.debian.org/debian jessie-backports main" | tee /etc/apt/sources.list.d/jessie-backports.list
+	ynh_install_extra_repo --repo="deb http://httpredir.debian.org/debian jessie-backports main"
 fi
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 ynh_package_update
 
 # install nodejs

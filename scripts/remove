@@ -9,6 +9,7 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 source ynh_install_ruby
+source ynh_add_secure_repos__2
 
 #=================================================
 # LOAD SETTINGS
@@ -77,13 +78,8 @@ ynh_remove_ruby
 ynh_remove_app_dependencies
 ynh_remove_nodejs
 
-#=================================================
-# REMOVE APT SOURCES
-#=================================================
-ynh_print_info "Removing apt sources"
-
-ynh_secure_remove "/etc/apt/sources.list.d/jessie-backports.list"
-ynh_secure_remove "/etc/apt/sources.list.d/yarn.list"
+ynh_remove_extra_repo jessie-backports
+ynh_remove_extra_repo yarn
 
 #=================================================
 # REMOVE APP MAIN DIR
