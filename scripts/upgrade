@@ -132,7 +132,7 @@ fi
 ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 ynh_package_update
 
-# install nodejs
+# Install nodejs
 ynh_install_nodejs 8
 
 # TODO: use the same mecanism with other files

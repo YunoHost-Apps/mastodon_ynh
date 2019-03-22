@@ -132,7 +132,7 @@ ynh_print_info "Setting up source files..."
 ynh_app_setting_set $app final_path $final_path
 # Download, check integrity, uncompress and patch the source from app.src
 mkdir $final_path
-ynh_setup_source "$final_path/live" "app-mastodon"
+ynh_setup_source "$final_path/live"
 
 #=================================================
 # NGINX CONFIGURATION
