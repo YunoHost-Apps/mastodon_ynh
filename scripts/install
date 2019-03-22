@@ -292,7 +292,7 @@ systemctl reload nginx
 
 message="Mastodon was successfully installed :)
 Please open 'https://$domain$path_url'
-The admin email is: $admin_mastodon_mail
+The admin email is: $admin_mail
 The admin password is: $admin_pass
 If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/mastodon_ynh"
 
