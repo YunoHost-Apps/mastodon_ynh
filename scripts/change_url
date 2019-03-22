@@ -32,7 +32,7 @@ final_path=$(ynh_app_setting_get $app final_path)
 # Add settings here as needed by your application
 #db_name=$(ynh_app_setting_get "$app" db_name)
 #db_pwd=$(ynh_app_setting_get $app db_pwd)
-admin_mastodon=$(ynh_app_setting_get $app admin)
+admin_mail=$(ynh_app_setting_get $app admin_mail)
 
 #=================================================
 # CHECK THE SYNTAX OF THE PATHS
@@ -106,7 +106,7 @@ yunohost service stop "$app-streaming"
 #=================================================
 
 ynh_replace_string "LOCAL_DOMAIN=*" "LOCAL_DOMAIN=${domain}"      "${final_path}/live/.env.production"
-ynh_replace_string "SMTP_FROM_ADDRESS=*" "SMTP_FROM_ADDRESS=$admin_mastodon@$domain"        "${final_path}/live/.env.production"
+ynh_replace_string "SMTP_FROM_ADDRESS=*" "SMTP_FROM_ADDRESS=$admin_mail"        "${final_path}/live/.env.production"
 
 #=================================================
 # START MASTODON SERVICES

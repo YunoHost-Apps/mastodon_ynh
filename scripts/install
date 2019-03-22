@@ -23,11 +23,11 @@ ynh_abort_if_errors
 
 domain=$YNH_APP_ARG_DOMAIN
 path_url="/"
-admin_mastodon=$YNH_APP_ARG_ADMIN
-is_public=true
+admin=$YNH_APP_ARG_ADMIN
+is_public=$YNH_APP_ARG_IS_PUBLIC
 language=$YNH_APP_ARG_LANGUAGE
 
-admin_mastodon_mail=$(ynh_user_get_info $admin_mastodon 'mail')
+admin_mail=$(ynh_user_get_info $admin 'mail')
 port_web=$(ynh_find_port 3000)
 port_stream=$(ynh_find_port 4000)
 
@@ -39,8 +39,6 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 ynh_print_info "Validating installation parameters..."
 
-### If the app uses nginx as web server (written in HTML/PHP in most cases), the final path should be "/var/www/$app".
-### If the app provides an internal web server (or uses another application server such as uwsgi), the final path should be "/opt/yunohost/$app"
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
@@ -59,7 +57,7 @@ ynh_print_info "Storing installation settings..."
 
 ynh_app_setting_set $app domain      $domain
 ynh_app_setting_set $app path $path_url
-ynh_app_setting_set $app admin       $admin_mastodon
+ynh_app_setting_set $app admin       $admin
 ynh_app_setting_set $app is_public $is_public
 ynh_app_setting_set $app language    $language
 ynh_app_setting_set $app port_web    $port_web
@@ -179,7 +177,7 @@ ynh_replace_string "PAPERCLIP_SECRET=" "PAPERCLIP_SECRET=$paperclip_secret" "${f
 ynh_replace_string "__SECRET_KEY_BASE__" "$secret_key_base" "$final_path/live/.env.production"
 ynh_replace_string "__OTP_SECRET__" "$otp_secret" "$final_path/live/.env.production"
 
-ynh_replace_string "__SMTP_FROM_ADDRESS__" "$admin_mastodon_mail"        "${final_path}/live/.env.production"
+ynh_replace_string "__SMTP_FROM_ADDRESS__" "$admin_mail"        "${final_path}/live/.env.production"
 
 #=================================================
 # INSTALLING MASTODON
@@ -195,7 +193,7 @@ pushd "$final_path/live"
 	sudo -u "$app" echo "SAFETY_ASSURED=1">> .env.production
 	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate --quiet
 	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile --quiet
-	sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create "$admin_mastodon" --email="$admin_mastodon_mail" --confirmed --role=admin > acc.txt
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > acc.txt
 popd
 
 admin_pass=$( tail -1 $final_path/live/acc.txt | head -1 | cut -c 15- )
@@ -248,10 +246,6 @@ ynh_store_file_checksum "${final_path}/live/.env.production"
 # SECURE FILES AND DIRECTORIES
 #=================================================
 
-### For security reason, any app should set the permissions to root: before anything else.
-### Then, if write authorization is needed, any access should be given only to directories
-### that really need such authorization.
-
 # Set permissions to app files
 chown -R "$app": "$final_path"
 
@@ -259,7 +253,6 @@ chown -R "$app": "$final_path"
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-# Add service YunoHost
 yunohost service add "$app-web"
 yunohost service add "$app-sidekiq"
 yunohost service add "$app-streaming"
@@ -293,7 +286,7 @@ The admin email is: $admin_mastodon_mail
 The admin password is: $admin_pass
 If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/mastodon_ynh"
 
-ynh_send_readme_to_admin "$message" "$admin_mastodon"
+ynh_send_readme_to_admin "$message" "$admin"
 
 #=================================================
 # END OF SCRIPT
