@@ -101,7 +101,7 @@ ynh_print_info "Upgrading source files..."
 
 # Download Mastodon
 mv "$final_path/live" "$final_path/live_back"
-ynh_setup_source "$final_path/live"  "app-mastodon"
+ynh_setup_source "$final_path/live"
 if [ -z $final_path/live_back/public/system ]; then
 	rsync -a "$final_path/live_back/public/system" "$final_path/live_back/public/."
 fi
