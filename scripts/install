@@ -9,6 +9,7 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 source ynh_install_ruby
+source ynh_add_secure_repos__2
 
 #=================================================
 # MANAGE SCRIPT FAILURE
@@ -28,9 +29,6 @@ is_public=$YNH_APP_ARG_IS_PUBLIC
 language=$YNH_APP_ARG_LANGUAGE
 
 admin_mail=$(ynh_user_get_info $admin 'mail')
-port_web=$(ynh_find_port 3000)
-port_stream=$(ynh_find_port 4000)
-
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -60,13 +58,25 @@ ynh_app_setting_set $app path $path_url
 ynh_app_setting_set $app admin       $admin
 ynh_app_setting_set $app is_public $is_public
 ynh_app_setting_set $app language    $language
-ynh_app_setting_set $app port_web    $port_web
-ynh_app_setting_set $app port_stream $port_stream
 
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
+# FIND AND OPEN A PORT
+#=================================================
+ynh_print_info "Configuring firewall..."
 
+### Use these lines if you have to open a port for the application
+### `ynh_find_port` will find the first available port starting from the given port.
+### If you're not using these lines:
+###		- Remove the section "CLOSE A PORT" in the remove script
+
+# Find a free port
+port_web=$(ynh_find_port 3000)
+port_stream=$(ynh_find_port 4000)
+# Open this port
+ynh_app_setting_set $app port_web    $port_web
+ynh_app_setting_set $app port_stream $port_stream
 
 #=================================================
 # INSTALL DEPENDENCIES
