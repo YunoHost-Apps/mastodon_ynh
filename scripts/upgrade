@@ -27,8 +27,15 @@ language=$(ynh_app_setting_get $app language)
 db_name=$(ynh_app_setting_get $app db_name)
 
 db_pwd=$(ynh_app_setting_get $app db_pwd)
+admin_mail=$(ynh_user_get_info $admin 'mail')
 port_web=$(ynh_app_setting_get "$app" port_web)
 port_stream=$(ynh_app_setting_get "$app" port_stream)
+
+paperclip_secret=$(ynh_app_setting_get "$app" paperclip_secret)
+secret_key_base=$(ynh_app_setting_get "$app" secret_key_base)
+otp_secret=$(ynh_app_setting_get "$app" otp_secret)
+ldap_user=$(ynh_app_setting_get "$app" ldap_user)
+ldap_password=$(ynh_app_setting_get "$app" ldap_password)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -60,6 +67,33 @@ if [[ -z "$db_pwd" ]]; then
 	ynh_psql_test_if_first_run
 	sudo --login --user=postgres psql -c"ALTER user $app WITH PASSWORD '$db_pwd'" postgres
 	ynh_replace_string "DB_PASS=" "DB_PASS=${db_pwd}" "${final_path}/live/.env.production"
+fi
+
+# If paperclip_secret doesn't exist, retrieve it or create it
+if [[ -z "$paperclip_secret" ]]; then
+		paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+	ynh_app_setting_set "$app" paperclip_secret "$paperclip_secret"
+fi
+
+# If secret_key_base doesn't exist, retrieve it or create it
+if [[ -z "$secret_key_base" ]]; then
+	secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+	ynh_app_setting_set "$app" secret_key_base "$secret_key_base"
+fi
+
+# If otp_secret doesn't exist, retrieve it or create it
+if [[ -z "$otp_secret" ]]; then
+	otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+	ynh_app_setting_set "$app" otp_secret "$otp_secret"
+fi
+
+# If ldap_password doesn't exist, retrieve it or create it
+if [[ -z "$ldap_user" ]]; then
+    ynh_user_exists $ldap_user || ynh_die "LDAP User $app already exist"
+	ldap_password=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+	yunohost user create username f $app -l $app -m $app@$domain -p $ldap_password -q 0
+    ynh_app_setting_set "$app" ldap_user "$ldap_user"
+	ynh_app_setting_set "$app" ldap_password "$ldap_password"
 fi
 
 #=================================================
@@ -157,6 +191,39 @@ ynh_install_ruby --ruby_version=2.6.0
 #/opt/rbenv/versions/2.6.0/bin/gem install bundler
 
 #=================================================
+# MODIFY A CONFIG FILE
+#=================================================
+
+cp -f ../conf/.env.production.sample "$final_path/live/.env.production"
+ynh_replace_string "__DB_USER__" "$app" "$final_path/live/.env.production"
+ynh_replace_string "__DB_NAME__" "$db_name" "$final_path/live/.env.production"
+ynh_replace_string "__DB_PWD__" "$db_pwd" "$final_path/live/.env.production"
+ynh_replace_string "__DOMAIN__" "$domain" "$final_path/live/.env.production"
+ynh_replace_string "__SMTP_FROM_ADDRESS__" "$admin_mail"        "${final_path}/live/.env.production"
+
+language="$(echo $language | head -c 2)"
+ynh_replace_string "__LANGUAGE__"      "$language" "$final_path/live/.env.production"
+
+paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+ynh_replace_string "PAPERCLIP_SECRET=" "PAPERCLIP_SECRET=$paperclip_secret" "${final_path}/live/.env.production"
+ynh_app_setting_set "$app" paperclip_secret "$paperclip_secret"
+
+secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+ynh_replace_string "__SECRET_KEY_BASE__" "$secret_key_base" "$final_path/live/.env.production"
+ynh_app_setting_set "$app" secret_key_base "$secret_key_base"
+
+otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+ynh_replace_string "__OTP_SECRET__" "$otp_secret" "$final_path/live/.env.production"
+ynh_app_setting_set "$app" otp_secret "$otp_secret"
+
+ynh_user_exists $app || ynh_die "LDAP User $app already exist"
+ldap_password=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+yunohost user create username f $app -l $app -m $app@$domain -p $ldap_password -q 0
+ynh_replace_string "__APP__" "$app"        "${final_path}/live/.env.production"
+ynh_replace_string "__LDAP_PASSWORD__" "$ldap_password"        "${final_path}/live/.env.production"
+ynh_app_setting_set "$app" ldap_password "$ldap_password"
+
+#=================================================
 # UPGRADE MASTODON
 #=================================================
 ynh_print_info "Upgrading Mastodon..."
@@ -182,7 +249,7 @@ ynh_store_file_checksum "${final_path}/live/.env.production"
 #=================================================
 # SETUP CRON JOB FOR REMOVING CACHE
 #=================================================
-ynh_print_info "Setuping a cron job for remiving cache..."
+ynh_print_info "Setuping a cron job for removing cache..."
 
 ynh_replace_string  "__FINAL_PATH__" "$final_path" ../conf/cron
 ynh_replace_string "__USER__" "$app"  ../conf/cron

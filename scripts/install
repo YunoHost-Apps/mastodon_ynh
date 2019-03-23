@@ -163,26 +163,31 @@ ynh_replace_string "__DB_USER__" "$app" "$final_path/live/.env.production"
 ynh_replace_string "__DB_NAME__" "$db_name" "$final_path/live/.env.production"
 ynh_replace_string "__DB_PWD__" "$db_pwd" "$final_path/live/.env.production"
 ynh_replace_string "__DOMAIN__" "$domain" "$final_path/live/.env.production"
+ynh_replace_string "__SMTP_FROM_ADDRESS__" "$admin_mail"        "${final_path}/live/.env.production"
 
 language="$(echo $language | head -c 2)"
 ynh_replace_string "__LANGUAGE__"      "$language" "$final_path/live/.env.production"
 
 paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 ynh_replace_string "PAPERCLIP_SECRET=" "PAPERCLIP_SECRET=$paperclip_secret" "${final_path}/live/.env.production"
+ynh_app_setting_set "$app" paperclip_secret "$paperclip_secret"
 
 secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 ynh_replace_string "__SECRET_KEY_BASE__" "$secret_key_base" "$final_path/live/.env.production"
+ynh_app_setting_set "$app" secret_key_base "$secret_key_base"
 
 otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 ynh_replace_string "__OTP_SECRET__" "$otp_secret" "$final_path/live/.env.production"
+ynh_app_setting_set "$app" otp_secret "$otp_secret"
 
-ynh_replace_string "__SMTP_FROM_ADDRESS__" "$admin_mail"        "${final_path}/live/.env.production"
-
-ynh_user_exists $app || ynh_die "LDAP User $app already exist"
+ldap_user="$app_ldap"
+ynh_user_exists $ldap_user || ynh_die "LDAP User $app already exist"
 ldap_password=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 yunohost user create username f $app -l $app -m $app@$domain -p $ldap_password -q 0
-ynh_replace_string "__APP__" "$app"        "${final_path}/live/.env.production"
+ynh_replace_string "__LDAP_USER__" "$ldap_user"        "${final_path}/live/.env.production"
 ynh_replace_string "__LDAP_PASSWORD__" "$ldap_password"        "${final_path}/live/.env.production"
+ynh_app_setting_set "$app" ldap_user "$ldap_user"
+ynh_app_setting_set "$app" ldap_password "$ldap_password"
 
 #=================================================
 # INSTALLING MASTODON
