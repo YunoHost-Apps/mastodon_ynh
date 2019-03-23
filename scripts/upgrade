@@ -44,7 +44,7 @@ ynh_print_info "Ensuring downward compatibility..."
 
 # If db_name doesn't exist, create it
 if [ -z $db_name ]; then
-	db_name=$(ynh_sanitize_dbid $app)
+	db_name="${app}_production"
 	ynh_app_setting_set $app db_name $db_name
 fi
 
