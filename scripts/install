@@ -66,11 +66,6 @@ ynh_app_setting_set $app language    $language
 #=================================================
 ynh_print_info "Configuring firewall..."
 
-### Use these lines if you have to open a port for the application
-### `ynh_find_port` will find the first available port starting from the given port.
-### If you're not using these lines:
-###		- Remove the section "CLOSE A PORT" in the remove script
-
 # Find a free port
 port_web=$(ynh_find_port 3000)
 port_stream=$(ynh_find_port 4000)
@@ -125,10 +120,6 @@ ynh_psql_execute_as_root \
 #=================================================
 ynh_print_info "Setting up source files..."
 
-### `ynh_setup_source` is used to install an app from a zip or tar.gz file,
-### downloaded from an upstream source, like a git repository.
-### `ynh_setup_source` use the file conf/app.src
-
 ynh_app_setting_set $app final_path $final_path
 # Download, check integrity, uncompress and patch the source from app.src
 mkdir $final_path
@@ -138,8 +129,6 @@ ynh_setup_source "$final_path/live"
 # NGINX CONFIGURATION
 #=================================================
 ynh_print_info "Configuring nginx web server..."
-
-### `ynh_add_nginx_config` will use the file conf/nginx.conf
 
 # Create a dedicated nginx config
 ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
@@ -179,14 +168,21 @@ language="$(echo $language | head -c 2)"
 ynh_replace_string "__LANGUAGE__"      "$language" "$final_path/live/.env.production"
 
 paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
-secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
-otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 ynh_replace_string "PAPERCLIP_SECRET=" "PAPERCLIP_SECRET=$paperclip_secret" "${final_path}/live/.env.production"
 
+secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 ynh_replace_string "__SECRET_KEY_BASE__" "$secret_key_base" "$final_path/live/.env.production"
+
+otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 ynh_replace_string "__OTP_SECRET__" "$otp_secret" "$final_path/live/.env.production"
 
 ynh_replace_string "__SMTP_FROM_ADDRESS__" "$admin_mail"        "${final_path}/live/.env.production"
+
+ynh_user_exists $app || ynh_die "LDAP User $app already exist"
+ldap_password=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+yunohost user create username f $app -l $app -m $app@$domain -p $ldap_password -q 0
+ynh_replace_string "__APP__" "$app"        "${final_path}/live/.env.production"
+ynh_replace_string "__LDAP_PASSWORD__" "$ldap_password"        "${final_path}/live/.env.production"
 
 #=================================================
 # INSTALLING MASTODON
@@ -222,17 +218,6 @@ sudo cp -f ../conf/cron /etc/cron.d/$app
 # SETUP SYSTEMD
 #=================================================
 ynh_print_info "Configuring a systemd service..."
-
-### `ynh_systemd_config` is used to configure a systemd script for an app.
-### It can be used for apps that use sysvinit (with adaptation) or systemd.
-### Have a look at the app to be sure this app needs a systemd script.
-### `ynh_systemd_config` will use the file conf/systemd.service
-### If you're not using these lines:
-###		- You can remove those files in conf/.
-###		- Remove the section "BACKUP SYSTEMD" in the backup script
-###		- Remove also the section "STOP AND REMOVE SERVICE" in the remove script
-###		- As well as the section "RESTORE SYSTEMD" in the restore script
-###		- And the section "SETUP SYSTEMD" in the upgrade script
 
 # Create a dedicated systemd config
 ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"

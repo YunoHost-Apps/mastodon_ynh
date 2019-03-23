@@ -176,9 +176,6 @@ pushd "$final_path/live"
         sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate
 popd
 
-### Verify the checksum of a file, stored by `ynh_store_file_checksum` in the install script.
-### And create a backup of this file if the checksum is different. So the file will be backed up if the admin had modified it.
-ynh_backup_if_checksum_is_different "${final_path}/live/.env.production"
 # Recalculate and store the checksum of the file for the next upgrade.
 ynh_store_file_checksum "${final_path}/live/.env.production"
 
