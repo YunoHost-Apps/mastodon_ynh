@@ -180,10 +180,10 @@ otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c
 ynh_replace_string "__OTP_SECRET__" "$otp_secret" "$final_path/live/.env.production"
 ynh_app_setting_set "$app" otp_secret "$otp_secret"
 
-ldap_user="${app}_ldap"
-ynh_user_exists $ldap_user || ynh_die "LDAP User $app already exist"
+ldap_user="${app}ldap"
+ynh_user_exists $ldap_user || ynh_die "LDAP User $ldap_user already exist"
 ldap_password=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
-yunohost user create username f $app -l $app -m $app@$domain -p $ldap_password -q 0
+yunohost user create username -f $ldap_user -l $ldap_user -m $app@$domain -p $ldap_password -q 0
 ynh_replace_string "__LDAP_USER__" "$ldap_user"        "${final_path}/live/.env.production"
 ynh_replace_string "__LDAP_PASSWORD__" "$ldap_password"        "${final_path}/live/.env.production"
 ynh_app_setting_set "$app" ldap_user "$ldap_user"
