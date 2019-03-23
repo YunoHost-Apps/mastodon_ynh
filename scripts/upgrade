@@ -163,7 +163,7 @@ ynh_print_info "Upgrading dependencies..."
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
 	ynh_install_extra_repo --repo="deb http://httpredir.debian.org/debian jessie-backports main"
 fi
-ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
+ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key=https://dl.yarnpkg.com/debian/pubkey.gpg
 ynh_package_update
 
 # Install nodejs
