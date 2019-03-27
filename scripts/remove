@@ -78,8 +78,7 @@ ynh_remove_ruby
 ynh_remove_app_dependencies
 ynh_remove_nodejs
 
-ynh_remove_extra_repo jessie-backports
-ynh_remove_extra_repo yarn
+ynh_remove_extra_repo
 
 #=================================================
 # REMOVE APP MAIN DIR

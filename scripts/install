@@ -15,6 +15,11 @@ source ynh_add_secure_repos__2
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	### Remove this function if there's nothing to clean before calling the remove script.
+	read -p "Press any key..."
+	true
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -89,10 +94,9 @@ fi
 
 # Install extra_repo debian package backports & yarn
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	ynh_install_extra_repo --repo="deb http://httpredir.debian.org/debian jessie-backports main"
+	ynh_install_extra_repo --repo="deb http://httpredir.debian.org/debian jessie-backports main" --append
 fi
-ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key=https://dl.yarnpkg.com/debian/pubkey.gpg
-ynh_package_update
+ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key="https://dl.yarnpkg.com/debian/pubkey.gpg" --append
 
 # install nodejs
 ynh_install_nodejs 8
