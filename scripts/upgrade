@@ -161,10 +161,9 @@ ynh_print_info "Upgrading dependencies..."
 
 # Install extra_repo debian package backports & yarn
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	ynh_install_extra_repo --repo="deb http://httpredir.debian.org/debian jessie-backports main"
+	ynh_install_extra_repo --repo="deb http://httpredir.debian.org/debian jessie-backports main" --append
 fi
-ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key=https://dl.yarnpkg.com/debian/pubkey.gpg
-ynh_package_update
+ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key="https://dl.yarnpkg.com/debian/pubkey.gpg" --append
 
 # Install nodejs
 ynh_install_nodejs 8
