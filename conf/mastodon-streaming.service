@@ -8,7 +8,7 @@
  WorkingDirectory=__FINALPATH__/live
  Environment="NODE_ENV=production"
  Environment="PORT=__PORT_STREAM__"
- ExecStart=/usr/bin/npm run start
+ ExecStart=/opt/node_n/n/versions/node/8/bin/npm run start
  TimeoutSec=15
  Restart=always
  StandardError=syslog
