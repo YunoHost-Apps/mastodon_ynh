@@ -20,21 +20,6 @@ pkg_dependencies="imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-t
 # FUTURE OFFICIAL HELPERS
 #=================================================
 
-# Execute a command as another user
-# usage: exec_as USER COMMAND [ARG ...]
-exec_as() {
-	local user=$1
-	shift 1
-
-	if [[ $user = $(whoami) ]]; then
-		eval "$@"
-	else
-		sudo --login --user="$user" "$@"
-	fi
-}
-
-
-
 # Send an email to inform the administrator
 #
 # usage: ynh_send_readme_to_admin app_message [recipients]

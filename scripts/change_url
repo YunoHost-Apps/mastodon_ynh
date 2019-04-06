@@ -7,6 +7,7 @@
 #=================================================
 
 source _common.sh
+source ynh_systemd_action
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -97,27 +98,24 @@ fi
 #=================================================
 ynh_print_info "Stopping Mastodon services..."
 
-yunohost service stop "$app-web"
-yunohost service stop "$app-sidekiq"
-yunohost service stop "$app-streaming"
+ynh_systemd_action --action=stop --service_name=${app}-web --line_match="Stopped" --log_path=systemd
+ynh_systemd_action --action=stop --service_name=${app}-sidekiq --line_match="Stopped" --log_path=systemd
+ynh_systemd_action --action=stop --service_name=${app}-streaming --line_match="Stopped" --log_path=systemd
 
 #=================================================
 # CHANGE CONFIGURATION
 #=================================================
 
-ynh_replace_string "LOCAL_DOMAIN=*" "LOCAL_DOMAIN=${domain}"      "${final_path}/live/.env.production"
-ynh_replace_string "SMTP_FROM_ADDRESS=*" "SMTP_FROM_ADDRESS=$admin_mail"        "${final_path}/live/.env.production"
+ynh_replace_string "LOCAL_DOMAIN=.*" "LOCAL_DOMAIN=${domain}"      "${final_path}/live/.env.production"
 
 #=================================================
 # START MASTODON SERVICES
 #=================================================
 ynh_print_info "Starting Mastodon services..."
 
-yunohost service start "$app-web"
-yunohost service start "$app-sidekiq"
-yunohost service start "$app-streaming"
-
-sleep 30
+ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
 
 #=================================================
 # GENERIC FINALISATION

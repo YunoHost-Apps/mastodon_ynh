@@ -7,9 +7,9 @@
 #=================================================
 
 source _common.sh
-source /usr/share/yunohost/helpers
 source ynh_install_ruby
-source ynh_add_secure_repos__2
+source ynh_add_secure_repos__3
+source /usr/share/yunohost/helpers
 
 #=================================================
 # LOAD SETTINGS
@@ -77,7 +77,6 @@ ynh_print_info "Removing dependencies"
 ynh_remove_ruby
 ynh_remove_app_dependencies
 ynh_remove_nodejs
-
 ynh_remove_extra_repo
 
 #=================================================

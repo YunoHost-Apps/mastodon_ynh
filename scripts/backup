@@ -8,12 +8,16 @@
 
 #Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
+source ../settings/scripts/ynh_systemd_action
 source /usr/share/yunohost/helpers
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	ynh_clean_check_starting
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -31,12 +35,11 @@ db_name=$(ynh_app_setting_get $app db_name)
 #=================================================
 # STOP MASTODON SERVICES
 #=================================================
-ynh_print_info "Stopping Mastodon Services..."
+ynh_print_info "Stopping Mastodon services..."
 
-yunohost service stop "$app-web"
-yunohost service stop "$app-sidekiq"
-yunohost service stop "$app-streaming"
-
+ynh_systemd_action --action=stop --service_name=${app}-web --line_match="Stopped" --log_path=systemd
+ynh_systemd_action --action=stop --service_name=${app}-sidekiq --line_match="Stopped" --log_path=systemd
+ynh_systemd_action --action=stop --service_name=${app}-streaming --line_match="Stopped" --log_path=systemd
 
 #=================================================
 # STANDARD BACKUP STEPS
@@ -81,14 +84,11 @@ ynh_backup "/etc/cron.d/$app"
 #=================================================
 # START MASTODON SERVICES
 #=================================================
-ynh_print_info "Starting Mastodon Services..."
+ynh_print_info "Starting Mastodon services..."
 
-yunohost service start "$app-web"
-yunohost service start "$app-sidekiq"
-yunohost service start "$app-streaming"
-
-# Waiting start all services
-sleep 30
+ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
 
 #=================================================
 # END OF SCRIPT

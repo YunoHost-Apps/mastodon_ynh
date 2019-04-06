@@ -16,7 +16,7 @@
     "requirements": {
         "yunohost": ">= 3.4"
     },
-	"multi_instance": false,
+    "multi_instance": true,
 	"services": [
 		"nginx"
 	],

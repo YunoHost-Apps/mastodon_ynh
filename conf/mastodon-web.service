@@ -9,6 +9,7 @@
  Environment="RAILS_ENV=production"
  Environment="PORT=__PORT_WEB__"
  ExecStart=/opt/rbenv/versions/2.6.0/bin/bundle exec puma -C config/puma.rb
+ ExecReload=/bin/kill -SIGUSR1 $MAINPID
  TimeoutSec=15
  Restart=always
  StandardError=syslog

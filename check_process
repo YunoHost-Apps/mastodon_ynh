@@ -10,10 +10,10 @@
 		setup_root=1
 		setup_nourl=0
 		setup_private=0
-		setup_public=0
+		setup_public=1
 		upgrade=1
 		backup_restore=1
-		multi_instance=0
+		multi_instance=1
 		incorrect_path=1
 		port_already_use=0
 		change_url=0

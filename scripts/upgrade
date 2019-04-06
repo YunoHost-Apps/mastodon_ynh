@@ -7,9 +7,10 @@
 #=================================================
 
 source _common.sh
-source /usr/share/yunohost/helpers
 source ynh_install_ruby
-source ynh_add_secure_repos__2
+source ynh_add_secure_repos__3
+source ynh_systemd_action
+source /usr/share/yunohost/helpers
 
 #=================================================
 # LOAD SETTINGS
@@ -104,6 +105,7 @@ ynh_print_info "Backing up the app before upgrading (may take a while)..."
 # Backup the current version of the app
 ynh_backup_before_upgrade
 ynh_clean_setup () {
+	ynh_clean_check_starting
 	# restore it if the upgrade fails
 	ynh_restore_upgradebackup
 }
@@ -124,9 +126,9 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 ynh_print_info "Stopping Mastodon services..."
 
-yunohost service stop "$app-web"
-yunohost service stop "$app-sidekiq"
-yunohost service stop "$app-streaming"
+ynh_systemd_action --action=stop --service_name=${app}-web --line_match="Stopped" --log_path=systemd
+ynh_systemd_action --action=stop --service_name=${app}-sidekiq --line_match="Stopped" --log_path=systemd
+ynh_systemd_action --action=stop --service_name=${app}-streaming --line_match="Stopped" --log_path=systemd
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -259,16 +261,19 @@ ynh_print_info "Upgrading systemd configuration..."
 # Create a dedicated systemd config
 ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
 ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/mastodon-streaming.service"
+ynh_replace_string "__NODEJS_PATH__" "$nodejs_path" "../conf/mastodon-streaming.service"
 ynh_add_systemd_config "$app-web"       "mastodon-web.service"
 ynh_add_systemd_config "$app-sidekiq"   "mastodon-sidekiq.service"
 ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
 
-yunohost service start "$app-web"
-yunohost service start "$app-sidekiq"
-yunohost service start "$app-streaming"
+#=================================================
+# START MASTODON SERVICES
+#=================================================
+ynh_print_info "Starting Mastodon services..."
 
-# Waiting start all services
-sleep 30
+ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
 
 #=================================================
 # GENERIC FINALIZATION

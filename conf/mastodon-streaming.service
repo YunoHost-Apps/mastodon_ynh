@@ -8,7 +8,9 @@
  WorkingDirectory=__FINALPATH__/live
  Environment="NODE_ENV=production"
  Environment="PORT=__PORT_STREAM__"
- ExecStart=/opt/node_n/n/versions/node/8/bin/npm run start
+ Environment="STREAMING_CLUSTER_NUM=1"
+ Environment=PATH=__NODEJS_PATH__
+ ExecStart=__NODEJS_PATH__/node ./streaming
  TimeoutSec=15
  Restart=always
  StandardError=syslog

@@ -7,14 +7,18 @@
 #=================================================
 
 source _common.sh
-source /usr/share/yunohost/helpers
 source ynh_install_ruby
-source ynh_add_secure_repos__2
+source ynh_add_secure_repos__3
+source ynh_systemd_action
+source /usr/share/yunohost/helpers
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	ynh_clean_check_starting
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -78,8 +82,6 @@ ynh_app_setting_set $app port_stream $port_stream
 #=================================================
 ynh_print_info "Installing dependencies..."
 
-# TODO: add in a clean way backports and yarn
-
 # Import debian archive pubkey, need on ARM arch
 arch=$(uname -m)
 if [[ "$arch" = arm*  ]]; then
@@ -96,7 +98,6 @@ ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" -
 # install nodejs
 ynh_install_nodejs 8
 
-# TODO: use the same mecanism with other files
 ynh_install_app_dependencies $pkg_dependencies	
 
 #=================================================
@@ -149,7 +150,6 @@ ynh_system_user_create $app $final_path
 #=================================================
 
 ynh_install_ruby --ruby_version=2.6.0
-
 /opt/rbenv/versions/2.6.0/bin/gem update --system
 #/opt/rbenv/versions/2.6.0/bin/gem install bundler --no-document
 
@@ -214,7 +214,7 @@ ynh_secure_remove "$final_path/live/key.txt"
 #=================================================
 # SETUP CRON JOB FOR REMOVING CACHE
 #=================================================
-ynh_print_info "Setuping a cron job for remiving cache..."
+ynh_print_info "Setuping a cron job for rem0ving cache..."
 
 ynh_replace_string  "__FINAL_PATH__" "$final_path" ../conf/cron
 ynh_replace_string "__USER__" "$app"  ../conf/cron
@@ -228,11 +228,19 @@ ynh_print_info "Configuring a systemd service..."
 # Create a dedicated systemd config
 ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
 ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/mastodon-streaming.service"
+ynh_replace_string "__NODEJS_PATH__" "$nodejs_path" "../conf/mastodon-streaming.service"
 ynh_add_systemd_config "$app-web"       "mastodon-web.service"
 ynh_add_systemd_config "$app-sidekiq"   "mastodon-sidekiq.service"
 ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
 
-systemctl start "$app-web.service" "$app-sidekiq.service" "$app-streaming.service"
+#=================================================
+# START MASTODON SERVICES
+#=================================================
+ynh_print_info "Starting Mastodon services..."
+
+ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
