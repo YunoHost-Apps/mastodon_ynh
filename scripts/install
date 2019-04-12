@@ -44,6 +44,13 @@ ynh_print_info "Validating installation parameters..."
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
+# TODO : to be factorized into a helper someday ? ;)
+MEM=$(free | grep "^Mem"  | awk '{print $2}')
+SWAP=$(free | grep "^Swap" | awk '{print $2}')
+TOTAL_MEM_AND_SWAP=$(( ( $MEM+$SWAP ) / 1024 )) # In MB
+
+[[ $TOTAL_MEM_AND_SWAP -gt 2500 ]] || ynh_die "You need at least 2500 Mo of RAM+Swap to install Mastodon. Please consult the README to learn how to add swap."
+
 # Normalize the url path syntax
 path_url=$(ynh_normalize_url_path $path_url)
 
