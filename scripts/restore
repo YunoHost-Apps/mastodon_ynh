@@ -6,38 +6,39 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-if [ ! -e _common.sh ]; then
-	# Get the _common.sh file if it's not in the current directory
-	cp ../settings/scripts/_common.sh ./_common.sh
-	cp ../settings/scripts/_future.sh ./_future.sh
-	chmod a+rx _common.sh _future.sh
-fi
-source _common.sh
+#Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
+source ../settings/scripts/_common.sh
+source ../settings/scripts/ynh_install_ruby
+source ../settings/scripts/ynh_add_secure_repos__3
+source ../settings/scripts/ynh_systemd_action
 source /usr/share/yunohost/helpers
-source _future.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	ynh_clean_check_starting
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info "Loading settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
-# Get old parameter of the app
 domain=$(ynh_app_setting_get $app domain)
 path_url=$(ynh_app_setting_get $app path)
-is_public=$(ynh_app_setting_get $app is_public)
-final_path=$(ynh_app_setting_get "$app" final_path)
+final_path=$(ynh_app_setting_get $app final_path)
+db_name=$(ynh_app_setting_get $app db_name)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
+ynh_print_info "Validating restoration parameters..."
 
 ynh_webpath_available $domain $path_url \
 	|| ynh_die "Path not available: ${domain}${path_url}"
@@ -55,14 +56,17 @@ ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
+ynh_print_info "Restoring the app main directory..."
 
 ynh_restore_file "$final_path"
 
 #=================================================
 # RECREATE THE DEDICATED USER
 #=================================================
+ynh_print_info "Recreating the dedicated system user..."
 
-adduser $app --home $final_path --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
+# Create the dedicated user (if not existing)
+ynh_system_user_create $app $final_path
 
 #=================================================
 # RESTORE USER RIGHTS
@@ -76,8 +80,7 @@ chown -R $app: $final_path
 #=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
-
-# TODO: add in a clean way backports and yarn
+ynh_print_info "Reinstalling dependencies..."
 
 # Import debian archive pubkey, need on ARM arch
 arch=$(uname -m)
@@ -86,39 +89,29 @@ if [[ "$arch" = arm*  ]]; then
 	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7638D0442B90D010
 fi
 
-# Install source.list debian package backports & yarn
+# Install extra_repo debian package backports & yarn
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	echo "deb http://httpredir.debian.org/debian jessie-backports main" | tee /etc/apt/sources.list.d/jessie-backports.list
+	ynh_install_extra_repo --repo="deb http://httpredir.debian.org/debian jessie-backports main" --append
 fi
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-ynh_package_update
+ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key="https://dl.yarnpkg.com/debian/pubkey.gpg" --append
 
 # install nodejs
 ynh_install_nodejs 8
 
-# TODO: use the same mecanism with other files
-ynh_install_app_dependencies \
-	`# debian packages ` \
-	imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev \
-	`# redis ` \
-	redis-server redis-tools \
-	`# postgresql ` \
-	postgresql \
-	`# Ruby ` \
-	autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev \
-	`# ffmpeg from backports ` \
-	ffmpeg \
-	`# Yarn ` \
-	yarn
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
-# RESTORE THE PostgreSQL DATABASE
+# INSTALLING RUBY AND BUNDLER
 #=================================================
 
-# Restore PostgreSQL database
+ynh_install_ruby --ruby_version=2.6.0
+/opt/rbenv/versions/2.6.0/bin/gem update --system
 
-db_name=$(ynh_app_setting_get "$app" db_name)
+#=================================================
+# RESTORE THE POSTGRESQL DATABASE
+#=================================================
+ynh_print_info "Restoring the PostgreSQL database..."
+
 db_pwd=$(ynh_app_setting_get "$app" db_pwd)
 
 ynh_psql_test_if_first_run
@@ -127,11 +120,10 @@ ynh_psql_execute_as_root \
 "CREATE DATABASE $db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $app;"
 ynh_psql_execute_file_as_root ./db.sql "$db_name"
 
-
-
 #=================================================
 # RESTORE SYSTEMD
 #=================================================
+ynh_print_info "Restoring the systemd configuration..."
 
 ynh_restore_file "/etc/systemd/system/$app-web.service"
 ynh_restore_file "/etc/systemd/system/$app-sidekiq.service"
@@ -155,10 +147,23 @@ ynh_restore_file "/etc/cron.d/$app"
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
-# RELOAD NGINX AND services
+# START MASTODON SERVICES
+#=================================================
+ynh_print_info "Starting Mastodon services..."
+
+ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
+
+#=================================================
+# RELOAD NGINX
+#=================================================
+ynh_print_info "Reloading nginx web server..."
+
+systemctl reload nginx
+
+#=================================================
+# END OF SCRIPT
 #=================================================
 
-systemctl restart "$app-web" "$app-sidekiq" "$app-streaming"
-# Waiting start all services
-sleep 30
-systemctl reload nginx
+ynh_print_info "Restoration completed for $app"

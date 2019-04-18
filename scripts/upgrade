@@ -7,41 +7,52 @@
 #=================================================
 
 source _common.sh
+source ynh_install_ruby
+source ynh_add_secure_repos__3
+source ynh_systemd_action
 source /usr/share/yunohost/helpers
 
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info "Loading installation settings..."
 
-# See comments in install script
 app=$YNH_APP_INSTANCE_NAME
-db_name=$(ynh_app_setting_get "$app" db_name)
-db_pwd=$(ynh_app_setting_get "$app" db_pwd)
 
-# Retrieve app settings
-domain=$(ynh_app_setting_get "$app" domain)
-path=$(ynh_app_setting_get "$app" path)
-admin=$(ynh_app_setting_get "$app" admin)
-language=$(ynh_app_setting_get "$app" language)
-final_path=$(ynh_app_setting_get "$app" final_path)
-path_url="/"
+domain=$(ynh_app_setting_get $app domain)
+path_url=$(ynh_app_setting_get $app path)
+admin=$(ynh_app_setting_get $app admin)
+is_public=$(ynh_app_setting_get $app is_public)
+final_path=$(ynh_app_setting_get $app final_path)
+language=$(ynh_app_setting_get $app language)
+db_name=$(ynh_app_setting_get $app db_name)
+
+db_pwd=$(ynh_app_setting_get $app db_pwd)
+admin_mail=$(ynh_user_get_info $admin 'mail')
 port_web=$(ynh_app_setting_get "$app" port_web)
 port_stream=$(ynh_app_setting_get "$app" port_stream)
+
+paperclip_secret=$(ynh_app_setting_get "$app" paperclip_secret)
+secret_key_base=$(ynh_app_setting_get "$app" secret_key_base)
+otp_secret=$(ynh_app_setting_get "$app" otp_secret)
+vapid_private_key=$(ynh_app_setting_get "$app" vapid_private_key)
+vapid_public_key=$(ynh_app_setting_get "$app" vapid_public_key)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
+ynh_print_info "Ensuring downward compatibility..."
 
 # If db_name doesn't exist, create it
-if [ -z "$db_name" ]; then
+if [ -z $db_name ]; then
 	db_name="${app}_production"
-	ynh_app_setting_set "$app" db_name "$db_name"
+	ynh_app_setting_set $app db_name $db_name
 fi
 
 # If final_path doesn't exist, create it
-if [ -z "$final_path" ]; then
+if [ -z $final_path ]; then
 	final_path=/var/www/$app
-	ynh_app_setting_set "$app" final_path "$final_path"
+	ynh_app_setting_set $app final_path $final_path
 fi
 
 # Check if admin is not null
@@ -59,13 +70,42 @@ if [[ -z "$db_pwd" ]]; then
 	ynh_replace_string "DB_PASS=" "DB_PASS=${db_pwd}" "${final_path}/live/.env.production"
 fi
 
+# If paperclip_secret doesn't exist, retrieve it or create it
+if [[ -z "$paperclip_secret" ]]; then
+	paperclip_secret=$(grep -oP "PAPERCLIP_SECRET=\K\w+" test)
+	if [[ -z "$paperclip_secret" ]]; then
+	    paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+	fi
+	ynh_app_setting_set "$app" paperclip_secret "$paperclip_secret"
+fi
+
+# If secret_key_base doesn't exist, retrieve it or create it
+if [[ -z "$secret_key_base" ]]; then
+	secret_key_base=$(grep -oP "SECRET_KEY_BASE=\K\w+" test)
+	if [[ -z "$secret_key_base" ]]; then
+	    secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+	fi
+	ynh_app_setting_set "$app" secret_key_base "$secret_key_base"
+fi
+
+# If otp_secret doesn't exist, retrieve it or create it
+if [[ -z "$otp_secret" ]]; then
+	otp_secret=$(grep -oP "OTP_SECRET=\K\w+" test)
+	if [[ -z "$otp_secret" ]]; then
+	    otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+	fi
+	ynh_app_setting_set "$app" otp_secret "$otp_secret"
+fi
+
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
+ynh_print_info "Backing up the app before upgrading (may take a while)..."
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
 ynh_clean_setup () {
+	ynh_clean_check_starting
 	# restore it if the upgrade fails
 	ynh_restore_upgradebackup
 }
@@ -73,52 +113,31 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# Remove repo Files
+# CHECK THE PATH
 #=================================================
 
-if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	echo "deb http://httpredir.debian.org/debian jessie-backports main" | tee /etc/apt/sources.list.d/jessie-backports.list
-	ynh_secure_remove /etc/apt/sources.list.d/backports.list
-fi
-
-# Add yarn repo
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-
-#=================================================
-# INSTALL DEPENDENCIES
-#=================================================
-
-ynh_install_nodejs 8
-
-# TODO: use the same mecanism with other files
-ynh_install_app_dependencies \
-	`# debian packages ` \
-	imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev \
-	`# redis ` \
-	redis-server redis-tools \
-	`# postgresql ` \
-	postgresql postgresql-contrib \
-	`# Ruby ` \
-	autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev \
-	`# ffmpeg from backports ` \
-	ffmpeg \
-	`# Yarn ` \
-	yarn
+# Normalize the URL path syntax
+path_url=$(ynh_normalize_url_path $path_url)
 
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
+# STOP MASTODON SERVICES
+#=================================================
+ynh_print_info "Stopping Mastodon services..."
 
+ynh_systemd_action --action=stop --service_name=${app}-web --line_match="Stopped" --log_path=systemd
+ynh_systemd_action --action=stop --service_name=${app}-sidekiq --line_match="Stopped" --log_path=systemd
+ynh_systemd_action --action=stop --service_name=${app}-streaming --line_match="Stopped" --log_path=systemd
 
-# Stop Mastodon Services
-# Restart Mastodon
-yunohost service stop "$app-web"
-yunohost service stop "$app-sidekiq"
-yunohost service stop "$app-streaming"
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+ynh_print_info "Upgrading source files..."
 
 # Download Mastodon
 mv "$final_path/live" "$final_path/live_back"
-ynh_setup_source "$final_path/live"  "app-mastodon"
+ynh_setup_source "$final_path/live"
 if [ -z $final_path/live_back/public/system ]; then
 	rsync -a "$final_path/live_back/public/system" "$final_path/live_back/public/."
 fi
@@ -131,113 +150,161 @@ ynh_secure_remove $final_path/live/config/initializers/timeout.rb
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
+ynh_print_info "Upgrading nginx web server configuration..."
+
 ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
 ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/nginx.conf"
 ynh_add_nginx_config
 
+#=================================================
+# UPGRADE DEPENDENCIES
+#=================================================
+ynh_print_info "Upgrading dependencies..."
 
-# Upgrade rbenv and ruby plugins
-ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
-ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
-
-chown -R "$app": "$final_path"
-
-# Install ruby 2.6.0
-(
-	exec_as "$app" $final_path/.rbenv/bin/rbenv install -s 2.6.0 || true
-	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.6.0 || true
-	exec_as "$app" $final_path/.rbenv/versions/2.6.0/bin/ruby -v
-)
-
-# Create symlink for ruby
-rm /usr/bin/ruby || true
-ln -s $final_path/.rbenv/versions/2.6.0/bin/ruby /usr/bin/ruby || true
-
-# Preconfig CSS & JS
-# Install Mastodon
-(
-sudo su - $app <<MCOMMANDS
-pushd ~/live
-$final_path/.rbenv/versions/2.6.0/bin/gem install bundler
+# Install extra_repo debian package backports & yarn
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	$final_path/.rbenv/versions/2.6.0/bin/bundle install --deployment --without development test
-else
-	$final_path/.rbenv/versions/2.6.0/bin/bundle install --deployment --force --without development test
+	ynh_install_extra_repo --repo="deb http://httpredir.debian.org/debian jessie-backports main" --append
 fi
-yarn install --pure-lockfile
-MCOMMANDS
-)
+ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key="https://dl.yarnpkg.com/debian/pubkey.gpg" --append
 
-# Install package with yarn and restart postgresql
-pushd $final_path/live
-yarn install --pure-lockfile
-systemctl restart postgresql
-popd
+# Install nodejs
+ynh_install_nodejs 8
 
-# Apply Mastodon upgrade
-(
-pushd $final_path/live
-RAILS_ENV=production $final_path/.rbenv/versions/2.6.0/bin/bundle exec rails assets:clean
-RAILS_ENV=production $final_path/.rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile
-popd
+# TODO: use the same mecanism with other files
+ynh_install_app_dependencies $pkg_dependencies
 
-sudo su - $app <<COMMANDS
-pushd ~/live
-RAILS_ENV=production $final_path/.rbenv/versions/2.6.0/bin/bundle exec rails db:migrate
-COMMANDS
-)
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_print_info "Making sure dedicated system user exists..."
 
-# permissions to app files
+# Create a dedicated user (if not existing)
+ynh_system_user_create $app
+
+#=================================================
+# SPECIFIC UPGRADE
+#=================================================
+# INSTALLING RUBY AND BUNDLER
+#=================================================
+
+ynh_install_ruby --ruby_version=2.6.0
+/opt/rbenv/versions/2.6.0/bin/gem update --system
+#/opt/rbenv/versions/2.6.0/bin/gem install bundler
+
+#=================================================
+# MODIFY A CONFIG FILE
+#=================================================
+
+cp -f ../conf/.env.production.sample "$final_path/live/.env.production"
+ynh_replace_string "__DB_USER__" "$app" "$final_path/live/.env.production"
+ynh_replace_string "__DB_NAME__" "$db_name" "$final_path/live/.env.production"
+ynh_replace_string "__DB_PWD__" "$db_pwd" "$final_path/live/.env.production"
+ynh_replace_string "__DOMAIN__" "$domain" "$final_path/live/.env.production"
+ynh_replace_string "__SMTP_FROM_ADDRESS__" "$admin_mail"        "${final_path}/live/.env.production"
+
+language="$(echo $language | head -c 2)"
+ynh_replace_string "__LANGUAGE__"      "$language" "$final_path/live/.env.production"
+
+ynh_replace_string "PAPERCLIP_SECRET=" "PAPERCLIP_SECRET=$paperclip_secret" "${final_path}/live/.env.production"
+
+ynh_replace_string "__SECRET_KEY_BASE__" "$secret_key_base" "$final_path/live/.env.production"
+
+ynh_replace_string "__OTP_SECRET__" "$otp_secret" "$final_path/live/.env.production"
+
+#=================================================
+# UPGRADE MASTODON
+#=================================================
+ynh_print_info "Upgrading Mastodon..."
+
 chown -R "$app": "$final_path"
 
+pushd "$final_path/live"
+    ynh_use_nodejs
+        if [ "$(lsb_release --codename --short)" == "jessie" ]; then
+	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --without development test
+        else
+	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --force --without development test
+        fi
+        sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:clean
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate
+popd
+
+# If vapid_private_key doesn't exist, retrieve it or create it
+if [[ -z "$vapid_private_key" ]]; then
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
+	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" "$final_path/live/key.txt")
+	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" "$final_path/live/key.txt")
+	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
+	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
+	ynh_secure_remove "$final_path/live/key.txt"
+fi
+
+# Recalculate and store the checksum of the file for the next upgrade.
+ynh_store_file_checksum "${final_path}/live/.env.production"
+
 #=================================================
-# SETUP SYSTEMD
-#=================================================
-
-# Create a dedicated systemd config
-ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
-ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/mastodon-streaming.service"
-ynh_add_systemd_config "$app-web"       "mastodon-web.service"
-ynh_add_systemd_config "$app-sidekiq"   "mastodon-sidekiq.service"
-ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
-
-#=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
-#=================================================
-
-# Add service YunoHost
-ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
-ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/mastodon-streaming.service"
-yunohost service add "$app-web"
-yunohost service add "$app-sidekiq"
-yunohost service add "$app-streaming"
-
-yunohost service start "$app-web"
-yunohost service start "$app-sidekiq"
-yunohost service start "$app-streaming"
-
-# Waiting start all services
-sleep 30
-
 # SETUP CRON JOB FOR REMOVING CACHE
+#=================================================
+ynh_print_info "Setuping a cron job for removing cache..."
+
 ynh_replace_string  "__FINAL_PATH__" "$final_path" ../conf/cron
 ynh_replace_string "__USER__" "$app"  ../conf/cron
 sudo cp -f ../conf/cron /etc/cron.d/$app 
 
 #=================================================
-# RELOAD NGINX
+# SETUP SYSTEMD
+#=================================================
+ynh_print_info "Upgrading systemd configuration..."
+
+# Create a dedicated systemd config
+ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
+ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/mastodon-streaming.service"
+ynh_replace_string "__NODEJS_PATH__" "$nodejs_path" "../conf/mastodon-streaming.service"
+ynh_add_systemd_config "$app-web"       "mastodon-web.service"
+ynh_add_systemd_config "$app-sidekiq"   "mastodon-sidekiq.service"
+ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
+
+#=================================================
+# START MASTODON SERVICES
+#=================================================
+ynh_print_info "Starting Mastodon services..."
+
+ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SECURE FILES AND DIRECTORIES
 #=================================================
 
-systemctl reload nginx
+# Set permissions on app files
+chown -R $app: $final_path
 
 #=================================================
 # SETUP SSOWAT
 #=================================================
+ynh_print_info "Upgrading SSOwat configuration..."
 
-ynh_app_setting_set "$app" unprotected_uris "/"
+# Make app public if necessary
+if [ $is_public -eq 1 ]
+then
+	# unprotected_uris allows SSO credentials to be passed anyway
+	ynh_app_setting_set $app unprotected_uris "/"
+fi
 
 #=================================================
-# RELOAD ssowatconf
+# RELOAD NGINX
+#=================================================
+ynh_print_info "Reloading nginx web server..."
+
+systemctl reload nginx
+
+#=================================================
+# END OF SCRIPT
 #=================================================
 
-sudo yunohost app ssowatconf
+ynh_print_info "Upgrade of $app completed"

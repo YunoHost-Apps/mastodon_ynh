@@ -6,72 +6,83 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-source _common.sh	# Loads the generic functions usually used in the script
-# Source app helpers
+source _common.sh
+source ynh_install_ruby
+source ynh_add_secure_repos__3
 source /usr/share/yunohost/helpers
-source _future.sh
-
 
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info "Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
-# Retrieve app settings
-domain=$(ynh_app_setting_get "$app" domain)
-db_name=$(ynh_app_setting_get "$app" db_name)
-final_path=$(ynh_app_setting_get "$app" final_path)
+domain=$(ynh_app_setting_get $app domain)
+db_name=$(ynh_app_setting_get $app db_name)
+final_path=$(ynh_app_setting_get $app final_path)
 
 #=================================================
 # STANDARD REMOVE
 #=================================================
-# STOP AND REMOVE SERVICE
+# REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
 
+# Remove a service from the admin panel, added by `yunohost service add`
+if yunohost service status "$app-web" >/dev/null 2>&1
+then
+	ynh_print_info "Removing $app-web service"
+	yunohost service remove "$app-web"
+fi
+
+if yunohost service status "$app-sidekiq" >/dev/null 2>&1
+then
+	ynh_print_info "Removing $app-sidekiq service"
+	yunohost service remove "$app-sidekiq"
+fi
+
+if yunohost service status "$app-streaming" >/dev/null 2>&1
+then
+	ynh_print_info "Removing $app-streaming service"
+	yunohost service remove "$app-streaming"
+fi
+
+#=================================================
+# STOP AND REMOVE SERVICE
+#=================================================
+ynh_print_info "Stopping and removing the systemd service"
+
+# Remove the dedicated systemd config
 ynh_remove_systemd_config "$app-web"
 ynh_remove_systemd_config "$app-sidekiq"
 ynh_remove_systemd_config "$app-streaming"
 
 #=================================================
-# REMOVE SERVICE FROM ADMIN PANEL
-#==============================================
+# REMOVE THE POSTGRESQL DATABASE
+#=================================================
+ynh_print_info "Removing the PostgreSQL database"
 
-if yunohost service status | grep -q "$app-web"
-then
-	echo "Remove $app-web service"
-	yunohost service remove "$app-web"
-fi
+ynh_psql_execute_as_root "\connect $db_name 
+SELECT pg_terminate_backend (pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$db_name';"
 
-if yunohost service status | grep -q "$app-sidekiq"
-then
-	echo "Remove $app-sidekiq service"
-	yunohost service remove "$app-sidekiq"
-fi
-
-if yunohost service status | grep -q "$app-streaming"
-then
-	echo "Remove $app-streaming service"
-	yunohost service remove "$app-streaming"
-fi
+# delete postgresql database & user
+ynh_psql_remove_db --db_name="$db_name" --db_user="$app"
 
 #=================================================
 # REMOVE DEPENDENCIES
 #=================================================
+ynh_print_info "Removing dependencies"
 
 # Remove metapackage and its dependencies
+ynh_remove_ruby
 ynh_remove_app_dependencies
 ynh_remove_nodejs
-#=================================================
-# REMOVE THE PostgreSQL DATABASE
-#=================================================
-
-# delete postgresql database & user
-ynh_psql_remove_db "$db_name" "$app"
+ynh_remove_extra_repo
 
 #=================================================
 # REMOVE APP MAIN DIR
 #=================================================
+ynh_print_info "Removing app main directory"
 
 # Remove the app directory securely
 ynh_secure_remove "$final_path"
@@ -79,21 +90,32 @@ ynh_secure_remove "$final_path"
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
+ynh_print_info "Removing nginx web server configuration"
+
+# Remove the dedicated nginx config
 ynh_remove_nginx_config
 
 #=================================================
 # SPECIFIC REMOVE
 #=================================================
+# REMOVE THE CRON FILE
+#=================================================
 
 # Remove a cron file
 ynh_secure_remove "/etc/cron.d/$app"
-
-# Delete ruby exec
-#ynh_secure_remove /usr/bin/ruby
 
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
 # REMOVE DEDICATED USER
 #=================================================
+ynh_print_info "Removing the dedicated system user"
+
+# Delete a system user
 ynh_system_user_delete $app
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info "Removal of $app completed"

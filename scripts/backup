@@ -6,94 +6,92 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-if [ ! -e _common.sh ]; then
-	# Get the _common.sh file if it's not in the current directory
-	cp ../settings/scripts/_common.sh ./_common.sh
-	cp ../settings/scripts/_future.sh ./_future.sh
-	chmod a+rx _common.sh _future.sh
-fi
-source _common.sh
+#Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
+source ../settings/scripts/_common.sh
+source ../settings/scripts/ynh_systemd_action
 source /usr/share/yunohost/helpers
-source _future.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	ynh_clean_check_starting
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info "Loading installation settings..."
 
-# Get multi-instances specific variables
 app=$YNH_APP_INSTANCE_NAME
 
-# Retrieve app settings
-domain=$(ynh_app_setting_get "$app" domain)
-final_path=$(ynh_app_setting_get "$app" final_path)
-db_name=$(ynh_app_setting_get "$app" db_name)
+final_path=$(ynh_app_setting_get $app final_path)
+domain=$(ynh_app_setting_get $app domain)
+db_name=$(ynh_app_setting_get $app db_name)
 
-# Stop Mastodon Services
-# Restart Mastodon
-yunohost service stop "$app-web"
-yunohost service stop "$app-sidekiq"
-yunohost service stop "$app-streaming"
+#=================================================
+# STOP MASTODON SERVICES
+#=================================================
+ynh_print_info "Stopping Mastodon services..."
 
+ynh_systemd_action --action=stop --service_name=${app}-web --line_match="Stopped" --log_path=systemd
+ynh_systemd_action --action=stop --service_name=${app}-sidekiq --line_match="Stopped" --log_path=systemd
+ynh_systemd_action --action=stop --service_name=${app}-streaming --line_match="Stopped" --log_path=systemd
 
 #=================================================
 # STANDARD BACKUP STEPS
 #=================================================
 # BACKUP THE APP MAIN DIR
 #=================================================
+ynh_print_info "Backing up the main app directory..."
 
 ynh_backup "$final_path"
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
+ynh_print_info "Backing up nginx web server configuration..."
 
 ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
-# BACKUP THE MYSQL DATABASE
+# BACKUP THE POSTGRESQL DATABASE
 #=================================================
+ynh_print_info "Backing up the PostgreSQL database..."
 
 ynh_psql_dump_db "$db_name" > db.sql
-ynh_backup "db.sql"
 
 #=================================================
 # SPECIFIC BACKUP
 #=================================================
 # BACKUP SYSTEMD
 #=================================================
+ynh_print_info "Backing up systemd configuration..."
 
 ynh_backup "/etc/systemd/system/$app-web.service"
 ynh_backup "/etc/systemd/system/$app-sidekiq.service"
 ynh_backup "/etc/systemd/system/$app-streaming.service"
 
 #=================================================
-# BACKUP THE CRON FILE
+# BACKUP A CRON FILE
 #=================================================
 
 ynh_backup "/etc/cron.d/$app"
 
 #=================================================
-# BACKUP THE sources.list FILES
+# START MASTODON SERVICES
 #=================================================
+ynh_print_info "Starting Mastodon services..."
 
-ynh_backup "/etc/apt/sources.list.d/yarn.list" "apt_yarn.list"
-
-yunohost service start "$app-web"
-yunohost service start "$app-sidekiq"
-yunohost service start "$app-streaming"
-
-# Waiting start all services
-sleep 30
+ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
 
 #=================================================
-# RELOAD NGINX
+# END OF SCRIPT
 #=================================================
 
-systemctl reload nginx
+ynh_print_info "Backup script completed for $app. (YunoHost will then actually copy those files to the archive)."
