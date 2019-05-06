@@ -61,6 +61,24 @@ Vous ne pouvez pas installer Mastodon en subdirectory, vous devez obligatoiremen
 
 Il semble important de fermer les inscriptions pour votre Mastodon, pour que ça reste une instance privé. Nous vous invitons à bloquer les instances distantes malfaisantes depuis l'interface d'administration. Vous pouvez également ajouter un texte sur votre page d'accueil dans l'administration.
 
+## Astuce
+
+Voici une petite astuce pour libérer énormément d’espace sur votre instance. 
+En effet les médias (images et vidéos, le pièces jointes)des autres instances sont mis en cache sur votre serveur et ne sont jamais effacés. 
+Cela consomme beaucoup d’espace et Mastodon étant tourné vers l’instantanéité, il y a peu de chance que de vieux médias servent. Ainsi, on peut mettre en place un cron journalier qui va supprimer les medias externes en cache, vieux de plus de X jours.
+
+On édite le crontab :
+```
+crontab -e -u mastodon
+```
+Et on y ajoute :
+```
+@daily cd /var/www/mastodon/live && RAILS_ENV=production NUM_DAYS=30 /var/www/mastodon/.rbenv/shims/bundle exec rails
+mastodon:media:remove_remote
+```
+
+[Source](https://angristan.fr/installer-instance-mastodon-debian-8/#mise_en_place_du_cron)
+
 ## What is Mastodon?
 
 Mastodon is a free, open-source social network. A decentralized alternative to commercial platforms, it avoids the risks of a single company monopolizing your communication. Pick a server that you trust — whichever you choose, you can interact with everyone else. Anyone can run their own Mastodon instance and participate in the social network seamlessly.
