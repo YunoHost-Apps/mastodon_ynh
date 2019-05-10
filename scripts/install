@@ -103,7 +103,7 @@ fi
 ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key="https://dl.yarnpkg.com/debian/pubkey.gpg" --append
 
 # install nodejs
-ynh_install_nodejs 8
+ynh_install_nodejs --nodejs_version="8"
 
 ynh_install_app_dependencies $pkg_dependencies	
 
@@ -130,7 +130,7 @@ ynh_script_progression --message="Setting up source files..." --time --weight=1
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
 mkdir $final_path
-ynh_setup_source "$final_path/live"
+ynh_setup_source  --dest_dir="$final_path/live"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -272,9 +272,9 @@ yunohost service add "$app-streaming"
 #=================================================
 ynh_script_progression --message="Starting a systemd service..." --time --weight=1
 
-ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
-ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
-ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
+ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on tcp"
+ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Starting processing"
+ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=systemd --line_match="Worker 1 now listening"
 
 #=================================================
 # SETUP SSOWAT
