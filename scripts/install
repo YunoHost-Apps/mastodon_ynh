@@ -39,10 +39,10 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
-ynh_print_info "Validating installation parameters..."
+ynh_script_progression --message="Validating installation parameters..." --time --weight=1
 
 final_path=/var/www/$app
-test ! -e "$final_path" || ynh_die "This path already contains a folder"
+test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
 
 if [ "$admin" != "package_checker" ]
 then
@@ -54,43 +54,39 @@ then
 	[[ $TOTAL_MEM_AND_SWAP -gt 2500 ]] || ynh_die "You need at least 2500 Mo of RAM+Swap to install Mastodon. Please consult the README to learn how to add swap."
 
 fi
-# Normalize the url path syntax
-path_url=$(ynh_normalize_url_path $path_url)
 
-# Check web path availability
-ynh_webpath_available $domain $path_url
 # Register (book) web path
-ynh_webpath_register $app $domain $path_url
+ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
-ynh_print_info "Storing installation settings..."
+ynh_script_progression --message="Storing installation settings..." --time --weight=1
 
-ynh_app_setting_set $app domain      $domain
-ynh_app_setting_set $app path $path_url
-ynh_app_setting_set $app admin       $admin
-ynh_app_setting_set $app is_public $is_public
-ynh_app_setting_set $app language    $language
+ynh_app_setting_set --app=$app --key=domain --value=$domain
+ynh_app_setting_set --app=$app --key=path --value=$path_url
+ynh_app_setting_set --app=$app --key=admin --value=$admin
+ynh_app_setting_set --app=$app --key=is_public --value=$is_public
+ynh_app_setting_set --app=$app --key=language --value=$language
 
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
 # FIND AND OPEN A PORT
 #=================================================
-ynh_print_info "Configuring firewall..."
+ynh_script_progression --message="Configuring firewall..." --time --weight=1
 
 # Find a free port
 port_web=$(ynh_find_port 3000)
 port_stream=$(ynh_find_port 4000)
 # Open this port
-ynh_app_setting_set $app port_web    $port_web
-ynh_app_setting_set $app port_stream $port_stream
+ynh_app_setting_set --app=$app --key=port_web --value=$port_web
+ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
 
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_print_info "Installing dependencies..."
+ynh_script_progression --message="Installing dependencies..." --time --weight=1
 
 # Import debian archive pubkey, need on ARM arch
 arch=$(uname -m)
@@ -114,24 +110,24 @@ ynh_install_app_dependencies $pkg_dependencies
 #=================================================
 # CREATE A POSTGRESQL DATABASE
 #=================================================
-ynh_print_info "Creating a PostgreSQL database..."
+ynh_script_progression --message"Creating a PostgreSQL database..." --time --weight=1
 
 # Create postgresql database
 db_name="${app}_production"
+db_user=$app
 db_pwd=$(ynh_string_random 30)
-ynh_app_setting_set "$app" db_name "$db_name"
-ynh_app_setting_set "$app" db_pwd "$db_pwd"
+ynh_app_setting_set --app=$app --key=db_name --value=$db_name
+ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
 ynh_psql_test_if_first_run
-ynh_psql_create_user "$app" "$db_pwd"
-ynh_psql_execute_as_root \
-"CREATE DATABASE $db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $app;"
+ynh_psql_create_user "$db_user" "$db_pwd"
+ynh_psql_execute_as_root --sql="CREATE DATABASE $db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $db_user;"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_print_info "Setting up source files..."
+ynh_script_progression --message="Setting up source files..." --time --weight=1
 
-ynh_app_setting_set $app final_path $final_path
+ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
 mkdir $final_path
 ynh_setup_source "$final_path/live"
@@ -139,26 +135,25 @@ ynh_setup_source "$final_path/live"
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_print_info "Configuring nginx web server..."
+ynh_script_progression --message="Configuring nginx web server..." --time --weight=1
 
 # Create a dedicated nginx config
-ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
-ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/nginx.conf"
-ynh_add_nginx_config
+ynh_add_nginx_config 'port_web port_stream'
 
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_print_info "Configuring system user..."
+ynh_script_progression --message="Configuring system user..." --time --weight=1
 
 # Create a system user
-ynh_system_user_create $app $final_path
+ynh_system_user_create --username=$app --home_dir=$final_path
 
 #=================================================
 # SPECIFIC SETUP
 #=================================================
 # INSTALLING RUBY AND BUNDLER
 #=================================================
+ynh_script_progression --message="Installing Ruby..." --time --weight=1
 
 ynh_install_ruby --ruby_version=2.6.0
 /opt/rbenv/versions/2.6.0/bin/gem update --system
@@ -167,33 +162,34 @@ ynh_install_ruby --ruby_version=2.6.0
 #=================================================
 # MODIFY A CONFIG FILE
 #=================================================
+ynh_script_progression --message="Modifying a config file..." --time --weight=1
 
 cp -f ../conf/.env.production.sample "$final_path/live/.env.production"
-ynh_replace_string "__DB_USER__" "$app" "$final_path/live/.env.production"
-ynh_replace_string "__DB_NAME__" "$db_name" "$final_path/live/.env.production"
-ynh_replace_string "__DB_PWD__" "$db_pwd" "$final_path/live/.env.production"
-ynh_replace_string "__DOMAIN__" "$domain" "$final_path/live/.env.production"
-ynh_replace_string "__SMTP_FROM_ADDRESS__" "$admin_mail"        "${final_path}/live/.env.production"
+ynh_replace_string --match_string="__DB_USER__" --replace_string="$app" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__DB_NAME__" --replace_string="$db_name" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__DB_PWD__" --replace_string="$db_pwd" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__DOMAIN__" --replace_string="$domain" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__SMTP_FROM_ADDRESS__" --replace_string="$admin_mail"        --target_file="${final_path}/live/.env.production"
 
 language="$(echo $language | head -c 2)"
-ynh_replace_string "__LANGUAGE__"      "$language" "$final_path/live/.env.production"
+ynh_replace_string --match_string="__LANGUAGE__"      --replace_string="$language" --target_file="$final_path/live/.env.production"
 
 paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
-ynh_replace_string "PAPERCLIP_SECRET=" "PAPERCLIP_SECRET=$paperclip_secret" "${final_path}/live/.env.production"
-ynh_app_setting_set "$app" paperclip_secret "$paperclip_secret"
+ynh_replace_string --match_string="PAPERCLIP_SECRET=" --replace_string="PAPERCLIP_SECRET=$paperclip_secret" --target_file="${final_path}/live/.env.production"
+ynh_app_setting_set --app="$app" --key=paperclip_secret --value="$paperclip_secret"
 
 secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
-ynh_replace_string "__SECRET_KEY_BASE__" "$secret_key_base" "$final_path/live/.env.production"
-ynh_app_setting_set "$app" secret_key_base "$secret_key_base"
+ynh_replace_string --match_string="__SECRET_KEY_BASE__" --replace_string="$secret_key_base" --target_file="$final_path/live/.env.production"
+ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
 
 otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
-ynh_replace_string "__OTP_SECRET__" "$otp_secret" "$final_path/live/.env.production"
-ynh_app_setting_set "$app" otp_secret "$otp_secret"
+ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$final_path/live/.env.production"
+ynh_app_setting_set --app="$app" --key=otp_secret --value="$otp_secret"
 
 #=================================================
 # INSTALLING MASTODON
 #=================================================
-ynh_print_info "Installing Mastodon..."
+ynh_script_progression --message="Installing Mastodon..." --time --weight=1
 
 chown -R "$app": "$final_path"
 
@@ -209,53 +205,45 @@ pushd "$final_path/live"
 popd
 
 admin_pass=$( tail -1 $final_path/live/acc.txt | head -1 | cut -c 15- )
-ynh_secure_remove "$final_path/live/acc.txt"
+ynh_secure_remove --file="$final_path/live/acc.txt"
 
 vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" "$final_path/live/key.txt")
 vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" "$final_path/live/key.txt")
 
-ynh_replace_string "__VAPID_PRIVATE_KEY__" "$vapid_private_key"        "${final_path}/live/.env.production"
-ynh_replace_string "__VAPID_PUBLIC_KEY__" "$vapid_public_key"        "${final_path}/live/.env.production"
+ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key"        --target_file="${final_path}/live/.env.production"
+ynh_replace_string --match_string="__VAPID_PUBLIC_KEY__" --replace_string="$vapid_public_key"        --target_file="${final_path}/live/.env.production"
 
-ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
-ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
+ynh_app_setting_set --app="$app" --key=vapid_private_key --value="$vapid_private_key"
+ynh_app_setting_set --app="$app" --key=vapid_public_key --value="$vapid_public_key"
 
-ynh_secure_remove "$final_path/live/key.txt"
+ynh_secure_remove --file="$final_path/live/key.txt"
 
 #=================================================
 # SETUP CRON JOB FOR REMOVING CACHE
 #=================================================
-ynh_print_info "Setuping a cron job for rem0ving cache..."
+ynh_script_progression --message="Setuping a cron job for removing cache..." --time --weight=1
 
-ynh_replace_string  "__FINAL_PATH__" "$final_path" ../conf/cron
-ynh_replace_string "__USER__" "$app"  ../conf/cron
+ynh_replace_string --match_string="__FINAL_PATH__" --replace_string="$final_path" --target_file="../conf/cron"
+ynh_replace_string --match_string="__USER__" --replace_string="$app"  --target_file="../conf/cron"
 sudo cp -f ../conf/cron /etc/cron.d/$app 
 
 #=================================================
 # SETUP SYSTEMD
 #=================================================
-ynh_print_info "Configuring a systemd service..."
+ynh_script_progression --message="Configuring a systemd service..." --time --weight=1
 
 # Create a dedicated systemd config
-ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
-ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/mastodon-streaming.service"
-ynh_replace_string "__NODEJS_PATH__" "$nodejs_path" "../conf/mastodon-streaming.service"
-ynh_add_systemd_config "$app-web"       "mastodon-web.service"
-ynh_add_systemd_config "$app-sidekiq"   "mastodon-sidekiq.service"
-ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
-
-#=================================================
-# START MASTODON SERVICES
-#=================================================
-ynh_print_info "Starting Mastodon services..."
-
-ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
-ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
-ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
+ynh_replace_string --match_string="__PORT_WEB__"    --replace_string="$port_web"    --target_file="../conf/mastodon-web.service"
+ynh_replace_string --match_string="__PORT_STREAM__" --replace_string="$port_stream" --target_file="../conf/mastodon-streaming.service"
+ynh_replace_string --match_string="__NODEJS_PATH__" --replace_string="$nodejs_path" --target_file="../conf/mastodon-streaming.service"
+ynh_add_systemd_config --service="$app-web"       --template="mastodon-web.service"
+ynh_add_systemd_config --service="$app-sidekiq"   --template="mastodon-sidekiq.service"
+ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service"
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
 #=================================================
+ynh_script_progression --message="Storing the config file checksum..." --time --weight=1
 
 # Calculate and store the config file checksum into the app settings
 ynh_store_file_checksum "${final_path}/live/.env.production"
@@ -265,6 +253,7 @@ ynh_store_file_checksum "${final_path}/live/.env.production"
 #=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================
+ynh_script_progression --message="Securing files and directories..." --time --weight=1
 
 # Set permissions to app files
 chown -R "$app": "$final_path"
@@ -272,33 +261,44 @@ chown -R "$app": "$final_path"
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
+ynh_script_progression --message="Advertising service in admin panel..." --time --weight=1
 
 yunohost service add "$app-web"
 yunohost service add "$app-sidekiq"
 yunohost service add "$app-streaming"
 
 #=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Starting a systemd service..." --time --weight=1
+
+ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
+
+#=================================================
 # SETUP SSOWAT
 #=================================================
-ynh_print_info "Configuring SSOwat..."
+ynh_script_progression --message="Configuring SSOwat..." --time --weight=1
 
 # Make app public if necessary
 if [ $is_public -eq 1 ]
 then
 	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_set $app unprotected_uris "/"
+	ynh_app_setting_set --app=$app --key=unprotected_uris --value="/"
 fi
 
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_print_info "Reloading nginx web server..."
+ynh_script_progression --message="Reloading nginx web server..." --time --weight=1
 
-systemctl reload nginx
+ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # SEND A README FOR THE ADMIN
 #=================================================
+ynh_script_progression --message="Sending a readme for the admin..." --time --weight=1
 
 message="Mastodon was successfully installed :)
 Please open 'https://$domain$path_url'
@@ -312,4 +312,4 @@ ynh_send_readme_to_admin --app_message=$message --recipients=$admin_mail --type=
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info "Installation of $app completed"
+ynh_script_progression --message="Installation of $app completed" --time --last
