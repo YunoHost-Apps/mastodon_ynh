@@ -72,7 +72,7 @@ fi
 
 # If paperclip_secret doesn't exist, retrieve it or create it
 if [[ -z "$paperclip_secret" ]]; then
-	paperclip_secret=$(grep -oP "PAPERCLIP_SECRET=\K\w+" test)
+	paperclip_secret=$(grep -oP "PAPERCLIP_SECRET=\K\w+" ${final_path}/live/.env.production)
 	if [[ -z "$paperclip_secret" ]]; then
 	    paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 	fi
@@ -81,7 +81,7 @@ fi
 
 # If secret_key_base doesn't exist, retrieve it or create it
 if [[ -z "$secret_key_base" ]]; then
-	secret_key_base=$(grep -oP "SECRET_KEY_BASE=\K\w+" test)
+	secret_key_base=$(grep -oP "SECRET_KEY_BASE=\K\w+" ${final_path}/live/.env.production)
 	if [[ -z "$secret_key_base" ]]; then
 	    secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 	fi
@@ -90,11 +90,19 @@ fi
 
 # If otp_secret doesn't exist, retrieve it or create it
 if [[ -z "$otp_secret" ]]; then
-	otp_secret=$(grep -oP "OTP_SECRET=\K\w+" test)
+	otp_secret=$(grep -oP "OTP_SECRET=\K\w+" ${final_path}/live/.env.production)
 	if [[ -z "$otp_secret" ]]; then
 	    otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 	fi
 	ynh_app_setting_set "$app" otp_secret "$otp_secret"
+fi
+
+# If vapid_private_key doesn't exist, retrieve it or create it
+if [[ -z "$vapid_private_key" ]]; then
+	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" ${final_path}/live/.env.production)
+	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" ${final_path}/live/.env.production)
+	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
+	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
 fi
 
 #=================================================
@@ -211,6 +219,9 @@ ynh_replace_string "__SECRET_KEY_BASE__" "$secret_key_base" "$final_path/live/.e
 
 ynh_replace_string "__OTP_SECRET__" "$otp_secret" "$final_path/live/.env.production"
 
+ynh_replace_string "__VAPID_PRIVATE_KEY__" "$vapid_private_key"        "$final_path/live/.env.production"
+ynh_replace_string "__VAPID_PUBLIC_KEY__" "$vapid_public_key"        "$final_path/live/.env.production"
+
 #=================================================
 # UPGRADE MASTODON
 #=================================================
@@ -239,6 +250,8 @@ if [[ -z "$vapid_private_key" ]]; then
 	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
 	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
 	ynh_secure_remove "$final_path/live/key.txt"
+    ynh_replace_string "__VAPID_PRIVATE_KEY__" "$vapid_private_key"        "${final_path}/live/.env.production"
+    ynh_replace_string "__VAPID_PUBLIC_KEY__" "$vapid_public_key"        "${final_path}/live/.env.production"
 fi
 
 # Recalculate and store the checksum of the file for the next upgrade.
