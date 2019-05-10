@@ -23,7 +23,7 @@ Mastodon est un réseau social gratuit et open source. Une alternative décentra
 
 ## Configuration
 
-#### Ajout d'un "swapfile" si vous avez moins de 2Go de RAM
+### Ajout d'un "swapfile" si vous avez moins de 2Go de RAM
 ```
 sudo dd if=/dev/zero of=/swapfile bs=1024 count=1024000
 sudo chmod 600 /swapfile
@@ -34,6 +34,24 @@ ajouter cette ligne dans /etc/fstab
 ```
 /swapfile       none    swap    sw      0       0
 ```
+
+### Ajout d'un cron pour libérer de l'espace
+
+Voici une petite astuce pour libérer énormément d’espace sur votre instance. 
+En effet les médias (images et vidéos, le pièces jointes)des autres instances sont mis en cache sur votre serveur et ne sont jamais effacés. 
+Cela consomme beaucoup d’espace et Mastodon étant tourné vers l’instantanéité, il y a peu de chance que de vieux médias servent. Ainsi, on peut mettre en place un cron journalier qui va supprimer les medias externes en cache, vieux de plus de X jours.
+
+On édite le crontab :
+```
+crontab -e -u mastodon
+```
+Et on y ajoute :
+```
+@daily cd /var/www/mastodon/live && RAILS_ENV=production NUM_DAYS=30 /var/www/mastodon/.rbenv/shims/bundle exec rails
+mastodon:media:remove_remote
+```
+
+[Source](https://angristan.fr/installer-instance-mastodon-debian-8/#mise_en_place_du_cron)
 
 ### Installation
 
