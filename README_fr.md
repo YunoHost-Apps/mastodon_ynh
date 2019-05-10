@@ -77,7 +77,7 @@ Il semble important de fermer les inscriptions pour votre Mastodon, pour que Ã�
 
  * Signaler un bug: https://github.com/YunoHost-Apps/mastodon_ynh/issues
  * Site de l'application: https://joinmastodon.org/
- * Site Github de l'application: https://github.com/tootsuite/mastodon
+ * Dépôt de l'application principale: https://github.com/tootsuite/mastodon
  * Site web YunoHost: https://yunohost.org/
 
 ---

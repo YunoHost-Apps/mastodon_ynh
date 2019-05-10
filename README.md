@@ -78,7 +78,7 @@ It seems important to close the inscriptions for your Mastodon, so that it remai
 
  * Report a bug: https://github.com/YunoHost-Apps/mastodon_ynh/issues
  * App website: https://joinmastodon.org/
- * Github App website: https://github.com/tootsuite/mastodon
+ * Upstream app repository: https://github.com/tootsuite/mastodon
  * YunoHost website: https://yunohost.org/
 
 ---
