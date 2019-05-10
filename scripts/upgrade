@@ -229,6 +229,7 @@ pushd "$final_path/live"
         sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:clean
         sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile
         sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl cache clear
 popd
 
 # If vapid_private_key doesn't exist, retrieve it or create it
