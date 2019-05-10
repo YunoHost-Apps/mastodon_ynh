@@ -9,6 +9,7 @@
 source _common.sh
 source ynh_install_ruby
 source ynh_add_secure_repos__3
+source ynh_send_readme_to_admin__2
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -305,7 +306,7 @@ The admin email is: $admin_mail
 The admin password is: $admin_pass
 If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/mastodon_ynh"
 
-ynh_send_readme_to_admin "$message" "$admin"
+ynh_send_readme_to_admin --app_message=$message --recipients=$admin_mail --type='install'
 
 #=================================================
 # END OF SCRIPT
