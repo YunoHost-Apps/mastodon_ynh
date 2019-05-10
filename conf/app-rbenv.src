@@ -1,6 +1,0 @@
-SOURCE_URL=https://github.com/rbenv/rbenv/archive/v1.1.1.tar.gz
-SOURCE_SUM=41f1a60714c55eceb21d692a469aee1ec4f46bba351d0dfcb0c660ff9cf1a1c9
-SOURCE_SUM_PRG=sha256sum
-SOURCE_FORMAT=tar.gz
-SOURCE_IN_SUBDIR=true
-SOURCE_FILENAME=

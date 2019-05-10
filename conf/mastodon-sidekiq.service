@@ -7,8 +7,9 @@
  User=__APP__
  WorkingDirectory=__FINALPATH__/live
  Environment="RAILS_ENV=production"
- Environment="DB_POOL=20"
- ExecStart=__FINALPATH__/live/bin/bundle exec sidekiq -c 20 -q default -q mailers -q pull -q push
+ Environment="DB_POOL=25"
+ Environment="MALLOC_ARENA_MAX=2"
+ ExecStart=/opt/rbenv/versions/2.6.0/bin/bundle exec sidekiq -c 25
  TimeoutSec=15
  Restart=always
  StandardError=syslog

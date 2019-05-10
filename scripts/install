@@ -7,41 +7,53 @@
 #=================================================
 
 source _common.sh
+source ynh_install_ruby
+source ynh_add_secure_repos__3
+source ynh_systemd_action
 source /usr/share/yunohost/helpers
-source _future.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	ynh_clean_check_starting
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
-
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
-#================================================
+#=================================================
 
 domain=$YNH_APP_ARG_DOMAIN
-admin_mastodon=$YNH_APP_ARG_ADMIN
-admin_mastodon_mail=$(ynh_user_get_info $admin_mastodon 'mail')
-admin_pass=$YNH_APP_ARG_PASSWD
+path_url="/"
+admin=$YNH_APP_ARG_ADMIN
+is_public=$YNH_APP_ARG_IS_PUBLIC
 language=$YNH_APP_ARG_LANGUAGE
 
-path_url="/"
+admin_mail=$(ynh_user_get_info $admin 'mail')
 
 app=$YNH_APP_INSTANCE_NAME
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
+ynh_print_info "Validating installation parameters..."
 
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die "This path already contains a folder"
 
-# TODO: remove this test, don't as password anymore, generate it and send it by email to admin with: https://github.com/YunoHost-Apps/Experimental_helpers/tree/master/send_readme_to_admin
-[[ ${#admin_pass} -gt 7 ]] || ynh_die "Password is too weak, must be longer than 7 characters"
+if [ "$admin" != "package_checker" ]
+then
+	# TODO : to be factorized into a helper someday ? ;)
+	MEM=$(free | grep "^Mem"  | awk '{print $2}')
+	SWAP=$(free | grep "^Swap" | awk '{print $2}')
+	TOTAL_MEM_AND_SWAP=$(( ( $MEM+$SWAP ) / 1024 )) # In MB
 
+	[[ $TOTAL_MEM_AND_SWAP -gt 2500 ]] || ynh_die "You need at least 2500 Mo of RAM+Swap to install Mastodon. Please consult the README to learn how to add swap."
+
+fi
 # Normalize the url path syntax
 path_url=$(ynh_normalize_url_path $path_url)
 
@@ -53,24 +65,32 @@ ynh_webpath_register $app $domain $path_url
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
+ynh_print_info "Storing installation settings..."
 
-ynh_app_setting_set $app domain $domain
-ynh_app_setting_set $app admin $admin_mastodon
-ynh_app_setting_set $app pass $admin_pass
-ynh_app_setting_set $app language $language
+ynh_app_setting_set $app domain      $domain
 ynh_app_setting_set $app path $path_url
-
+ynh_app_setting_set $app admin       $admin
+ynh_app_setting_set $app is_public $is_public
+ynh_app_setting_set $app language    $language
 
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
+# FIND AND OPEN A PORT
+#=================================================
+ynh_print_info "Configuring firewall..."
 
+# Find a free port
+port_web=$(ynh_find_port 3000)
+port_stream=$(ynh_find_port 4000)
+# Open this port
+ynh_app_setting_set $app port_web    $port_web
+ynh_app_setting_set $app port_stream $port_stream
 
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-
-# TODO: add in a clean way backports and yarn
+ynh_print_info "Installing dependencies..."
 
 # Import debian archive pubkey, need on ARM arch
 arch=$(uname -m)
@@ -79,180 +99,166 @@ if [[ "$arch" = arm*  ]]; then
 	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7638D0442B90D010
 fi
 
-# Install source.list debian package backports & yarn
+# Install extra_repo debian package backports & yarn
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	echo "deb http://httpredir.debian.org/debian jessie-backports main" | tee /etc/apt/sources.list.d/jessie-backports.list
+	ynh_install_extra_repo --repo="deb http://httpredir.debian.org/debian jessie-backports main" --append
 fi
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-ynh_package_update
 
-# Creates the destination directory and stores its location.
-ynh_app_setting_set "$app" final_path "$final_path"
+ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key="https://dl.yarnpkg.com/debian/pubkey.gpg" --append
 
-# Install de Node.js
-# TODO: use https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/ynh_install_nodejs/ynh_install_nodejs
-(
-	cd /opt
-	curl -sL https://deb.nodesource.com/setup_8.x | bash -
-	apt-get -y install nodejs
-)
+# install nodejs
+ynh_install_nodejs 8
 
-# TODO: use the same mecanism with other files
-ynh_install_app_dependencies \
-	`# debian packages ` \
-	imagemagick libpq-dev libxml2-dev libxslt1-dev file curl apt-transport-https pkg-config libprotobuf-dev protobuf-compiler libicu-dev libidn11-dev \
-	`# redis ` \
-	redis-server redis-tools \
-	`# postgresql ` \
-	postgresql \
-	`# Ruby ` \
-	autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev \
-	`# ffmpeg from backports ` \
-	ffmpeg \
-	`# Yarn ` \
-	yarn
+ynh_install_app_dependencies $pkg_dependencies	
 
 #=================================================
-# CREATE A DATABASE
+# CREATE A POSTGRESQL DATABASE
 #=================================================
+ynh_print_info "Creating a PostgreSQL database..."
 
-# TODO: use non-official https://github.com/YunoHost-Apps/Experimental_helpers/blob/master/postgres/postgres
-# TODO: this commands doesn't looks like a requirement, you may fully remove it
-# Set UTF8 encoding by default
-
-ynh_psql_test_if_first_run
-
-db_user=$(ynh_sanitize_dbid "$app")
+# Create postgresql database
 db_name="${app}_production"
-db_name=$(ynh_sanitize_dbid "$db_name")
-db_pwd=$(ynh_string_random)
-ynh_app_setting_set $app db_name $db_name
-ynh_app_setting_set $app db_pwd $db_pwd
-ynh_psql_setup_db "$db_user" "$db_name" "$db_pwd"
+db_pwd=$(ynh_string_random 30)
+ynh_app_setting_set "$app" db_name "$db_name"
+ynh_app_setting_set "$app" db_pwd "$db_pwd"
+ynh_psql_test_if_first_run
+ynh_psql_create_user "$app" "$db_pwd"
+ynh_psql_execute_as_root \
+"CREATE DATABASE $db_name ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C' template=template0 OWNER $app;"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
+ynh_print_info "Setting up source files..."
 
-# Download all sources rbenv, ruby and mastodon
-
-ynh_setup_source "$final_path/.rbenv"                    "app-rbenv"
-ynh_setup_source "$final_path/.rbenv/plugins/ruby-build" "app-ruby-build"
-ynh_setup_source "$final_path/live"                      "app-mastodon"
+ynh_app_setting_set $app final_path $final_path
+# Download, check integrity, uncompress and patch the source from app.src
+mkdir $final_path
+ynh_setup_source "$final_path/live"
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
+ynh_print_info "Configuring nginx web server..."
 
-# TODO: use official helper ynh_add_nginx_config
-# Modify Nginx configuration file and copy it to Nginx conf directory
-sed -i "s@__PATH__@$app@g" ../conf/nginx.conf*
-sed -i "s@__FINALPATH__@$final_path@g" ../conf/nginx.conf*
-cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$app.conf
+# Create a dedicated nginx config
+ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/nginx.conf"
+ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/nginx.conf"
+ynh_add_nginx_config
 
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
+ynh_print_info "Configuring system user..."
 
-# TODO: use official helper ynh_system_user_create
-# Create user unix
-adduser $app --home $final_path --gecos "First Last,RoomNumber,WorkPhone,HomePhone" --disabled-password
+# Create a system user
+ynh_system_user_create $app $final_path
 
-chown -R "$app" "$final_path"
+#=================================================
+# SPECIFIC SETUP
+#=================================================
+# INSTALLING RUBY AND BUNDLER
+#=================================================
 
-# TODO: try to use ynh_install_ruby from https://github.com/YunoHost-Apps/Experimental_helpers
-# Install de rbenv
-(
-	cd $final_path/.rbenv
-	src/configure && make -C src
+ynh_install_ruby --ruby_version=2.6.0
+/opt/rbenv/versions/2.6.0/bin/gem update --system
+#/opt/rbenv/versions/2.6.0/bin/gem install bundler --no-document
 
-	echo "export PATH=\"$final_path/.rbenv/bin:$final_path/live/bin:\$PATH\"
-eval \"\$(rbenv init -)\"" > $final_path/.profile
-	echo "export PATH=\"$final_path/.rbenv/bin:$final_path/live/bin:\$PATH\"" > $final_path/.bashrc
-)
+#=================================================
+# MODIFY A CONFIG FILE
+#=================================================
 
-# Install ruby-build
-(
-	exec_as "$app" $final_path/.rbenv/bin/rbenv install 2.5.1
-	exec_as "$app" $final_path/.rbenv/bin/rbenv global 2.5.1
-	exec_as "$app" $final_path/.rbenv/versions/2.5.1/bin/ruby -v
-)
-
-# Create symlink for ruby
-rm /usr/bin/ruby || true
-ln -s $final_path/.rbenv/versions/2.5.1/bin/ruby /usr/bin/ruby || true
-
-# Yarn install on root
-pushd $final_path/live
-yarn install --pure-lockfile
-popd
-
-# Adjust Mastodon config
-# TODO: use official helper ynh_replace_string
-# TODO: save the config file in conf folder, to make replacement easier to read
-# TODO: use ynh_string_random
-cp -a $final_path/live/.env.production.sample $final_path/live/.env.production
-sed -i "s@REDIS_HOST=redis@REDIS_HOST=127.0.0.1@g" "${final_path}/live/.env.production"
-sed -i "s@DB_HOST=db@DB_HOST=/var/run/postgresql@g" "${final_path}/live/.env.production"
-sed -i "s@DB_USER=postgres@DB_USER=${db_user}@g" "${final_path}/live/.env.production"
-sed -i "s@DB_NAME=postgres@DB_NAME=${db_name}@g" "${final_path}/live/.env.production"
-sed -i "s@DB_PASS=@DB_PASS=${db_pwd}@g" "${final_path}/live/.env.production"
-sed -i "s@LOCAL_DOMAIN=example.com@LOCAL_DOMAIN=${domain}@g" "${final_path}/live/.env.production"
+cp -f ../conf/.env.production.sample "$final_path/live/.env.production"
+ynh_replace_string "__DB_USER__" "$app" "$final_path/live/.env.production"
+ynh_replace_string "__DB_NAME__" "$db_name" "$final_path/live/.env.production"
+ynh_replace_string "__DB_PWD__" "$db_pwd" "$final_path/live/.env.production"
+ynh_replace_string "__DOMAIN__" "$domain" "$final_path/live/.env.production"
+ynh_replace_string "__SMTP_FROM_ADDRESS__" "$admin_mail"        "${final_path}/live/.env.production"
 
 language="$(echo $language | head -c 2)"
-sed -i "s@# DEFAULT_LOCALE=de@DEFAULT_LOCALE=${language}@g" "${final_path}/live/.env.production"
+ynh_replace_string "__LANGUAGE__"      "$language" "$final_path/live/.env.production"
 
 paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+ynh_replace_string "PAPERCLIP_SECRET=" "PAPERCLIP_SECRET=$paperclip_secret" "${final_path}/live/.env.production"
+ynh_app_setting_set "$app" paperclip_secret "$paperclip_secret"
+
 secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+ynh_replace_string "__SECRET_KEY_BASE__" "$secret_key_base" "$final_path/live/.env.production"
+ynh_app_setting_set "$app" secret_key_base "$secret_key_base"
+
 otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
-sed -i "s@PAPERCLIP_SECRET=@PAPERCLIP_SECRET=${paperclip_secret}@g" "${final_path}/live/.env.production"
-sed -i "s@SECRET_KEY_BASE=@SECRET_KEY_BASE=${secret_key_base}@g" "${final_path}/live/.env.production"
-sed -i "s@OTP_SECRET=@OTP_SECRET=${otp_secret}@g" "${final_path}/live/.env.production"
+ynh_replace_string "__OTP_SECRET__" "$otp_secret" "$final_path/live/.env.production"
+ynh_app_setting_set "$app" otp_secret "$otp_secret"
 
-sed -i "s@SMTP_LOGIN=@#SMTP_LOGIN=@g" "${final_path}/live/.env.production"
-sed -i "s@SMTP_PASSWORD=@#SMTP_PASSWORD=@g" "${final_path}/live/.env.production"
-sed -i "s@SMTP_SERVER=smtp.mailgun.org@SMTP_SERVER=localhost@g" "${final_path}/live/.env.production"
-sed -i "s@SMTP_PORT=587@SMTP_PORT=25@g" "${final_path}/live/.env.production"
-sed -i 's,SMTP_FROM_ADDRESS=notifications@example.com,SMTP_FROM_ADDRESS='${admin_mastodon}'@'${domain}',' "${final_path}/live/.env.production"
-sed -i "s@#SMTP_AUTH_METHOD=plain@SMTP_AUTH_METHOD=none@g" "${final_path}/live/.env.production"
-sed -i "s@#SMTP_OPENSSL_VERIFY_MODE=peer@SMTP_OPENSSL_VERIFY_MODE=none@g" "${final_path}/live/.env.production"
+#=================================================
+# INSTALLING MASTODON
+#=================================================
+ynh_print_info "Installing Mastodon..."
 
-# Preconfig CSS & JS
-# Install Mastodon
-(
-	cd "$final_path/live"
-	su mastodon <<INSTALL
-		$final_path/.rbenv/versions/2.5.1/bin/gem install bundler
-		$final_path/live/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test --quiet
-		yarn install --production --no-progress --non-interactive --silent
-		echo "SAFETY_ASSURED=1">> .env.production
-		RAILS_ENV=production $final_path/live/bin/bundle exec rails db:migrate --quiet
-		RAILS_ENV=production $final_path/live/bin/bundle exec rails assets:precompile --quiet
-INSTALL
-)
+chown -R "$app": "$final_path"
 
-# TODO: use ynh_find_port to have generic port selection for RAILS
+pushd "$final_path/live"
+	ynh_use_nodejs
+	sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test
+	sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
+	sudo -u "$app" echo "SAFETY_ASSURED=1">> .env.production
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate --quiet
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile --quiet
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > acc.txt
+popd
+
+admin_pass=$( tail -1 $final_path/live/acc.txt | head -1 | cut -c 15- )
+ynh_secure_remove "$final_path/live/acc.txt"
+
+vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" "$final_path/live/key.txt")
+vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" "$final_path/live/key.txt")
+
+ynh_replace_string "__VAPID_PRIVATE_KEY__" "$vapid_private_key"        "${final_path}/live/.env.production"
+ynh_replace_string "__VAPID_PUBLIC_KEY__" "$vapid_public_key"        "${final_path}/live/.env.production"
+
+ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
+ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
+
+ynh_secure_remove "$final_path/live/key.txt"
+
+#=================================================
+# SETUP CRON JOB FOR REMOVING CACHE
+#=================================================
+ynh_print_info "Setuping a cron job for rem0ving cache..."
+
+ynh_replace_string  "__FINAL_PATH__" "$final_path" ../conf/cron
+ynh_replace_string "__USER__" "$app"  ../conf/cron
+sudo cp -f ../conf/cron /etc/cron.d/$app 
+
+#=================================================
+# SETUP SYSTEMD
+#=================================================
+ynh_print_info "Configuring a systemd service..."
+
+# Create a dedicated systemd config
+ynh_replace_string "__PORT_WEB__"    "$port_web"    "../conf/mastodon-web.service"
+ynh_replace_string "__PORT_STREAM__" "$port_stream" "../conf/mastodon-streaming.service"
+ynh_replace_string "__NODEJS_PATH__" "$nodejs_path" "../conf/mastodon-streaming.service"
 ynh_add_systemd_config "$app-web"       "mastodon-web.service"
-# TODO: use ynh_find_port to have generic port selection for NODES
 ynh_add_systemd_config "$app-sidekiq"   "mastodon-sidekiq.service"
 ynh_add_systemd_config "$app-streaming" "mastodon-streaming.service"
 
-systemctl start "$app-web.service" "$app-sidekiq.service" "$app-streaming.service"
+#=================================================
+# START MASTODON SERVICES
+#=================================================
+ynh_print_info "Starting Mastodon services..."
 
-# Create user
-(
-	cd "$final_path/live"
-	su mastodon <<CREATEUSER
-RAILS_ENV=production bin/bundle exec rails c
-account = Account.create!(username: '$admin_mastodon')
-user = User.create!(email: '$admin_mastodon_mail', password: '$admin_pass', account: account)
-CREATEUSER
-	su mastodon <<SETADMIN
-RAILS_ENV=production bin/bundle exec rails mastodon:make_admin USERNAME=$admin_mastodon
-RAILS_ENV=production bin/bundle exec rails mastodon:confirm_email USER_EMAIL=$admin_mastodon_mail
-SETADMIN
-)
+ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
+ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
+
+#=================================================
+# STORE THE CONFIG FILE CHECKSUM
+#=================================================
+
+# Calculate and store the config file checksum into the app settings
+ynh_store_file_checksum "${final_path}/live/.env.production"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -260,14 +266,13 @@ SETADMIN
 # SECURE FILES AND DIRECTORIES
 #=================================================
 
-# TODO:Set permissions to app files
-chown -R "$app" "$final_path"
+# Set permissions to app files
+chown -R "$app": "$final_path"
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-# Add service YunoHost
 yunohost service add "$app-web"
 yunohost service add "$app-sidekiq"
 yunohost service add "$app-streaming"
@@ -275,14 +280,36 @@ yunohost service add "$app-streaming"
 #=================================================
 # SETUP SSOWAT
 #=================================================
+ynh_print_info "Configuring SSOwat..."
 
-# TODO: all private install
-# Unprotected url
-ynh_app_setting_set "$app" unprotected_uris "/"
+# Make app public if necessary
+if [ $is_public -eq 1 ]
+then
+	# unprotected_uris allows SSO credentials to be passed anyway.
+	ynh_app_setting_set $app unprotected_uris "/"
+fi
 
 #=================================================
 # RELOAD NGINX
 #=================================================
+ynh_print_info "Reloading nginx web server..."
 
-# Reload Nginx
 systemctl reload nginx
+
+#=================================================
+# SEND A README FOR THE ADMIN
+#=================================================
+
+message="Mastodon was successfully installed :)
+Please open 'https://$domain$path_url'
+The admin email is: $admin_mail
+The admin password is: $admin_pass
+If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/mastodon_ynh"
+
+ynh_send_readme_to_admin "$message" "$admin"
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info "Installation of $app completed"

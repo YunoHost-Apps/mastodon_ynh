@@ -1,6 +1,0 @@
-SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20180424.tar.gz
-SOURCE_SUM=71dbaf87081369c1f5d27b6a94a927c1eeeb1f36bdffe7851f0a9c1ec87b9373
-SOURCE_SUM_PRG=sha256sum
-SOURCE_FORMAT=tar.gz
-SOURCE_IN_SUBDIR=true
-SOURCE_FILENAME=

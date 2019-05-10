@@ -2,21 +2,21 @@
 	"name": "Mastodon",
 	"id": "mastodon",
 	"packaging_format": 1,
-	"requirements": {
-		"yunohost": ">= 2.7.9"
-	},
 	"description": {
 		"en": "Mastodon is a free, open-source social network.",
 		"fr": "Mastodon est un réseau social gratuit et open source."
 	},
-	"version": "2.5.2",
+	"version": "2.7.4~ynh1",
 	"url": "https://github.com/tootsuite/mastodon",
 	"license": "AGPL-3.0-or-later",
 	"maintainer": {
 		"name": "cyp, nemsia",
 		"email": "cyp@rouquin.me, nemsia@nemsia.org"
 	},
-	"multi_instance": false,
+    "requirements": {
+        "yunohost": ">= 3.4"
+    },
+    "multi_instance": true,
 	"services": [
 		"nginx"
 	],
@@ -29,28 +29,29 @@
 					"en": "Choose a domain for Mastodon",
 					"fr": "Choisissez un domaine pour Mastodon"
 				},
-				"example": "domain.org"
+                "example": "example.com"
 			},
 			{
 				"name": "admin",
 				"type": "user",
 				"ask": {
-					"en": "Choose the Mastodon administrator (must be an existing YunoHost user)",
-					"fr": "Choisissez un administrateur Mastodon (doit être un utilisateur YunoHost)"
+					"en": "Choose an admin user",
+					"fr": "Choisissez l'administrateur"
 				},
-				"example": "john"
+                "example": "johndoe"
 			},
             {
-                "name": "passwd",
-                "type": "password",
+                "name": "is_public",
+                "type": "boolean",
                 "ask": {
-                    "en": "Enter password of this administrator ≥ 8 character",
-                    "fr": "Ajouter le mot de passe pour cette administrateur ≥ 8 charactères"
+                    "en": "Is it a public application?",
+                    "fr": "Est-ce une application publique ?"
                 },
-                "example": "adminpassword"
+                "default": true
             },
 			{
 				"name": "language",
+                "type": "string",
 				"ask": {
 					"en": "Choose the application language",
 					"fr": "Choisissez la langue de l'application"
