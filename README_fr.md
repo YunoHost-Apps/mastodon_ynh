@@ -38,7 +38,7 @@ ajouter cette ligne dans /etc/fstab
 ### Ajout d'un cron pour libérer de l'espace
 
 Voici une petite astuce pour libérer énormément d’espace sur votre instance. 
-En effet les médias (images et vidéos, le pièces jointes)des autres instances sont mis en cache sur votre serveur et ne sont jamais effacés. 
+En effet les médias (images et vidéos, le pièces jointes) des autres instances sont mis en cache sur votre serveur et ne sont jamais effacés. 
 Cela consomme beaucoup d’espace et Mastodon étant tourné vers l’instantanéité, il y a peu de chance que de vieux médias servent. Ainsi, on peut mettre en place un cron journalier qui va supprimer les medias externes en cache, vieux de plus de X jours.
 
 On édite le crontab :
