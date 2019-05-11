@@ -195,9 +195,10 @@ ynh_system_user_create $app
 # INSTALLING RUBY AND BUNDLER
 #=================================================
 
-ynh_install_ruby --ruby_version=2.6.0
-/opt/rbenv/versions/2.6.0/bin/gem update --system
-#/opt/rbenv/versions/2.6.0/bin/gem install bundler
+ynh_remove_ruby
+ynh_install_ruby --ruby_version=2.6.1
+/opt/rbenv/versions/2.6.1/bin/gem update --system
+#/opt/rbenv/versions/2.6.1/bin/gem install bundler
 
 #=================================================
 # MODIFY A CONFIG FILE
@@ -232,14 +233,15 @@ chown -R "$app": "$final_path"
 pushd "$final_path/live"
     ynh_use_nodejs
         if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --without development test
+	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.1/bin/bundle install --deployment --without development test
         else
-	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --force --without development test
+	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.1/bin/bundle install --deployment --force --without development test
         fi
         sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:clean
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails assets:clean
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails assets:precompile
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails db:migrate
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl cache clear
 popd
 
 # If vapid_private_key doesn't exist, retrieve it or create it
