@@ -110,7 +110,7 @@ ynh_install_app_dependencies $pkg_dependencies
 #=================================================
 # CREATE A POSTGRESQL DATABASE
 #=================================================
-ynh_script_progression --message"Creating a PostgreSQL database..." --time --weight=1
+ynh_script_progression --message="Creating a PostgreSQL database..." --time --weight=1
 
 # Create postgresql database
 db_name="${app}_production"
