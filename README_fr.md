@@ -1,11 +1,11 @@
 # Mastodon pour YunoHost
 
 [![Integration level](https://dash.yunohost.org/integration/mastodon.svg)](https://dash.yunohost.org/appci/app/mastodon)  
-[![Install mastodon with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=mastodon)
+[![Install Mastodon with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=mastodon)
 
 *[Read this readme in english.](./README.md)* 
 
-> *Ce package vous permet d'installer mastodon rapidement et simplement sur un serveur Yunohost.  
+> *Ce package vous permet d'installer Mastodon rapidement et simplement sur un serveur Yunohost.  
 Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
 
 :warning: MAJ 05/06/17 :Cette application peut maintenant fonctionner sur ARM, mais l'installation prend plusieurs heures et il faut ajouter un swapfile de 1Go.
@@ -69,15 +69,15 @@ Il semble important de fermer les inscriptions pour votre Mastodon, pour que Ã�
 
 #### Supported architectures
 
-* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/mastodon%20%28Community%29.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
-* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/mastodon%20%28Community%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/mastodon/)
-* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/ci/logs/mastodon%20%28Community%29.svg)](https://ci-stretch.nohost.me/ci/apps/mastodon/)
+* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/mastodon%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
+* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/mastodon%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/mastodon/)
+* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/ci/logs/mastodon%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/mastodon/)
 
 ## Links
 
  * Signaler un bug: https://github.com/YunoHost-Apps/mastodon_ynh/issues
  * Site de l'application: https://joinmastodon.org/
- * Site Github de l'application: https://github.com/tootsuite/mastodon
+ * Dépôt de l'application principale: https://github.com/tootsuite/mastodon
  * Site web YunoHost: https://yunohost.org/
 
 ---

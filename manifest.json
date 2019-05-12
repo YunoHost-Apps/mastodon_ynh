@@ -9,12 +9,18 @@
 	"version": "2.8.2~ynh1",
 	"url": "https://github.com/tootsuite/mastodon",
 	"license": "AGPL-3.0-or-later",
-	"maintainer": {
-		"name": "cyp, nemsia",
-		"email": "cyp@rouquin.me, nemsia@nemsia.org"
-	},
+	"maintainer": [
+	    {
+		    "name": "cyp",
+		    "email": "cyp@rouquin.me"
+	    },
+	    {
+		    "name": "nemsia",
+		    "email": "nemsia@nemsia.org"
+	    }
+	],
     "requirements": {
-        "yunohost": ">= 3.4"
+        "yunohost": ">= 3.5"
     },
     "multi_instance": true,
 	"services": [

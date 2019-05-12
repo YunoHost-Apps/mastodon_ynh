@@ -8,7 +8,6 @@
 
 #Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
-source ../settings/scripts/ynh_systemd_action
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -24,43 +23,43 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_print_info "Loading installation settings..."
+ynh_script_progression --message="Loading installation settings..." --weight=2
 
 app=$YNH_APP_INSTANCE_NAME
 
-final_path=$(ynh_app_setting_get $app final_path)
-domain=$(ynh_app_setting_get $app domain)
-db_name=$(ynh_app_setting_get $app db_name)
-
-#=================================================
-# STOP MASTODON SERVICES
-#=================================================
-ynh_print_info "Stopping Mastodon services..."
-
-ynh_systemd_action --action=stop --service_name=${app}-web --line_match="Stopped" --log_path=systemd
-ynh_systemd_action --action=stop --service_name=${app}-sidekiq --line_match="Stopped" --log_path=systemd
-ynh_systemd_action --action=stop --service_name=${app}-streaming --line_match="Stopped" --log_path=systemd
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 
 #=================================================
 # STANDARD BACKUP STEPS
 #=================================================
+# STOP SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Stopping a systemd service..." --weight=27
+
+ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=systemd --line_match="Stopped"
+
+#=================================================
 # BACKUP THE APP MAIN DIR
 #=================================================
-ynh_print_info "Backing up the main app directory..."
+ynh_script_progression --message="Backing up the main app directory..." --weight=2
 
-ynh_backup "$final_path"
+ynh_backup --src_path="$final_path"
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
-ynh_print_info "Backing up nginx web server configuration..."
+ynh_script_progression --message="Backing up nginx web server configuration..." --weight=2
 
-ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # BACKUP THE POSTGRESQL DATABASE
 #=================================================
-ynh_print_info "Backing up the PostgreSQL database..."
+ynh_script_progression --message="Backing up the PostgreSQL database..." --weight=4
 
 ynh_psql_dump_db "$db_name" > db.sql
 
@@ -69,22 +68,22 @@ ynh_psql_dump_db "$db_name" > db.sql
 #=================================================
 # BACKUP SYSTEMD
 #=================================================
-ynh_print_info "Backing up systemd configuration..."
+ynh_script_progression --message="Backing up systemd configuration..." --weight=2
 
-ynh_backup "/etc/systemd/system/$app-web.service"
-ynh_backup "/etc/systemd/system/$app-sidekiq.service"
-ynh_backup "/etc/systemd/system/$app-streaming.service"
+ynh_backup --src_path="/etc/systemd/system/$app-web.service"
+ynh_backup --src_path="/etc/systemd/system/$app-sidekiq.service"
+ynh_backup --src_path="/etc/systemd/system/$app-streaming.service"
 
 #=================================================
 # BACKUP A CRON FILE
 #=================================================
 
-ynh_backup "/etc/cron.d/$app"
+ynh_backup --src_path="/etc/cron.d/$app"
 
 #=================================================
-# START MASTODON SERVICES
+# START SYSTEMD SERVICE
 #=================================================
-ynh_print_info "Starting Mastodon services..."
+ynh_script_progression --message="Starting a systemd service..." --weight=1
 
 ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
 ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
@@ -94,4 +93,4 @@ ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info "Backup script completed for $app. (YunoHost will then actually copy those files to the archive)."
+ynh_script_progression --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)." --last
