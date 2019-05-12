@@ -39,7 +39,7 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
-ynh_script_progression --message="Validating installation parameters..." --time --weight=1
+ynh_script_progression --message="Validating installation parameters..." --weight=2
 
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
@@ -61,7 +61,7 @@ ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
-ynh_script_progression --message="Storing installation settings..." --time --weight=1
+ynh_script_progression --message="Storing installation settings..." --weight=2
 
 ynh_app_setting_set --app=$app --key=domain --value=$domain
 ynh_app_setting_set --app=$app --key=path --value=$path_url
@@ -74,7 +74,7 @@ ynh_app_setting_set --app=$app --key=language --value=$language
 #=================================================
 # FIND AND OPEN A PORT
 #=================================================
-ynh_script_progression --message="Configuring firewall..." --time --weight=1
+ynh_script_progression --message="Configuring firewall..." --weight=1
 
 # Find a free port
 port_web=$(ynh_find_port 3000)
@@ -86,7 +86,7 @@ ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Installing dependencies..." --time --weight=1
+ynh_script_progression --message="Installing dependencies..." --weight=86
 
 # Import debian archive pubkey, need on ARM arch
 arch=$(uname -m)
@@ -110,7 +110,7 @@ ynh_install_app_dependencies $pkg_dependencies
 #=================================================
 # CREATE A POSTGRESQL DATABASE
 #=================================================
-ynh_script_progression --message="Creating a PostgreSQL database..." --time --weight=1
+ynh_script_progression --message="Creating a PostgreSQL database..." --weight=5
 
 # Create postgresql database
 db_name="${app}_production"
@@ -124,7 +124,7 @@ ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --time --weight=1
+ynh_script_progression --message="Setting up source files..." --weight=5
 
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
@@ -134,7 +134,7 @@ ynh_setup_source  --dest_dir="$final_path/live"
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring nginx web server..." --time --weight=1
+ynh_script_progression --message="Configuring nginx web server..." --weight=3
 
 # Create a dedicated nginx config
 ynh_add_nginx_config 'port_web port_stream'
@@ -142,7 +142,7 @@ ynh_add_nginx_config 'port_web port_stream'
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Configuring system user..." --time --weight=1
+ynh_script_progression --message="Configuring system user..." --weight=4
 
 # Create a system user
 ynh_system_user_create --username=$app --home_dir=$final_path
@@ -152,7 +152,7 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 # INSTALLING RUBY AND BUNDLER
 #=================================================
-ynh_script_progression --message="Installing Ruby..." --time --weight=1
+ynh_script_progression --message="Installing Ruby..." --weight=424
 
 ynh_install_ruby --ruby_version=2.6.0
 /opt/rbenv/versions/2.6.0/bin/gem update --system
@@ -161,7 +161,7 @@ ynh_install_ruby --ruby_version=2.6.0
 #=================================================
 # MODIFY A CONFIG FILE
 #=================================================
-ynh_script_progression --message="Modifying a config file..." --time --weight=1
+ynh_script_progression --message="Modifying a config file..." --weight=2
 
 cp -f ../conf/.env.production.sample "$final_path/live/.env.production"
 ynh_replace_string --match_string="__DB_USER__" --replace_string="$app" --target_file="$final_path/live/.env.production"
@@ -188,7 +188,7 @@ ynh_app_setting_set --app="$app" --key=otp_secret --value="$otp_secret"
 #=================================================
 # INSTALLING MASTODON
 #=================================================
-ynh_script_progression --message="Installing Mastodon..." --time --weight=1
+ynh_script_progression --message="Installing Mastodon..." --weight=2230
 
 chown -R "$app": "$final_path"
 
@@ -220,7 +220,7 @@ ynh_secure_remove --file="$final_path/live/key.txt"
 #=================================================
 # SETUP CRON JOB FOR REMOVING CACHE
 #=================================================
-ynh_script_progression --message="Setuping a cron job for removing cache..." --time --weight=1
+ynh_script_progression --message="Setuping a cron job for removing cache..." --weight=1
 
 ynh_replace_string --match_string="__FINAL_PATH__" --replace_string="$final_path" --target_file="../conf/cron"
 ynh_replace_string --match_string="__USER__" --replace_string="$app"  --target_file="../conf/cron"
@@ -229,7 +229,7 @@ sudo cp -f ../conf/cron /etc/cron.d/$app
 #=================================================
 # SETUP SYSTEMD
 #=================================================
-ynh_script_progression --message="Configuring a systemd service..." --time --weight=1
+ynh_script_progression --message="Configuring a systemd service..." --weight=5
 
 # Create a dedicated systemd config
 ynh_replace_string --match_string="__PORT_WEB__"    --replace_string="$port_web"    --target_file="../conf/mastodon-web.service"
@@ -242,7 +242,7 @@ ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
 #=================================================
-ynh_script_progression --message="Storing the config file checksum..." --time --weight=1
+ynh_script_progression --message="Storing the config file checksum..." --weight=1
 
 # Calculate and store the config file checksum into the app settings
 ynh_store_file_checksum "${final_path}/live/.env.production"
@@ -252,7 +252,7 @@ ynh_store_file_checksum "${final_path}/live/.env.production"
 #=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================
-ynh_script_progression --message="Securing files and directories..." --time --weight=1
+ynh_script_progression --message="Securing files and directories..." --weight=9
 
 # Set permissions to app files
 chown -R "$app": "$final_path"
@@ -260,7 +260,7 @@ chown -R "$app": "$final_path"
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
-ynh_script_progression --message="Advertising service in admin panel..." --time --weight=1
+ynh_script_progression --message="Advertising service in admin panel..." --weight=3
 
 yunohost service add "$app-web"
 yunohost service add "$app-sidekiq"
@@ -269,7 +269,7 @@ yunohost service add "$app-streaming"
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --time --weight=1
+ynh_script_progression --message="Starting a systemd service..." --weight=47
 
 ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on tcp"
 ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Starting processing"
@@ -278,7 +278,7 @@ ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=s
 #=================================================
 # SETUP SSOWAT
 #=================================================
-ynh_script_progression --message="Configuring SSOwat..." --time --weight=1
+ynh_script_progression --message="Configuring SSOwat..." --weight=2
 
 # Make app public if necessary
 if [ $is_public -eq 1 ]
@@ -290,25 +290,24 @@ fi
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --time --weight=1
+ynh_script_progression --message="Reloading nginx web server..." --weight=2
 
 ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # SEND A README FOR THE ADMIN
 #=================================================
-ynh_script_progression --message="Sending a readme for the admin..." --time --weight=1
+ynh_script_progression --message="Sending a readme for the admin..." --weight=17
 
-message="Mastodon was successfully installed :)
-Please open 'https://$domain$path_url'
-The admin email is: $admin_mail
-The admin password is: $admin_pass
-If you facing an issue or want to improve this app, please open a new issue in this project: https://github.com/YunoHost-Apps/mastodon_ynh"
+ynh_replace_string --match_string="__ADMIN_MAIL__"    --replace_string="$admin_mail"    --target_file="../conf/message"
+ynh_replace_string --match_string="__ADMIN_PASS__"    --replace_string="$admin_pass"    --target_file="../conf/message"
+ynh_replace_string --match_string="__DOMAIN__"    --replace_string="$domain"    --target_file="../conf/message"
+ynh_replace_string --match_string="__PATH_URL__"    --replace_string="$path_url"    --target_file="../conf/message"
 
-ynh_send_readme_to_admin --app_message=$message --recipients=$admin_mail --type='install'
+ynh_send_readme_to_admin --app_message="../conf/message" --recipients=$admin_mail --type='install'
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed" --time --last
+ynh_script_progression --message="Installation of $app completed" --last

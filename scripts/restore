@@ -25,7 +25,7 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading settings..." --time --weight=1
+ynh_script_progression --message="Loading settings..." --weight=2
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -39,7 +39,7 @@ db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
-ynh_script_progression --message="Validating restoration parameters..." --time --weight=1
+ynh_script_progression --message="Validating restoration parameters..." --weight=2
 
 ynh_webpath_available --domain=$domain --path_url=$path_url \
 	|| ynh_die --message="Path not available: ${domain}${path_url}"
@@ -51,21 +51,21 @@ test ! -d $final_path \
 #=================================================
 # RESTORE THE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Restoring nginx configuration..." --time --weight=1
+ynh_script_progression --message="Restoring nginx configuration..." --weight=1
 
 ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Restoring the app main directory..." --time --weight=1
+ynh_script_progression --message="Restoring the app main directory..." --weight=105
 
 ynh_restore_file --origin_path="$final_path"
 
 #=================================================
 # RECREATE THE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Recreating the dedicated system user..." --time --weight=1
+ynh_script_progression --message="Recreating the dedicated system user..." --weight=5
 
 # Create the dedicated user (if not existing)
 ynh_system_user_create --username=$app --home_dir=$final_path
@@ -73,7 +73,7 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 # RESTORE USER RIGHTS
 #=================================================
-ynh_script_progression --message="Restoring users rights..." --time --weight=1
+ynh_script_progression --message="Restoring users rights..." --weight=4
 
 # Restore permissions on app files
 chown -R $app: $final_path
@@ -83,7 +83,7 @@ chown -R $app: $final_path
 #=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Reinstalling dependencies..." --time --weight=1
+ynh_script_progression --message="Reinstalling dependencies..." --weight=63
 
 # Import debian archive pubkey, need on ARM arch
 arch=$(uname -m)
@@ -106,7 +106,7 @@ ynh_install_app_dependencies $pkg_dependencies
 #=================================================
 # INSTALLING RUBY AND BUNDLER
 #=================================================
-ynh_script_progression --message="Installing Ruby..." --time --weight=1
+ynh_script_progression --message="Installing Ruby..." --weight=393
 
 ynh_install_ruby --ruby_version=2.6.0
 /opt/rbenv/versions/2.6.0/bin/gem update --system
@@ -114,7 +114,7 @@ ynh_install_ruby --ruby_version=2.6.0
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
 #=================================================
-ynh_script_progression --message="Restoring the PostgreSQL database..." --time --weight=1
+ynh_script_progression --message="Restoring the PostgreSQL database..." --weight=18
 
 ynh_psql_test_if_first_run
 ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
@@ -123,7 +123,7 @@ ynh_psql_execute_file_as_root --file="./db.sql" --database="$db_name"
 #=================================================
 # RESTORE SYSTEMD
 #=================================================
-ynh_script_progression --message="Restoring the systemd configuration..." --time --weight=1
+ynh_script_progression --message="Restoring the systemd configuration..." --weight=3
 
 ynh_restore_file --origin_path="/etc/systemd/system/$app-web.service"
 ynh_restore_file --origin_path="/etc/systemd/system/$app-sidekiq.service"
@@ -133,7 +133,7 @@ systemctl enable "$app-web" "$app-sidekiq" "$app-streaming"
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
-ynh_script_progression --message="Advertising service in admin panel..." --time --weight=1
+ynh_script_progression --message="Advertising service in admin panel..." --weight=3
 
 yunohost service add $app-web
 yunohost service add $app-sidekiq
@@ -142,7 +142,7 @@ yunohost service add $app-streaming
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --time --weight=1
+ynh_script_progression --message="Starting a systemd service..." --weight=41
 
 ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on tcp"
 ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Starting processing"
@@ -151,7 +151,7 @@ ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=s
 #=================================================
 # RESTORE THE CRON FILE
 #=================================================
-ynh_script_progression --message="Restoring a cron job for removing cache..." --time --weight=1
+ynh_script_progression --message="Restoring a cron job for removing cache..." --weight=2
 
 ynh_restore_file --origin_path="/etc/cron.d/$app"
 
@@ -160,7 +160,7 @@ ynh_restore_file --origin_path="/etc/cron.d/$app"
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --time --weight=1
+ynh_script_progression --message="Reloading nginx web server..." --weight=2
 
 ynh_systemd_action --service_name=nginx --action=reload
 
@@ -168,4 +168,4 @@ ynh_systemd_action --service_name=nginx --action=reload
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Restoration completed for $app" --time --last
+ynh_script_progression --message="Restoration completed for $app" --last

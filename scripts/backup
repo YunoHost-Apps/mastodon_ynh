@@ -23,7 +23,7 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --time --weight=1
+ynh_script_progression --message="Loading installation settings..." --weight=2
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -36,7 +36,7 @@ db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 #=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Stopping a systemd service..." --time --weight=1
+ynh_script_progression --message="Stopping a systemd service..." --weight=27
 
 ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
 ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
@@ -45,21 +45,21 @@ ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=sy
 #=================================================
 # BACKUP THE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Backing up the main app directory..." --time --weight=1
+ynh_script_progression --message="Backing up the main app directory..." --weight=2
 
 ynh_backup --src_path="$final_path"
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Backing up nginx web server configuration..." --time --weight=1
+ynh_script_progression --message="Backing up nginx web server configuration..." --weight=2
 
 ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # BACKUP THE POSTGRESQL DATABASE
 #=================================================
-ynh_script_progression --message="Backing up the PostgreSQL database..." --time --weight=1
+ynh_script_progression --message="Backing up the PostgreSQL database..." --weight=4
 
 ynh_psql_dump_db "$db_name" > db.sql
 
@@ -68,7 +68,7 @@ ynh_psql_dump_db "$db_name" > db.sql
 #=================================================
 # BACKUP SYSTEMD
 #=================================================
-ynh_script_progression --message="Backing up systemd configuration..." --time --weight=1
+ynh_script_progression --message="Backing up systemd configuration..." --weight=2
 
 ynh_backup --src_path="/etc/systemd/system/$app-web.service"
 ynh_backup --src_path="/etc/systemd/system/$app-sidekiq.service"
@@ -83,7 +83,7 @@ ynh_backup --src_path="/etc/cron.d/$app"
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --time --weight=1
+ynh_script_progression --message="Starting a systemd service..." --weight=1
 
 ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
 ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
@@ -93,4 +93,4 @@ ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)." --time --last
+ynh_script_progression --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)." --last

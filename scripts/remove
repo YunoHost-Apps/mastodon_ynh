@@ -14,7 +14,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --time --weight=1
+ynh_script_progression --message="Loading installation settings..." --weight=6
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -32,26 +32,26 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 # Remove a service from the admin panel, added by `yunohost service add`
 if yunohost service status "$app-web" >/dev/null 2>&1
 then
-	ynh_script_progression --message="Removing $app-web service..." --time --weight=1
+	ynh_script_progression --message="Removing $app-web service..." --weight=2
 	yunohost service remove "$app-web"
 fi
 
 if yunohost service status "$app-sidekiq" >/dev/null 2>&1
 then
-	ynh_script_progression --message="Removing $app-sidekiq service..." --time --weight=1
+	ynh_script_progression --message="Removing $app-sidekiq service..." --weight=2
 	yunohost service remove "$app-sidekiq"
 fi
 
 if yunohost service status "$app-streaming" >/dev/null 2>&1
 then
-	ynh_script_progression --message="Removing $app-streaming service..." --time --weight=1
+	ynh_script_progression --message="Removing $app-streaming service..." --weight=2
 	yunohost service remove "$app-streaming"
 fi
 
 #=================================================
 # STOP AND REMOVE SERVICE
 #=================================================
-ynh_script_progression --message="Stopping and removing the systemd service..." --time --weight=1
+ynh_script_progression --message="Stopping and removing the systemd service..." --weight=27
 
 # Remove the dedicated systemd config
 ynh_remove_systemd_config "$app-web"
@@ -61,7 +61,7 @@ ynh_remove_systemd_config "$app-streaming"
 #=================================================
 # REMOVE THE POSTGRESQL DATABASE
 #=================================================
-ynh_script_progression --message="Removing the PostgreSQL database..." --time --weight=1
+ynh_script_progression --message="Removing the PostgreSQL database..." --weight=4
 
 # Remove a database if it exists, along with the associated user
 ynh_psql_remove_db --db_user="$db_user" --db_name="$db_name"
@@ -69,7 +69,7 @@ ynh_psql_remove_db --db_user="$db_user" --db_name="$db_name"
 #=================================================
 # REMOVE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Removing dependencies..." --time --weight=1
+ynh_script_progression --message="Removing dependencies..." --weight=28
 
 # Remove metapackage and its dependencies
 ynh_remove_ruby
@@ -80,7 +80,7 @@ ynh_remove_extra_repo
 #=================================================
 # REMOVE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Removing app main directory..." --time --weight=1
+ynh_script_progression --message="Removing app main directory..." --weight=16
 
 # Remove the app directory securely
 ynh_secure_remove --file="$final_path"
@@ -88,7 +88,7 @@ ynh_secure_remove --file="$final_path"
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Removing nginx web server configuration..." --time --weight=1
+ynh_script_progression --message="Removing nginx web server configuration..." --weight=2
 
 # Remove the dedicated nginx config
 ynh_remove_nginx_config
@@ -107,7 +107,7 @@ ynh_secure_remove --file="/etc/cron.d/$app"
 #=================================================
 # REMOVE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Removing the dedicated system user..." --time --weight=1
+ynh_script_progression --message="Removing the dedicated system user..." --weight=2
 
 # Delete a system user
 ynh_system_user_delete --username=$app
@@ -116,4 +116,4 @@ ynh_system_user_delete --username=$app
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Removal of $app completed" --time --last
+ynh_script_progression --message="Removal of $app completed" --last

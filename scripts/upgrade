@@ -14,7 +14,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --time --weight=1
+ynh_script_progression --message="Loading installation settings..." --weight=4
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -27,7 +27,7 @@ language=$(ynh_app_setting_get --app=$app --key=language)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 
 db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
-admin_mail=$(ynh_user_get_info --app=$app --key=mail)
+admin_mail=$(ynh_user_get_info --username=$admin --key='mail')
 port_web=$(ynh_app_setting_get --app=$app --key=port_web)
 port_stream=$(ynh_app_setting_get --app=$app --key=port_stream)
 
@@ -40,7 +40,7 @@ vapid_public_key=$(ynh_app_setting_get --app=$app --key=vapid_public_key)
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
-ynh_script_progression --message="Ensuring downward compatibility..." --time --weight=1
+ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
 
 # If db_name doesn't exist, create it
 if [ -z "$db_name" ]; then
@@ -99,7 +99,7 @@ fi
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --time --weight=1
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=442
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
@@ -123,7 +123,7 @@ path_url=$(ynh_normalize_url_path --path_url=$path_url)
 #=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Stopping a systemd service..." --time --weight=1
+ynh_script_progression --message="Stopping a systemd service..." --weight=22
 
 ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
 ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
@@ -132,7 +132,7 @@ ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=sy
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Upgrading source files..." --time --weight=1
+ynh_script_progression --message="Upgrading source files..." --weight=14
 
 # Download Mastodon
 mv "$final_path/live" "$final_path/live_back"
@@ -149,14 +149,14 @@ ynh_secure_remove --file="$final_path/live/config/initializers/timeout.rb"
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Upgrading nginx web server configuration..." --time --weight=1
+ynh_script_progression --message="Upgrading nginx web server configuration..." --weight=3
 
 ynh_add_nginx_config 'port_web port_stream'
 
 #=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Upgrading dependencies..." --time --weight=1
+ynh_script_progression --message="Upgrading dependencies..." --weight=24
 
 # Install extra_repo debian package backports & yarn
 if [ "$(lsb_release --codename --short)" == "jessie" ]; then
@@ -173,7 +173,7 @@ ynh_install_app_dependencies $pkg_dependencies
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..." --time --weight=1
+ynh_script_progression --message="Making sure dedicated system user exists..." --weight=7
 
 # Create a dedicated user (if not existing)
 ynh_system_user_create --username=$app --home_dir=$final_path
@@ -183,6 +183,7 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 # INSTALLING RUBY AND BUNDLER
 #=================================================
+ynh_script_progression --message="Installing Ruby..." --weight=424
 
 ynh_install_ruby --ruby_version=2.6.0
 /opt/rbenv/versions/2.6.0/bin/gem update --system
@@ -191,7 +192,7 @@ ynh_install_ruby --ruby_version=2.6.0
 #=================================================
 # MODIFY A CONFIG FILE
 #=================================================
-ynh_script_progression --message="Modifying a config file..." --time --weight=1
+ynh_script_progression --message="Modifying a config file..." --weight=1
 
 cp -f ../conf/.env.production.sample "$final_path/live/.env.production"
 ynh_replace_string --match_string="__DB_USER__" --replace_string="$app" --target_file="$final_path/live/.env.production"
@@ -212,7 +213,7 @@ ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret
 #=================================================
 # UPGRADE MASTODON
 #=================================================
-ynh_script_progression --message="Upgrading Mastodon..." --time --weight=1
+ynh_script_progression --message="Upgrading Mastodon..." --weight=2640
 
 chown -R "$app": "$final_path"
 
@@ -245,16 +246,16 @@ ynh_store_file_checksum --file="${final_path}/live/.env.production"
 #=================================================
 # SETUP CRON JOB FOR REMOVING CACHE
 #=================================================
-ynh_script_progression --message="Setuping a cron job for removing cache..." --time --weight=1
+ynh_script_progression --message="Setuping a cron job for removing cache..." --weight=1
 
-ynh_replace_string --match_string="__FINAL_PATH__" --replace_string="$final_path" --target_file="conf/cron"
+ynh_replace_string --match_string="__FINAL_PATH__" --replace_string="$final_path" --target_file="../conf/cron"
 ynh_replace_string --match_string="__USER__" --replace_string="$app"  --target_file="../conf/cron"
 sudo cp -f ../conf/cron /etc/cron.d/$app 
 
 #=================================================
 # SETUP SYSTEMD
 #=================================================
-ynh_script_progression --message="Upgrading systemd configuration..." --time --weight=1
+ynh_script_progression --message="Upgrading systemd configuration..." --weight=13
 
 # Create a dedicated systemd config
 ynh_replace_string --match_string="__PORT_WEB__"    --replace_string="$port_web"    --target_file="../conf/mastodon-web.service"
@@ -269,6 +270,7 @@ ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming
 #=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================
+ynh_script_progression --message="Securing files and directories..." --weight=9
 
 # Set permissions on app files
 chown -R $app: $final_path
@@ -276,7 +278,7 @@ chown -R $app: $final_path
 #=================================================
 # SETUP SSOWAT
 #=================================================
-ynh_script_progression --message="Upgrading SSOwat configuration..." --time --weight=1
+ynh_script_progression --message="Upgrading SSOwat configuration..." --weight=1
 
 # Make app public if necessary
 if [ $is_public -eq 1 ]
@@ -288,7 +290,7 @@ fi
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --time --weight=1
+ynh_script_progression --message="Starting a systemd service..." --weight=48
 
 ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on tcp"
 ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Starting processing"
@@ -297,7 +299,7 @@ ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=s
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --time --weight=1
+ynh_script_progression --message="Reloading nginx web server..." --weight=2
 
 ynh_systemd_action --service_name=nginx --action=reload
 
@@ -305,4 +307,4 @@ ynh_systemd_action --service_name=nginx --action=reload
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed" --time --last
+ynh_script_progression --message="Upgrade of $app completed" --last
