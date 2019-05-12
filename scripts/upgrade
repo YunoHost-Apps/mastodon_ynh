@@ -71,7 +71,7 @@ fi
 
 # If paperclip_secret doesn't exist, retrieve it or create it
 if [[ -z "$paperclip_secret" ]]; then
-	paperclip_secret=$(grep -oP "PAPERCLIP_SECRET=\K\w+" test)
+	paperclip_secret=$(grep -oP "PAPERCLIP_SECRET=\K\w+" ${final_path}/live/.env.production)
 	if [[ -z "$paperclip_secret" ]]; then
 	    paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 	fi
@@ -80,7 +80,7 @@ fi
 
 # If secret_key_base doesn't exist, retrieve it or create it
 if [[ -z "$secret_key_base" ]]; then
-	secret_key_base=$(grep -oP "SECRET_KEY_BASE=\K\w+" test)
+	secret_key_base=$(grep -oP "SECRET_KEY_BASE=\K\w+" ${final_path}/live/.env.production)
 	if [[ -z "$secret_key_base" ]]; then
 	    secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 	fi
@@ -89,11 +89,19 @@ fi
 
 # If otp_secret doesn't exist, retrieve it or create it
 if [[ -z "$otp_secret" ]]; then
-	otp_secret=$(grep -oP "OTP_SECRET=\K\w+" test)
+	otp_secret=$(grep -oP "OTP_SECRET=\K\w+" ${final_path}/live/.env.production)
 	if [[ -z "$otp_secret" ]]; then
 	    otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 	fi
 	ynh_app_setting_set --app=$app --key=otp_secret --value="$otp_secret"
+fi
+
+# If vapid_private_key doesn't exist, retrieve it or create it
+if [[ -z "$vapid_private_key" ]]; then
+	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" ${final_path}/live/.env.production)
+	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" ${final_path}/live/.env.production)
+	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
+	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
 fi
 
 #=================================================
@@ -185,9 +193,9 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 ynh_script_progression --message="Installing Ruby..." --weight=424
 
-ynh_install_ruby --ruby_version=2.6.0
-/opt/rbenv/versions/2.6.0/bin/gem update --system
-#/opt/rbenv/versions/2.6.0/bin/gem install bundler
+ynh_install_ruby --ruby_version=2.6.1
+/opt/rbenv/versions/2.6.1/bin/gem update --system
+#/opt/rbenv/versions/2.6.1/bin/gem install bundler
 
 #=================================================
 # MODIFY A CONFIG FILE
@@ -210,6 +218,9 @@ ynh_replace_string --match_string="__SECRET_KEY_BASE__" --replace_string="$secre
 
 ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$final_path/live/.env.production"
 
+ynh_replace_string "__VAPID_PRIVATE_KEY__" "$vapid_private_key"        "$final_path/live/.env.production"
+ynh_replace_string "__VAPID_PUBLIC_KEY__" "$vapid_public_key"        "$final_path/live/.env.production"
+
 #=================================================
 # UPGRADE MASTODON
 #=================================================
@@ -220,25 +231,28 @@ chown -R "$app": "$final_path"
 pushd "$final_path/live"
     ynh_use_nodejs
         if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --without development test
+	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.1/bin/bundle install --deployment --without development test
         else
-	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.0/bin/bundle install --deployment --force --without development test
+	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.1/bin/bundle install --deployment --force --without development test
         fi
         sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:clean
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails assets:precompile
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails db:migrate
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails assets:clean
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails assets:precompile
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails db:migrate
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl cache clear
 popd
 
 # If vapid_private_key doesn't exist, retrieve it or create it
-if [[ -z "$vapid_private_key" ]]; then
-	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
-	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" "$final_path/live/key.txt")
-	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" "$final_path/live/key.txt")
-	ynh_app_setting_set --app="$app" --key=vapid_private_key --value="$vapid_private_key"
-	ynh_app_setting_set --app="$app" --key=vapid_public_key --value="$vapid_public_key"
-	ynh_secure_remove --file="$final_path/live/key.txt"
-fi
+#if [[ -z "$vapid_private_key" ]]; then
+#	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
+#	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" "$final_path/live/key.txt")
+#	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" "$final_path/live/key.txt")
+#	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
+#	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
+#	ynh_secure_remove "$final_path/live/key.txt"
+#    ynh_replace_string "__VAPID_PRIVATE_KEY__" "$vapid_private_key"        "${final_path}/live/.env.production"
+#    ynh_replace_string "__VAPID_PUBLIC_KEY__" "$vapid_public_key"        "${final_path}/live/.env.production"
+#fi
 
 # Recalculate and store the checksum of the file for the next upgrade.
 ynh_store_file_checksum --file="${final_path}/live/.env.production"
