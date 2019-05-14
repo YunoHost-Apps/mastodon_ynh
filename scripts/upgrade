@@ -104,6 +104,9 @@ if [[ -z "$vapid_private_key" ]]; then
 	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
 fi
 
+#Remove previous added repository
+ynh_remove_extra_repo
+
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
@@ -166,17 +169,9 @@ ynh_add_nginx_config 'port_web port_stream'
 #=================================================
 ynh_script_progression --message="Upgrading dependencies..." --weight=24
 
-# Install extra_repo debian package backports & yarn
-if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	ynh_install_extra_repo --repo="deb http://httpredir.debian.org/debian jessie-backports main" --append
-fi
-ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key="https://dl.yarnpkg.com/debian/pubkey.gpg" --append
-
-# Install nodejs
 ynh_install_nodejs --nodejs_version="8"
-
-# TODO: use the same mecanism with other files
-ynh_install_app_dependencies $pkg_dependencies
+ynh_install_app_dependencies $pkg_dependencies	
+ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 
 #=================================================
 # CREATE DEDICATED USER

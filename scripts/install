@@ -88,24 +88,9 @@ ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
 #=================================================
 ynh_script_progression --message="Installing dependencies..." --weight=86
 
-# Import debian archive pubkey, need on ARM arch
-arch=$(uname -m)
-if [[ "$arch" = arm*  ]]; then
-	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8B48AD6246925553
-	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7638D0442B90D010
-fi
-
-# Install extra_repo debian package backports & yarn
-if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	ynh_install_extra_repo --repo="deb http://httpredir.debian.org/debian jessie-backports main" --append
-fi
-
-ynh_install_extra_repo --repo="deb https://dl.yarnpkg.com/debian/ stable main" --key="https://dl.yarnpkg.com/debian/pubkey.gpg" --append
-
-# install nodejs
 ynh_install_nodejs --nodejs_version="8"
-
 ynh_install_app_dependencies $pkg_dependencies	
+ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 
 #=================================================
 # CREATE A POSTGRESQL DATABASE
