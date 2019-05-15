@@ -77,8 +77,8 @@ ynh_app_setting_set --app=$app --key=language --value=$language
 ynh_script_progression --message="Configuring firewall..." --weight=1
 
 # Find a free port
-port_web=$(ynh_find_port 3000)
-port_stream=$(ynh_find_port 4000)
+port_web=$(ynh_find_port --port=3000)
+port_stream=$(ynh_find_port --port=4000)
 # Open this port
 ynh_app_setting_set --app=$app --key=port_web --value=$port_web
 ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
@@ -230,7 +230,7 @@ ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming
 ynh_script_progression --message="Storing the config file checksum..." --weight=1
 
 # Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum "${final_path}/live/.env.production"
+ynh_store_file_checksum --file="${final_path}/live/.env.production"
 
 #=================================================
 # GENERIC FINALIZATION
