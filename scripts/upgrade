@@ -38,6 +38,12 @@ vapid_private_key=$(ynh_app_setting_get --app=$app --key=vapid_private_key)
 vapid_public_key=$(ynh_app_setting_get --app=$app --key=vapid_public_key)
 
 #=================================================
+# CHECK VERSION
+#=================================================
+
+upgrade_type=$(ynh_check_app_version_changed)
+
+#=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
@@ -140,19 +146,23 @@ ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=sy
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Upgrading source files..." --weight=14
 
-# Download Mastodon
-mv "$final_path/live" "$final_path/live_back"
-ynh_setup_source --dest_dir="$final_path/live"
-if [ -z $final_path/live_back/public/system ]; then
-	rsync -a "$final_path/live_back/public/system" "$final_path/live_back/public/."
+if [ "$upgrade_type" == "UPGRADE_APP" ]
+then
+    ynh_script_progression --message="Upgrading source files..." --weight=14
+
+    # Download Mastodon
+    mv "$final_path/live" "$final_path/live_back"
+    ynh_setup_source --dest_dir="$final_path/live"
+    if [ -z $final_path/live_back/public/system ]; then
+	    rsync -a "$final_path/live_back/public/system" "$final_path/live_back/public/."
+    fi
+    rsync -a "$final_path/live_back/.env.production" "$final_path/live/."
+    rm -Rf "$final_path/live_back"
+
+    # Clean files which are not needed anymore
+    ynh_secure_remove --file="$final_path/live/config/initializers/timeout.rb"
 fi
-rsync -a "$final_path/live_back/.env.production" "$final_path/live/."
-rm -Rf "$final_path/live_back"
-
-# Clean files which are not needed anymore
-ynh_secure_remove --file="$final_path/live/config/initializers/timeout.rb"
 
 #=================================================
 # NGINX CONFIGURATION

@@ -54,9 +54,9 @@ fi
 ynh_script_progression --message="Stopping and removing the systemd service..." --weight=27
 
 # Remove the dedicated systemd config
-ynh_remove_systemd_config "$app-web"
-ynh_remove_systemd_config "$app-sidekiq"
-ynh_remove_systemd_config "$app-streaming"
+ynh_remove_systemd_config --service="$app-web"
+ynh_remove_systemd_config --service="$app-sidekiq"
+ynh_remove_systemd_config --service="$app-streaming"
 
 #=================================================
 # REMOVE THE POSTGRESQL DATABASE

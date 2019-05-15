@@ -61,7 +61,7 @@ ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 ynh_script_progression --message="Backing up the PostgreSQL database..." --weight=4
 
-ynh_psql_dump_db "$db_name" > db.sql
+ynh_psql_dump_db --database="$db_name" > db.sql
 
 #=================================================
 # SPECIFIC BACKUP
