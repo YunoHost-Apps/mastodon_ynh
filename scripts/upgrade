@@ -66,6 +66,18 @@ if [[ "$admin" = "" || "$language" = "" ]]; then
     ynh_die
 fi
 
+# If port_web doesn't exist, create it, need for old install
+if [[ -z "$port_web" ]]; then
+	port_web=3000
+	ynh_app_setting_set --app=$app --key=port_web --value=$port_web
+fi
+
+# If port_web doesn't exist, create it, need for old install
+if [[ -z "$port_stream" ]]; then
+	port_stream=4000
+	ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
+fi
+
 # If db_pwd doesn't exist, create it, need for old install
 if [[ -z "$db_pwd" ]]; then
 	db_pwd=$(ynh_string_random)
