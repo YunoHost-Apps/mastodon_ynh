@@ -7,7 +7,6 @@
 #=================================================
 
 source _common.sh
-source ynh_systemd_action
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -25,24 +24,15 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_print_info "Loading installation settings..."
+ynh_script_progression --message="Loading installation settings..." --weight=1
 
 # Needed for helper "ynh_add_nginx_config"
-final_path=$(ynh_app_setting_get $app final_path)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 
 # Add settings here as needed by your application
-#db_name=$(ynh_app_setting_get "$app" db_name)
-#db_pwd=$(ynh_app_setting_get $app db_pwd)
-admin_mail=$(ynh_app_setting_get $app admin_mail)
-
-#=================================================
-# CHECK THE SYNTAX OF THE PATHS
-#=================================================
-
-test -n "$old_path" || old_path="/"
-test -n "$new_path" || new_path="/"
-new_path=$(ynh_normalize_url_path $new_path)
-old_path=$(ynh_normalize_url_path $old_path)
+#db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+#db_user=$db_name
+#db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
 
 #=================================================
 # CHECK WHICH PARTS SHOULD BE CHANGED
@@ -63,9 +53,18 @@ fi
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
+# STOP SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Stopping a systemd service..." --weight=1
+
+ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=systemd --line_match="Stopped"
+
+#=================================================
 # MODIFY URL IN NGINX CONF
 #=================================================
-ynh_print_info "Updating nginx web server configuration..."
+ynh_script_progression --message="Updating nginx web server configuration..." --weight=1
 
 nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
 
@@ -73,7 +72,7 @@ nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
 if [ $change_path -eq 1 ]
 then
 	# Make a backup of the original nginx config file if modified
-	ynh_backup_if_checksum_is_different "$nginx_conf_path"
+	ynh_backup_if_checksum_is_different --file="$nginx_conf_path"
 	# Set global variables for nginx helper
 	domain="$old_domain"
 	path_url="$new_path"
@@ -85,49 +84,40 @@ fi
 if [ $change_domain -eq 1 ]
 then
 	# Delete file checksum for the old conf file location
-	ynh_delete_file_checksum "$nginx_conf_path"
+	ynh_delete_file_checksum --file="$nginx_conf_path"
 	mv $nginx_conf_path /etc/nginx/conf.d/$new_domain.d/$app.conf
 	# Store file checksum for the new config file location
-	ynh_store_file_checksum "/etc/nginx/conf.d/$new_domain.d/$app.conf"
+	ynh_store_file_checksum --file="/etc/nginx/conf.d/$new_domain.d/$app.conf"
 fi
 
 #=================================================
 # SPECIFIC MODIFICATIONS
 #=================================================
-# STOP MASTODON SERVICES
-#=================================================
-ynh_print_info "Stopping Mastodon services..."
-
-ynh_systemd_action --action=stop --service_name=${app}-web --line_match="Stopped" --log_path=systemd
-ynh_systemd_action --action=stop --service_name=${app}-sidekiq --line_match="Stopped" --log_path=systemd
-ynh_systemd_action --action=stop --service_name=${app}-streaming --line_match="Stopped" --log_path=systemd
-
-#=================================================
 # CHANGE CONFIGURATION
 #=================================================
 
-ynh_replace_string "LOCAL_DOMAIN=.*" "LOCAL_DOMAIN=${domain}"      "${final_path}/live/.env.production"
-
-#=================================================
-# START MASTODON SERVICES
-#=================================================
-ynh_print_info "Starting Mastodon services..."
-
-ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
-ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
-ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
+ynh_replace_string --match_string="LOCAL_DOMAIN=.*" --replace_string="LOCAL_DOMAIN=${domain}"      --target_file="${final_path}/live/.env.production"
 
 #=================================================
 # GENERIC FINALISATION
 #=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Starting a systemd service..." --weight=1
+
+ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on tcp"
+ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Starting processing"
+ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=systemd --line_match="Worker 1 now listening"
+
+#=================================================
 # RELOAD NGINX
 #=================================================
-ynh_print_info "Reloading nginx web server..."
+ynh_script_progression --message="Reloading nginx web server..." --weight=1
 
-systemctl reload nginx
+ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info "Change of URL completed for $app"
+ynh_script_progression --message="Change of URL completed for $app" --last
