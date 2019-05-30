@@ -53,7 +53,7 @@ L'utilisateur admin est crÃ©e automatiquement comme: user@domain.tld
 ### Mise Ã  jour
 #### Utilisation de __screen__ fortement recommandÃ©
 
-`$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
+`$ sudo yunohost app upgrade --debug mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
 
 ## Recommandations
 
