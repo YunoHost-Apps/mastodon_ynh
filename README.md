@@ -3,7 +3,7 @@
 [![Integration level](https://dash.yunohost.org/integration/mastodon.svg)](https://dash.yunohost.org/appci/app/mastodon)  
 [![Install Mastodon with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=mastodon)
 
-*[Lire ce readme en fran�ais.](./README_fr.md)*
+*[Lire ce readme en français.](./README_fr.md)*
 
 > *This package allow you to install Mastodon quickly and simply on a YunoHost server.  
 If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
@@ -13,7 +13,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 :warning: This application uses the Debian backports packages, do not install this application directly in production
 
 ## Overview
-Mastodon is a free, open-source social network. A decentralized alternative to commercial platforms, it avoids the risks of a single company monopolizing your communication. Pick a server that you trust — whichever you choose, you can interact with everyone else. Anyone can run their own Mastodon instance and participate in the social network seamlessly.
+Mastodon is a free, open-source social network. A decentralized alternative to commercial platforms, it avoids the risks of a single company monopolizing your communication. Pick a server that you trust â€” whichever you choose, you can interact with everyone else. Anyone can run their own Mastodon instance and participate in the social network seamlessly.
 
 **Shipped version:** 2.8.3
 
@@ -54,7 +54,7 @@ The admin user is automatically created as: user@domain.tld
 ### Update
 #### Using __screen__ highly recommended
 
-`$ sudo yunohost app upgrade --verbose mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
+`$ sudo yunohost app upgrade --debug mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh.git`
 
 ## Recommendation
 
