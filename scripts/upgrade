@@ -219,6 +219,7 @@ ynh_install_ruby --ruby_version=2.6.1
 #=================================================
 ynh_script_progression --message="Modifying a config file..." --weight=1
 
+ynh_backup_if_checksum_is_different --file="$final_path/live/.env.production"
 cp -f ../conf/.env.production.sample "$final_path/live/.env.production"
 ynh_replace_string --match_string="__DB_USER__" --replace_string="$app" --target_file="$final_path/live/.env.production"
 ynh_replace_string --match_string="__DB_NAME__" --replace_string="$db_name" --target_file="$final_path/live/.env.production"
