@@ -169,8 +169,8 @@ then
     # Download Mastodon
     mv "$final_path/live" "$final_path/live_back"
     ynh_setup_source --dest_dir="$final_path/live"
-    if [ -z $final_path/live_back/public/system ]; then
-	    rsync -a "$final_path/live_back/public/system" "$final_path/live_back/public/."
+    if [ -d "$final_path/live_back/public/system" ]; then
+	    rsync -a "$final_path/live_back/public/system" "$final_path/live/public/."
     fi
     rsync -a "$final_path/live_back/.env.production" "$final_path/live/."
     rm -Rf "$final_path/live_back"
