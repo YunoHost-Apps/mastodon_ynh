@@ -173,7 +173,7 @@ then
 	    rsync -a "$final_path/live_back/public/system" "$final_path/live/public/."
     fi
     rsync -a "$final_path/live_back/.env.production" "$final_path/live/."
-    rm -Rf "$final_path/live_back"
+    ynh_secure_remove --file="$final_path/live_back/"
 
     # Clean files which are not needed anymore
     ynh_secure_remove --file="$final_path/live/config/initializers/timeout.rb"
