@@ -36,6 +36,9 @@ admin_mail=$(ynh_user_get_info $admin 'mail')
 
 app=$YNH_APP_INSTANCE_NAME
 
+ldap_user="svc_${app}_ldap"
+ldap_password=$(ynh_string_random --length=8)
+
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
@@ -68,6 +71,8 @@ ynh_app_setting_set --app=$app --key=path --value=$path_url
 ynh_app_setting_set --app=$app --key=admin --value=$admin
 ynh_app_setting_set --app=$app --key=is_public --value=$is_public
 ynh_app_setting_set --app=$app --key=language --value=$language
+ynh_app_setting_set --app=$app --key=ldap_user --value=$ldap_user
+ynh_app_setting_set --app=$app --key=ldap_password --value=$ldap_password
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -135,6 +140,13 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 # SPECIFIC SETUP
 #=================================================
+# CREATING LDAP USER
+#=================================================
+ynh_script_progression --message="Creating LDAP user..." --weight=424
+
+yunohost user create $ldap_user --firstname "SvcMastodonLdap" --lastname "SvcMastodonLdap" --mail ${ldap_user}@$domain --password $ldap_password -q 0
+
+#=================================================
 # INSTALLING RUBY AND BUNDLER
 #=================================================
 ynh_script_progression --message="Installing Ruby..." --weight=424
@@ -169,6 +181,9 @@ ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base
 otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$final_path/live/.env.production"
 ynh_app_setting_set --app="$app" --key=otp_secret --value="$otp_secret"
+
+ynh_replace_string --match_string="__LDAP_USER__" --replace_string="$ldap_user" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__LDAP_PASSWORD__" --replace_string="$ldap_password" --target_file="$final_path/live/.env.production"
 
 #=================================================
 # INSTALLING MASTODON
