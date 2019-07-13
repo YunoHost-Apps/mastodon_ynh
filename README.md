@@ -86,7 +86,6 @@ It seems important to close the inscriptions for your Mastodon, so that it remai
 Developers info
 ----------------
 
-**Only if you want to use a testing branch for coding, instead of merging directly into master.**
 Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/mastodon_ynh/tree/testing).
 
 To try the testing branch, please proceed like that.
