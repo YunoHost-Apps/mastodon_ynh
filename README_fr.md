@@ -13,6 +13,13 @@ Mastodon est un réseau social gratuit et open source. Une alternative décentra
 
 **Version incluse:** 2.9.2
 
+## Points importants à lire avant l'installation
+
+1. **Mastodon** nécessite un **nom de domaine** dédié, par exemple: mastodon.domain.tld
+1. L'utilisateur sélectionné pendant l'installation sera créé automatiquement dans Mastodon avec des droits d'administration.
+1. A la fin de l'installation, un mail est envoyé à cet utilisateur avec le mot de passe qui a été généré automatiquement.
+1. Il semble important de fermer les inscriptions pour votre Mastodon, pour que Ã§a reste une instance privÃ©. Nous vous invitons Ã  bloquer les instances distantes malfaisantes depuis l'interface d'administration. Vous pouvez Ã©galement ajouter un texte sur votre page d'accueil dans l'administration.
+
 ## Captures d'écran
 
 ![](https://framalibre.org/sites/default/files/mastodon.png)
@@ -20,13 +27,6 @@ Mastodon est un réseau social gratuit et open source. Une alternative décentra
 ## Configuration
 
 ### Installation
-
-#### Points important à lire avant l'installation
-
-1. **Mastodon** nécessite un **nom de domaine** dédié, par exemple: mastodon.domain.tld
-1. L'utilisateur sélectionné pendant l'installation sera créé automatiquement dans Mastodon avec des droits d'administration.
-1. A la fin de l'installation, un mail est envoyé à cet utilisateur avec le mot de passe qui a été généré automatiquement.
-1. Il semble important de fermer les inscriptions pour votre Mastodon, pour que Ã§a reste une instance privÃ©. Nous vous invitons Ã  bloquer les instances distantes malfaisantes depuis l'interface d'administration. Vous pouvez Ã©galement ajouter un texte sur votre page d'accueil dans l'administration.
 
 #### Ajout d'un "swapfile" si vous avez moins de 2Go de RAM
 ```

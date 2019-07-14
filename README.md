@@ -13,6 +13,13 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 
 **Shipped version:** 2.9.2
 
+## Important points to read before installing
+
+1. **Mastodon** require a dedicated **root domain**, eg. mastodon.domain.tld
+1. The user choosen during the installation is automatically created in Mastodon with admin rights
+1. At the end of the installation a mail is sent to the user with the automatically generated password
+1. It seems important to close the inscriptions for your Mastodon, so that it remains a private body. We invite you to block remote malicious instances from the administration interface. You can also add text on your home page.
+
 ## Screenshots
 
 ![](https://framalibre.org/sites/default/files/mastodon.png)
@@ -22,13 +29,6 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 ## Configuration
 
 ### Install
-
-#### Important points to read before installing
-
-1. **Mastodon** require a dedicated **root domain**, eg. mastodon.domain.tld
-1. The user choosen during the installation is automatically created in Mastodon with admin rights
-1. At the end of the installation a mail is sent to the user with the automatically generated password
-1. It seems important to close the inscriptions for your Mastodon, so that it remains a private body. We invite you to block remote malicious instances from the administration interface. You can also add text on your home page.
 
 #### Adding "swapfile" If you have less than 2Go of RAM
 ```
