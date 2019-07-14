@@ -8,10 +8,6 @@
 > *Ce package vous permet d'installer Mastodon rapidement et simplement sur un serveur Yunohost.  
 Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
 
-:warning: MAJ 05/06/17 :Cette application peut maintenant fonctionner sur ARM, mais l'installation prend plusieurs heures et il faut ajouter un swapfile de 1Go.
-
-:warning: Cette application utilise les packages backports de Debian, nous vous recommendons de ne pas installer cette application directement en production
-
 ## Vue d'ensemble
 Mastodon est un réseau social gratuit et open source. Une alternative décentralisée aux plates-formes commerciales, elle évite les risques d'une seule société qui monopolise votre communication. Choisissez un serveur sur lequel vous faites confiance - selon votre choix, vous pouvez interagir avec tous les autres. N'importe qui peut exécuter sa propre instance de Mastodon et participer au réseau social de façon transparente.
 
@@ -22,6 +18,15 @@ Mastodon est un réseau social gratuit et open source. Une alternative décentra
 ![](https://framalibre.org/sites/default/files/mastodon.png)
 
 ## Configuration
+
+### Installation
+
+#### Points important à lire avant l'installation
+
+1. **Mastodon** nécessite un **nom de domaine** dédié, par exemple: mastodon.domain.tld
+1. L'utilisateur sélectionné pendant l'installation sera créé automatiquement dans Mastodon avec des droits d'administration.
+1. A la fin de l'installation, un mail est envoyé à cet utilisateur avec le mot de passe qui a été généré automatiquement.
+1. Il semble important de fermer les inscriptions pour votre Mastodon, pour que Ã§a reste une instance privÃ©. Nous vous invitons Ã  bloquer les instances distantes malfaisantes depuis l'interface d'administration. Vous pouvez Ã©galement ajouter un texte sur votre page d'accueil dans l'administration.
 
 #### Ajout d'un "swapfile" si vous avez moins de 2Go de RAM
 ```
@@ -34,9 +39,6 @@ ajouter cette ligne dans /etc/fstab
 ```
 /swapfile       none    swap    sw      0       0
 ```
-
-### Installation
-
 #### Utilisation de __screen__ en cas de dÃ©connection
 ```
 $ sudo apt-get install screen
@@ -51,15 +53,10 @@ $ screen -r
 L'utilisateur admin est crÃ©e automatiquement comme: user@domain.tld
 
 ### Mise Ã  jour
+
 #### Utilisation de __screen__ fortement recommandÃ©
 
 `$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh --debug `
-
-## Recommandations
-
-Vous ne pouvez pas installer Mastodon en subdirectory, vous devez obligatoirement utiliser un domaine ou un sous-domaine pour cette application.
-
-Il semble important de fermer les inscriptions pour votre Mastodon, pour que Ã§a reste une instance privÃ©. Nous vous invitons Ã  bloquer les instances distantes malfaisantes depuis l'interface d'administration. Vous pouvez Ã©galement ajouter un texte sur votre page d'accueil dans l'administration.
 
 ## Documentation
 
@@ -85,7 +82,6 @@ Il semble important de fermer les inscriptions pour votre Mastodon, pour que Ã�
 Informations pour les développeurs
 ----------------
 
-**Seulement si vous voulez utiliser une branche de test pour le codage, au lieu de fusionner directement dans la banche principale.**
 Merci de faire vos pull request sur la [branche testing](https://github.com/YunoHost-Apps/mastodon_ynh/tree/testing).
 
 Pour essayer la branche testing, procédez comme suit.

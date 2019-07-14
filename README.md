@@ -8,10 +8,6 @@
 > *This package allow you to install Mastodon quickly and simply on a YunoHost server.  
 If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
 
-:warning: UPDATE 05/06/17 :This app can work now on ARM, but installation takes several hours and you must add a swapfile of 1GB.
-
-:warning: This application uses the Debian backports packages, do not install this application directly in production
-
 ## Overview
 Mastodon is a free, open-source social network. A decentralized alternative to commercial platforms, it avoids the risks of a single company monopolizing your communication. Pick a server that you trust â€” whichever you choose, you can interact with everyone else. Anyone can run their own Mastodon instance and participate in the social network seamlessly.
 
@@ -25,6 +21,15 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 
 ## Configuration
 
+### Install
+
+#### Important points to read before installing
+
+1. **Mastodon** require a dedicated **root domain**, eg. mastodon.domain.tld
+1. The user choosen during the installation is automatically created in Mastodon with admin rights
+1. At the end of the installation a mail is sent to the user with the automatically generated password
+1. It seems important to close the inscriptions for your Mastodon, so that it remains a private body. We invite you to block remote malicious instances from the administration interface. You can also add text on your home page.
+
 #### Adding "swapfile" If you have less than 2Go of RAM
 ```
 sudo dd if=/dev/zero of=/swapfile bs=1024 count=1024000
@@ -37,7 +42,6 @@ add this line on /etc/fstab
 /swapfile       none    swap    sw      0       0
 ```
 
-### Install
 #### Using __screen__ in case of disconnect
 ```
 $ sudo apt-get install screen
@@ -49,18 +53,11 @@ Recover after disconnect:
 $ screen -d
 $ screen -r
 ```
-The admin user is automatically created as: user@domain.tld
-
 ### Update
+
 #### Using __screen__ highly recommended
 
 `$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh --debug `
-
-## Recommendation
-
-You can't install Mastodon in subdirectory, you must use a domain or subdomain for this application.
-
-It seems important to close the inscriptions for your Mastodon, so that it remains a private body. We invite you to block remote malicious instances from the administration interface. You can also add text on your home page.
 
 ## Documentation
 
@@ -86,7 +83,6 @@ It seems important to close the inscriptions for your Mastodon, so that it remai
 Developers info
 ----------------
 
-**Only if you want to use a testing branch for coding, instead of merging directly into master.**
 Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/mastodon_ynh/tree/testing).
 
 To try the testing branch, please proceed like that.
