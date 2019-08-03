@@ -37,9 +37,6 @@ otp_secret=$(ynh_app_setting_get --app=$app --key=otp_secret)
 vapid_private_key=$(ynh_app_setting_get --app=$app --key=vapid_private_key)
 vapid_public_key=$(ynh_app_setting_get --app=$app --key=vapid_public_key)
 
-ldap_user=$(ynh_app_setting_get --app=$app --key=ldap_user)
-ldap_password=$(ynh_app_setting_get --app=$app --key=ldap_password)
-
 #=================================================
 # CHECK VERSION
 #=================================================
@@ -123,16 +120,6 @@ if [[ -z "$vapid_private_key" ]]; then
 	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" ${final_path}/live/.env.production)
 	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
 	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
-fi
-
-# If ldap_user doesn't exist, retrieve it or create it
-if [[ -z "$ldap_user" ]]; then
-	ldap_user="svc_${app}_ldap"
-	ldap_password==$(ynh_string_random --length=8)
-	ynh_app_setting_set "$app" ldap_user "$ldap_user"
-	ynh_app_setting_set "$app" ldap_password "$ldap_password"
-
-	yunohost user create $ldap_user --firstname "SvcMastodonLdap" --lastname "SvcMastodonLdap" --mail ${ldap_user}@$domain --password $ldap_password -q 0
 fi
 
 #Remove previous added repository
@@ -251,9 +238,6 @@ ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret
 
 ynh_replace_string "__VAPID_PRIVATE_KEY__" "$vapid_private_key"        "$final_path/live/.env.production"
 ynh_replace_string "__VAPID_PUBLIC_KEY__" "$vapid_public_key"        "$final_path/live/.env.production"
-
-ynh_replace_string --match_string="__LDAP_USER__" --replace_string="$ldap_user" --target_file="$final_path/live/.env.production"
-ynh_replace_string --match_string="__LDAP_PASSWORD__" --replace_string="$ldap_password" --target_file="$final_path/live/.env.production"
 
 #=================================================
 # UPGRADE MASTODON

@@ -22,7 +22,6 @@ domain=$(ynh_app_setting_get --app=$app --key=domain)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_user=$app
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-ldap_user=$(ynh_app_setting_get --app=$app --key=ldap_user)
 
 #=================================================
 # STANDARD REMOVE
@@ -96,13 +95,6 @@ ynh_remove_nginx_config
 
 #=================================================
 # SPECIFIC REMOVE
-#=================================================
-# REMOVE LDAP USER
-#=================================================
-ynh_script_progression --message="Removing ldap user..." --weight=2
-
-yunohost user delete $ldap_user --purge
-
 #=================================================
 # REMOVE THE CRON FILE
 #=================================================
