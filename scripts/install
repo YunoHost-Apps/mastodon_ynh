@@ -43,8 +43,7 @@ ynh_script_progression --message="Validating installation parameters..." --weigh
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
 
-if [ "$admin" != "package_checker" ]
-then
+if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
 	# TODO : to be factorized into a helper someday ? ;)
 	MEM=$(free | grep "^Mem"  | awk '{print $2}')
 	SWAP=$(free | grep "^Swap" | awk '{print $2}')
