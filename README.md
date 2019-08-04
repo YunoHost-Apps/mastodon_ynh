@@ -8,9 +8,7 @@
 > *This package allow you to install Mastodon quickly and simply on a YunoHost server.  
 If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
 
-:warning: UPDATE 05/06/17 :This app can work now on ARM, but installation takes several hours and you must add a swapfile of 1GB.
-
-:warning: This application uses the Debian backports packages, do not install this application directly in production
+:warning: This app can work now on ARM, but installation takes several hours and you must add a swapfile of 1GB.
 
 ## Overview
 Mastodon is a free, open-source social network. A decentralized alternative to commercial platforms, it avoids the risks of a single company monopolizing your communication. Pick a server that you trust â€” whichever you choose, you can interact with everyone else. Anyone can run their own Mastodon instance and participate in the social network seamlessly.
@@ -20,8 +18,6 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 ## Screenshots
 
 ![](https://framalibre.org/sites/default/files/mastodon.png)
-
-[Source code](https://github.com/tootsuite/mastodon)
 
 ## Configuration
 
@@ -49,7 +45,6 @@ Recover after disconnect:
 $ screen -d
 $ screen -r
 ```
-The admin user is automatically created as: user@domain.tld
 
 ### Update
 #### Using __screen__ highly recommended
@@ -67,6 +62,10 @@ It seems important to close the inscriptions for your Mastodon, so that it remai
  * Official documentation: https://docs.joinmastodon.org/
 
 ## YunoHost specific features
+
+#### Multi-users support
+
+LDAP authentication is activated.
 
 #### Supported architectures
 

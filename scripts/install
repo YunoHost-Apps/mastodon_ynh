@@ -9,7 +9,6 @@
 source _common.sh
 source ynh_install_ruby
 source ynh_add_extra_apt_repos__3
-source ynh_send_readme_to_admin__2
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -35,9 +34,6 @@ language=$YNH_APP_ARG_LANGUAGE
 admin_mail=$(ynh_user_get_info $admin 'mail')
 
 app=$YNH_APP_INSTANCE_NAME
-
-ldap_user="svc_${app}_ldap"
-ldap_password=$(ynh_string_random --length=8)
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
@@ -71,8 +67,6 @@ ynh_app_setting_set --app=$app --key=path --value=$path_url
 ynh_app_setting_set --app=$app --key=admin --value=$admin
 ynh_app_setting_set --app=$app --key=is_public --value=$is_public
 ynh_app_setting_set --app=$app --key=language --value=$language
-ynh_app_setting_set --app=$app --key=ldap_user --value=$ldap_user
-ynh_app_setting_set --app=$app --key=ldap_password --value=$ldap_password
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -140,13 +134,6 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 # SPECIFIC SETUP
 #=================================================
-# CREATING LDAP USER
-#=================================================
-ynh_script_progression --message="Creating LDAP user..." --weight=424
-
-yunohost user create $ldap_user --firstname "SvcMastodonLdap" --lastname "SvcMastodonLdap" --mail ${ldap_user}@$domain --password $ldap_password -q 0
-
-#=================================================
 # INSTALLING RUBY AND BUNDLER
 #=================================================
 ynh_script_progression --message="Installing Ruby..." --weight=424
@@ -182,9 +169,6 @@ otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c
 ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$final_path/live/.env.production"
 ynh_app_setting_set --app="$app" --key=otp_secret --value="$otp_secret"
 
-ynh_replace_string --match_string="__LDAP_USER__" --replace_string="$ldap_user" --target_file="$final_path/live/.env.production"
-ynh_replace_string --match_string="__LDAP_PASSWORD__" --replace_string="$ldap_password" --target_file="$final_path/live/.env.production"
-
 #=================================================
 # INSTALLING MASTODON
 #=================================================
@@ -200,11 +184,8 @@ pushd "$final_path/live"
 	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails db:migrate --quiet
 	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails assets:precompile --quiet
 	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
-	sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > acc.txt
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null 2>&1
 popd
-
-admin_pass=$( tail -1 $final_path/live/acc.txt | head -1 | cut -c 15- )
-ynh_secure_remove --file="$final_path/live/acc.txt"
 
 vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" "$final_path/live/key.txt")
 vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" "$final_path/live/key.txt")
@@ -293,18 +274,6 @@ fi
 ynh_script_progression --message="Reloading nginx web server..." --weight=2
 
 ynh_systemd_action --service_name=nginx --action=reload
-
-#=================================================
-# SEND A README FOR THE ADMIN
-#=================================================
-ynh_script_progression --message="Sending a readme for the admin..." --weight=17
-
-ynh_replace_string --match_string="__ADMIN_MAIL__"    --replace_string="$admin_mail"    --target_file="../conf/message"
-ynh_replace_string --match_string="__ADMIN_PASS__"    --replace_string="$admin_pass"    --target_file="../conf/message"
-ynh_replace_string --match_string="__DOMAIN__"    --replace_string="$domain"    --target_file="../conf/message"
-ynh_replace_string --match_string="__PATH_URL__"    --replace_string="$path_url"    --target_file="../conf/message"
-
-ynh_send_readme_to_admin --app_message="../conf/message" --recipients=$admin_mail --type='install'
 
 #=================================================
 # END OF SCRIPT

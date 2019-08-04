@@ -35,8 +35,6 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_user=$app
 db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
-ldap_user=$(ynh_app_setting_get --app=$app --key=ldap_user)
-ldap_password=$(ynh_app_setting_get --app=$app --key=ldap_password)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
@@ -90,13 +88,6 @@ ynh_script_progression --message="Reinstalling dependencies..." --weight=63
 ynh_install_nodejs --nodejs_version="8"
 ynh_install_app_dependencies $pkg_dependencies	
 ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
-
-#=================================================
-# CREATING LDAP USER
-#=================================================
-ynh_script_progression --message="Creating LDAP user..." --weight=424
-
-yunohost user create $ldap_user --firstname "SvcMastodonLdap" --lastname "SvcMastodonLdap" --mail ${ldap_user}@$domain --password $ldap_password -q 0
 
 #=================================================
 # INSTALLING RUBY AND BUNDLER

@@ -8,9 +8,7 @@
 > *Ce package vous permet d'installer Mastodon rapidement et simplement sur un serveur Yunohost.  
 Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
 
-:warning: MAJ 05/06/17 :Cette application peut maintenant fonctionner sur ARM, mais l'installation prend plusieurs heures et il faut ajouter un swapfile de 1Go.
-
-:warning: Cette application utilise les packages backports de Debian, nous vous recommendons de ne pas installer cette application directement en production
+:warning: Cette application peut maintenant fonctionner sur ARM, mais l'installation prend plusieurs heures et il faut ajouter un swapfile de 1Go.
 
 ## Vue d'ensemble
 Mastodon est un réseau social gratuit et open source. Une alternative décentralisée aux plates-formes commerciales, elle évite les risques d'une seule société qui monopolise votre communication. Choisissez un serveur sur lequel vous faites confiance - selon votre choix, vous pouvez interagir avec tous les autres. N'importe qui peut exécuter sa propre instance de Mastodon et participer au réseau social de façon transparente.
@@ -67,7 +65,11 @@ Il semble important de fermer les inscriptions pour votre Mastodon, pour que Ã�
 
 ## Caractéristiques spécifiques YunoHost
 
-#### Supported architectures
+#### Support multi-utilisateurs
+
+L'authentification LDAP est activée
+
+#### Architectures supportées
 
 * x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/mastodon%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
 * ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/mastodon%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/mastodon/)
