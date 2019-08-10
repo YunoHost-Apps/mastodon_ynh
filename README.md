@@ -30,18 +30,6 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 
 ### Install
 
-#### Adding "swapfile" If you have less than 2Go of RAM
-```
-sudo dd if=/dev/zero of=/swapfile bs=1024 count=1024000
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-```
-add this line on /etc/fstab
-```
-/swapfile       none    swap    sw      0       0
-```
-
 #### Using __screen__ in case of disconnect
 ```
 $ sudo apt-get install screen
