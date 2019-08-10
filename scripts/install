@@ -11,6 +11,7 @@ source ynh_install_ruby
 source ynh_add_extra_apt_repos__3
 source ynh_send_readme_to_admin__2
 source ynh_add_swap
+source ynh_check_ram
 source /usr/share/yunohost/helpers
 
 #=================================================
