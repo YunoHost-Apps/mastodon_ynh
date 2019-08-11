@@ -28,17 +28,6 @@ Mastodon est un réseau social gratuit et open source. Une alternative décentra
 
 ### Installation
 
-#### Ajout d'un "swapfile" si vous avez moins de 2Go de RAM
-```
-sudo dd if=/dev/zero of=/swapfile bs=1024 count=1024000
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-```
-ajouter cette ligne dans /etc/fstab
-```
-/swapfile       none    swap    sw      0       0
-```
 #### Utilisation de __screen__ en cas de dÃ©connection
 ```
 $ sudo apt-get install screen

@@ -9,6 +9,8 @@
 source _common.sh
 source ynh_install_ruby
 source ynh_add_extra_apt_repos__3
+source ynh_add_swap
+source ynh_check_ram
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -205,6 +207,22 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 
 #=================================================
 # SPECIFIC UPGRADE
+#=================================================
+# ADD SWAP IF NEEDED
+#=================================================
+
+total_memory=$(ynh_check_ram)
+total_swap=$(ynh_check_ram --only_swap)
+swap_needed=0
+
+if [ $total_memory -lt 2560 ]; then
+	# Need a minimum of 8Go of memory
+	swap_needed=$((2560 - $total_memory))
+fi
+
+ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
+ynh_add_swap --size=$swap_needed
+
 #=================================================
 # INSTALLING RUBY AND BUNDLER
 #=================================================
