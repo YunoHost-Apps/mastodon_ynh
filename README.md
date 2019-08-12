@@ -11,7 +11,14 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 ## Overview
 Mastodon is a free, open-source social network. A decentralized alternative to commercial platforms, it avoids the risks of a single company monopolizing your communication. Pick a server that you trust â€” whichever you choose, you can interact with everyone else. Anyone can run their own Mastodon instance and participate in the social network seamlessly.
 
-**Shipped version:** 2.9.2
+**Shipped version:** 2.9.3
+
+## Important points to read before installing
+
+1. **Mastodon** require a dedicated **root domain**, eg. mastodon.domain.tld
+1. The user choosen during the installation is automatically created in Mastodon with admin rights
+1. At the end of the installation a mail is sent to the user with the automatically generated password
+1. It seems important to close the inscriptions for your Mastodon, so that it remains a private body. We invite you to block remote malicious instances from the administration interface. You can also add text on your home page.
 
 ## Screenshots
 
@@ -22,25 +29,6 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 ## Configuration
 
 ### Install
-
-#### Important points to read before installing
-
-1. **Mastodon** require a dedicated **root domain**, eg. mastodon.domain.tld
-1. The user choosen during the installation is automatically created in Mastodon with admin rights
-1. At the end of the installation a mail is sent to the user with the automatically generated password
-1. It seems important to close the inscriptions for your Mastodon, so that it remains a private body. We invite you to block remote malicious instances from the administration interface. You can also add text on your home page.
-
-#### Adding "swapfile" If you have less than 2Go of RAM
-```
-sudo dd if=/dev/zero of=/swapfile bs=1024 count=1024000
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-```
-add this line on /etc/fstab
-```
-/swapfile       none    swap    sw      0       0
-```
 
 #### Using __screen__ in case of disconnect
 ```
