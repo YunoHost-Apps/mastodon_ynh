@@ -7,7 +7,7 @@
 #=================================================
 
 source _common.sh
-source ynh_install_ruby
+source ynh_install_ruby__2
 source ynh_add_extra_apt_repos__3
 source ynh_add_swap
 source ynh_check_ram
@@ -228,9 +228,9 @@ ynh_add_swap --size=$swap_needed
 #=================================================
 ynh_script_progression --message="Installing Ruby..." --weight=424
 
-ynh_install_ruby --ruby_version=2.6.1
-/opt/rbenv/versions/2.6.1/bin/gem update --system
-#/opt/rbenv/versions/2.6.1/bin/gem install bundler
+ynh_install_ruby --ruby_version=2.6.5
+/opt/rbenv/versions/2.6.5/bin/gem update --system
+#/opt/rbenv/versions/2.6.5/bin/gem install bundler
 
 #=================================================
 # MODIFY A CONFIG FILE
@@ -267,14 +267,14 @@ chown -R "$app": "$final_path"
 pushd "$final_path/live"
     ynh_use_nodejs
         if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.1/bin/bundle install --deployment --without development test
+	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.5/bin/bundle install --deployment --without development test
         else
-	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.1/bin/bundle install --deployment --force --without development test
+	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.5/bin/bundle install --deployment --force --without development test
         fi
         sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails assets:clean
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails assets:precompile
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails db:migrate
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails assets:clean
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails assets:precompile
+        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails db:migrate
         sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl cache clear
 popd
 
