@@ -79,6 +79,9 @@ ynh_install_ruby () {
   if ! type rbenv > /dev/null 2>&1
   then
     ynh_install_rbenv
+  elif dpkg --compare-versions "$(/opt/rbenv/bin/rbenv --version | cut -d" " -f2)" lt "1.1.2"
+  then
+    ynh_install_rbenv
   fi
 
   # Restore /usr/local/bin in PATH (if needed)
