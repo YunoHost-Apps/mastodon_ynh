@@ -199,8 +199,8 @@ popd
 admin_pass=$( tail -1 $final_path/live/acc.txt | head -1 | cut -c 15- )
 ynh_secure_remove --file="$final_path/live/acc.txt"
 
-vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" "$final_path/live/key.txt")
-vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" "$final_path/live/key.txt")
+vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")
+vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
 
 ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key"        --target_file="${final_path}/live/.env.production"
 ynh_replace_string --match_string="__VAPID_PUBLIC_KEY__" --replace_string="$vapid_public_key"        --target_file="${final_path}/live/.env.production"
