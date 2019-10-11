@@ -7,7 +7,7 @@
 #=================================================
 
 source _common.sh
-source ynh_install_ruby
+source ynh_install_ruby__2
 source ynh_add_extra_apt_repos__3
 source ynh_send_readme_to_admin__2
 source ynh_add_swap
@@ -96,6 +96,7 @@ ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
 ynh_psql_test_if_first_run
 ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
+ynh_psql_execute_as_root --sql="ALTER USER $db_user CREATEDB;"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -146,9 +147,9 @@ ynh_add_swap --size=$swap_needed
 #=================================================
 ynh_script_progression --message="Installing Ruby..." --weight=424
 
-ynh_install_ruby --ruby_version=2.6.1
-/opt/rbenv/versions/2.6.1/bin/gem update --system
-#/opt/rbenv/versions/2.6.1/bin/gem install bundler --no-document
+ynh_install_ruby --ruby_version=2.6.5
+/opt/rbenv/versions/2.6.5/bin/gem update --system
+#/opt/rbenv/versions/2.6.5/bin/gem install bundler --no-document
 
 #=================================================
 # MODIFY A CONFIG FILE
@@ -186,20 +187,20 @@ chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
 	ynh_use_nodejs
-	sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.1/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test
+	sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.5/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test
 	sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
 	sudo -u "$app" echo "SAFETY_ASSURED=1">> .env.production
-	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails db:migrate --quiet
-	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails assets:precompile --quiet
-	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails db:setup --quiet
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails assets:precompile --quiet
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
 	sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > acc.txt
 popd
 
 admin_pass=$( tail -1 $final_path/live/acc.txt | head -1 | cut -c 15- )
 ynh_secure_remove --file="$final_path/live/acc.txt"
 
-vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" "$final_path/live/key.txt")
-vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" "$final_path/live/key.txt")
+vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")
+vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
 
 ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key"        --target_file="${final_path}/live/.env.production"
 ynh_replace_string --match_string="__VAPID_PUBLIC_KEY__" --replace_string="$vapid_public_key"        --target_file="${final_path}/live/.env.production"

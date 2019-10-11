@@ -8,7 +8,7 @@
 
 #Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
-source ../settings/scripts/ynh_install_ruby
+source ../settings/scripts/ynh_install_ruby__2
 source ../settings/scripts/ynh_add_extra_apt_repos__3
 source ../settings/scripts/ynh_add_swap
 source ../settings/scripts/ynh_check_ram
@@ -112,8 +112,8 @@ ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ st
 #=================================================
 ynh_script_progression --message="Installing Ruby..." --weight=393
 
-ynh_install_ruby --ruby_version=2.6.1
-/opt/rbenv/versions/2.6.1/bin/gem update --system
+ynh_install_ruby --ruby_version=2.6.5
+/opt/rbenv/versions/2.6.5/bin/gem update --system
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
@@ -122,6 +122,7 @@ ynh_script_progression --message="Restoring the PostgreSQL database..." --weight
 
 ynh_psql_test_if_first_run
 ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
+ynh_psql_execute_as_root --sql="ALTER USER $db_user CREATEDB;"
 ynh_psql_execute_file_as_root --file="./db.sql" --database="$db_name"
 
 #=================================================
