@@ -169,13 +169,18 @@ then
     ynh_script_progression --message="Upgrading source files..." --weight=14
 
     # Download Mastodon
-    mv "$final_path/live" "$final_path/live_back"
+    tmpdir="$(mktemp -d)"
+
+    mkdir $tmpdir/system
+    rsync -a "$final_path/live/public/system" "$tmpdir/."
+    rsync -a "$final_path/live/.env.production" "$tmpdir/."
+    ynh_secure_remove --file="$final_path/live/"
     ynh_setup_source --dest_dir="$final_path/live"
-    if [ -d "$final_path/live_back/public/system" ]; then
-	    rsync -a "$final_path/live_back/public/system" "$final_path/live/public/."
+    if [ -d "$tmpdir/system" ]; then
+	    rsync -a "$tmpdir/system" "$final_path/live/public/."
     fi
-    rsync -a "$final_path/live_back/.env.production" "$final_path/live/."
-    ynh_secure_remove --file="$final_path/live_back/"
+    rsync -a "$tmpdir/.env.production" "$final_path/live/."
+    ynh_secure_remove --file="$tmpdir/"
 
     # Clean files which are not needed anymore
     ynh_secure_remove --file="$final_path/live/config/initializers/timeout.rb"
