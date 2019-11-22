@@ -172,7 +172,9 @@ then
     tmpdir="$(mktemp -d)"
 
     mkdir $tmpdir/system
-    rsync -a "$final_path/live/public/system" "$tmpdir/."
+    if [ -d "$final_path/live/public/system" ]; then
+	    rsync -a "$final_path/live/public/system" "$tmpdir/."
+    fi    
     rsync -a "$final_path/live/.env.production" "$tmpdir/."
     ynh_secure_remove --file="$final_path/live/"
     ynh_setup_source --dest_dir="$final_path/live"
