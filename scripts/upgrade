@@ -200,7 +200,8 @@ ynh_add_nginx_config 'port_web port_stream'
 #=================================================
 ynh_script_progression --message="Upgrading dependencies..." --weight=24
 
-ynh_install_nodejs --nodejs_version="8"
+ynh_remove_nodejs
+ynh_install_nodejs --nodejs_version="10"
 ynh_install_app_dependencies $pkg_dependencies	
 ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 
@@ -273,16 +274,12 @@ chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
     ynh_use_nodejs
-        if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.5/bin/bundle install --deployment --without development test
-        else
-	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.5/bin/bundle install --deployment --force --without development test
-        fi
-        sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails assets:clean
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails assets:precompile
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails db:migrate
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl cache clear
+    sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.5/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test
+    sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails assets:clean
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails assets:precompile
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails db:migrate
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl cache clear
 popd
 
 # If vapid_private_key doesn't exist, retrieve it or create it
