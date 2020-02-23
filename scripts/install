@@ -254,9 +254,9 @@ ynh_script_progression --message="Securing files and directories..." --weight=9
 chown -R "$app": "$final_path"
 
 #=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-ynh_script_progression --message="Advertising service in admin panel..." --weight=3
+ynh_script_progression --message="Integrating service in YunoHost..." --weight=3
 
 yunohost service add "$app-web"
 yunohost service add "$app-sidekiq"
