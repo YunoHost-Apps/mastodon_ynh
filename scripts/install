@@ -93,7 +93,7 @@ ynh_script_progression --message="Creating a PostgreSQL database..." --weight=5
 # Create postgresql database
 db_name="${app}_production"
 db_user=$app
-db_pwd=$(ynh_string_random --length30)
+db_pwd=$(ynh_string_random --length=30)
 ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
 ynh_psql_test_if_first_run
