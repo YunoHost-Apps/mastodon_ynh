@@ -42,6 +42,7 @@ vapid_public_key=$(ynh_app_setting_get --app=$app --key=vapid_public_key)
 #=================================================
 # CHECK VERSION
 #=================================================
+ynh_script_progression --message="Checking version..." --weight=1
 
 upgrade_type=$(ynh_check_app_version_changed)
 
@@ -147,6 +148,11 @@ ynh_abort_if_errors
 #=================================================
 
 # Normalize the URL path syntax
+# N.B. : this is for app installations before YunoHost 2.7
+# where this value might be something like /foo/ or foo/
+# instead of /foo ....
+# If nobody installed your app before 2.7, then you may
+# safely remove this line
 path_url=$(ynh_normalize_url_path --path_url=$path_url)
 
 #=================================================
@@ -218,6 +224,7 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
+ynh_script_progression --message="Adding swap if needed..." --weight=7
 
 total_memory=$(ynh_check_ram)
 total_swap=$(ynh_check_ram --only_swap)

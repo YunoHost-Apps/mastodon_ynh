@@ -17,6 +17,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
+ynh_script_progression --message="Managing script failure..." --weight=2
 
 ynh_clean_setup () {
 	ynh_clean_check_starting
@@ -85,6 +86,7 @@ chown -R $app: $final_path
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
+ynh_script_progression --message="Adding swap if needed..." --weight=4
 
 total_memory=$(ynh_check_ram)
 total_swap=$(ynh_check_ram --only_swap)
@@ -137,9 +139,9 @@ ynh_restore_file --origin_path="/etc/systemd/system/$app-streaming.service"
 systemctl enable "$app-web" "$app-sidekiq" "$app-streaming"
 
 #=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-ynh_script_progression --message="Advertising service in admin panel..." --weight=3
+ynh_script_progression --message="Integrating service in YunoHost..." --weight=3
 
 yunohost service add $app-web
 yunohost service add $app-sidekiq
