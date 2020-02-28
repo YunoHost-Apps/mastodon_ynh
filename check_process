@@ -12,20 +12,6 @@
 		setup_private=0
 		setup_public=1
 		upgrade=1
-		# 2.7.4
-		upgrade=1	from_commit=2987ccf8b3aa393dbef79b874dfe5839a0ee10da
-		# 2.8.2
-		upgrade=1	from_commit=2697b734a663bd828d609d3626552611995e6c07
-		# 2.8.3
-		upgrade=1	from_commit=19299ae680dc851f03a37d49f4e80ca8521e615f
-		# 2.8.4
-		upgrade=1	from_commit=a25e4569c8341ec94a39a57aaccad86379c8a630
-		# 2.9.0
-		upgrade=1	from_commit=8d0d3ea6611d788635251379e4a51d566b19d8db
-		# 2.9.2
-		upgrade=1	from_commit=1ec1d44c6ed1daa5887367700f077286355a184f
-		# 2.9.3
-		upgrade=1	from_commit=b9086682d2d7762d2882fff2cda4f5dceb73e32b
 		# 3.0.1
 		upgrade=1	from_commit=168573d3d7dcc4306691f21d5b64819d1f6dd38c
 		# 3.1.1
