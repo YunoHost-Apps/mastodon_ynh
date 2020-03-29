@@ -17,6 +17,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
+ynh_script_progression --message="Managing script failure..." --weight=1
 
 ynh_clean_setup () {
 	ynh_clean_check_starting
@@ -27,6 +28,7 @@ ynh_abort_if_errors
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
+ynh_script_progression --message="Retrieving arguments from the manifest..." --weight=1
 
 domain=$YNH_APP_ARG_DOMAIN
 path_url="/"
@@ -67,7 +69,7 @@ ynh_app_setting_set --app=$app --key=language --value=$language
 #=================================================
 ynh_script_progression --message="Configuring firewall..." --weight=1
 
-# Find a free port
+# Find an available port
 port_web=$(ynh_find_port --port=3000)
 port_stream=$(ynh_find_port --port=4000)
 # Open this port
@@ -91,7 +93,7 @@ ynh_script_progression --message="Creating a PostgreSQL database..." --weight=5
 # Create postgresql database
 db_name="${app}_production"
 db_user=$app
-db_pwd=$(ynh_string_random 30)
+db_pwd=$(ynh_string_random --length=30)
 ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
 ynh_psql_test_if_first_run
@@ -107,6 +109,9 @@ ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
 mkdir $final_path
 ynh_setup_source  --dest_dir="$final_path/live"
+
+# Temporary workaround for https://github.com/tootsuite/mastodon/issues/13292
+ynh_replace_string --match_string="sidekiq-unique-jobs (6.0.18)" --replace_string="sidekiq-unique-jobs (6.0.20)" --target_file="$final_path/live/Gemfile.lock"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -129,6 +134,7 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
+ynh_script_progression --message="Adding swap is needed..." --weight=4
 
 total_memory=$(ynh_check_ram)
 total_swap=$(ynh_check_ram --only_swap)
@@ -251,9 +257,9 @@ ynh_script_progression --message="Securing files and directories..." --weight=9
 chown -R "$app": "$final_path"
 
 #=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-ynh_script_progression --message="Advertising service in admin panel..." --weight=3
+ynh_script_progression --message="Integrating service in YunoHost..." --weight=3
 
 yunohost service add "$app-web"
 yunohost service add "$app-sidekiq"
