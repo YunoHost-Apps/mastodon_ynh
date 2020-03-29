@@ -7,13 +7,17 @@
 #=================================================
 
 source _common.sh
-source ynh_install_ruby
+source ynh_install_ruby__2
 source ynh_add_extra_apt_repos__3
+source ynh_send_readme_to_admin__2
+source ynh_add_swap
+source ynh_check_ram
 source /usr/share/yunohost/helpers
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
+ynh_script_progression --message="Managing script failure..." --weight=1
 
 ynh_clean_setup () {
 	ynh_clean_check_starting
@@ -24,6 +28,7 @@ ynh_abort_if_errors
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
+ynh_script_progression --message="Retrieving arguments from the manifest..." --weight=1
 
 domain=$YNH_APP_ARG_DOMAIN
 path_url="/"
@@ -42,16 +47,6 @@ ynh_script_progression --message="Validating installation parameters..." --weigh
 
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
-
-if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
-	# TODO : to be factorized into a helper someday ? ;)
-	MEM=$(free | grep "^Mem"  | awk '{print $2}')
-	SWAP=$(free | grep "^Swap" | awk '{print $2}')
-	TOTAL_MEM_AND_SWAP=$(( ( $MEM+$SWAP ) / 1024 )) # In MB
-
-	[[ $TOTAL_MEM_AND_SWAP -gt 2500 ]] || ynh_die "You need at least 2500 Mo of RAM+Swap to install Mastodon. Please consult the README to learn how to add swap."
-
-fi
 
 # Register (book) web path
 ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
@@ -74,7 +69,7 @@ ynh_app_setting_set --app=$app --key=language --value=$language
 #=================================================
 ynh_script_progression --message="Configuring firewall..." --weight=1
 
-# Find a free port
+# Find an available port
 port_web=$(ynh_find_port --port=3000)
 port_stream=$(ynh_find_port --port=4000)
 # Open this port
@@ -86,7 +81,7 @@ ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
 #=================================================
 ynh_script_progression --message="Installing dependencies..." --weight=86
 
-ynh_install_nodejs --nodejs_version="8"
+ynh_install_nodejs --nodejs_version="10"
 ynh_install_app_dependencies $pkg_dependencies	
 ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 
@@ -98,11 +93,12 @@ ynh_script_progression --message="Creating a PostgreSQL database..." --weight=5
 # Create postgresql database
 db_name="${app}_production"
 db_user=$app
-db_pwd=$(ynh_string_random 30)
+db_pwd=$(ynh_string_random --length=30)
 ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
 ynh_psql_test_if_first_run
 ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
+ynh_psql_execute_as_root --sql="ALTER USER $db_user CREATEDB;"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -113,6 +109,9 @@ ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
 mkdir $final_path
 ynh_setup_source  --dest_dir="$final_path/live"
+
+# Temporary workaround for https://github.com/tootsuite/mastodon/issues/13292
+ynh_replace_string --match_string="sidekiq-unique-jobs (6.0.18)" --replace_string="sidekiq-unique-jobs (6.0.20)" --target_file="$final_path/live/Gemfile.lock"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -133,13 +132,30 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 # SPECIFIC SETUP
 #=================================================
+# ADD SWAP IF NEEDED
+#=================================================
+ynh_script_progression --message="Adding swap is needed..." --weight=4
+
+total_memory=$(ynh_check_ram)
+total_swap=$(ynh_check_ram --only_swap)
+swap_needed=0
+
+if [ $total_memory -lt 2560 ]; then
+	# Need a minimum of 8Go of memory
+	swap_needed=$((2560 - $total_memory))
+fi
+
+ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
+ynh_add_swap --size=$swap_needed
+
+#=================================================
 # INSTALLING RUBY AND BUNDLER
 #=================================================
 ynh_script_progression --message="Installing Ruby..." --weight=424
 
-ynh_install_ruby --ruby_version=2.6.1
-/opt/rbenv/versions/2.6.1/bin/gem update --system
-#/opt/rbenv/versions/2.6.1/bin/gem install bundler --no-document
+ynh_install_ruby --ruby_version=2.6.5
+/opt/rbenv/versions/2.6.5/bin/gem update --system
+/opt/rbenv/versions/2.6.5/bin/gem install bundler:1.17.3 --no-document
 
 #=================================================
 # MODIFY A CONFIG FILE
@@ -177,17 +193,20 @@ chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
 	ynh_use_nodejs
-	sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.1/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test
+	sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.5/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test
 	sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
 	sudo -u "$app" echo "SAFETY_ASSURED=1">> .env.production
-	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails db:migrate --quiet
-	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails assets:precompile --quiet
-	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
-	sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null 2>&1
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails db:setup --quiet
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails assets:precompile --quiet
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
+	sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > acc.txt
 popd
 
-vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" "$final_path/live/key.txt")
-vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" "$final_path/live/key.txt")
+admin_pass=$( tail -1 $final_path/live/acc.txt | head -1 | cut -c 15- )
+ynh_secure_remove --file="$final_path/live/acc.txt"
+
+vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")
+vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
 
 ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key"        --target_file="${final_path}/live/.env.production"
 ynh_replace_string --match_string="__VAPID_PUBLIC_KEY__" --replace_string="$vapid_public_key"        --target_file="${final_path}/live/.env.production"
@@ -238,9 +257,9 @@ ynh_script_progression --message="Securing files and directories..." --weight=9
 chown -R "$app": "$final_path"
 
 #=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-ynh_script_progression --message="Advertising service in admin panel..." --weight=3
+ynh_script_progression --message="Integrating service in YunoHost..." --weight=3
 
 yunohost service add "$app-web"
 yunohost service add "$app-sidekiq"

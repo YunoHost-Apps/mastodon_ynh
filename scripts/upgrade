@@ -7,8 +7,10 @@
 #=================================================
 
 source _common.sh
-source ynh_install_ruby
+source ynh_install_ruby__2
 source ynh_add_extra_apt_repos__3
+source ynh_add_swap
+source ynh_check_ram
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -40,6 +42,7 @@ vapid_public_key=$(ynh_app_setting_get --app=$app --key=vapid_public_key)
 #=================================================
 # CHECK VERSION
 #=================================================
+ynh_script_progression --message="Checking version..." --weight=1
 
 upgrade_type=$(ynh_check_app_version_changed)
 
@@ -116,8 +119,8 @@ fi
 
 # If vapid_private_key doesn't exist, retrieve it or create it
 if [[ -z "$vapid_private_key" ]]; then
-	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" ${final_path}/live/.env.production)
-	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" ${final_path}/live/.env.production)
+	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" ${final_path}/live/.env.production)
+	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" ${final_path}/live/.env.production)
 	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
 	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
 fi
@@ -145,6 +148,11 @@ ynh_abort_if_errors
 #=================================================
 
 # Normalize the URL path syntax
+# N.B. : this is for app installations before YunoHost 2.7
+# where this value might be something like /foo/ or foo/
+# instead of /foo ....
+# If nobody installed your app before 2.7, then you may
+# safely remove this line
 path_url=$(ynh_normalize_url_path --path_url=$path_url)
 
 #=================================================
@@ -167,13 +175,24 @@ then
     ynh_script_progression --message="Upgrading source files..." --weight=14
 
     # Download Mastodon
-    mv "$final_path/live" "$final_path/live_back"
+    tmpdir="$(mktemp -d)"
+
+    mkdir $tmpdir/system
+    if [ -d "$final_path/live/public/system" ]; then
+	    rsync -a "$final_path/live/public/system" "$tmpdir/."
+    fi    
+    rsync -a "$final_path/live/.env.production" "$tmpdir/."
+    ynh_secure_remove --file="$final_path/live/"
     ynh_setup_source --dest_dir="$final_path/live"
-    if [ -d "$final_path/live_back/public/system" ]; then
-	    rsync -a "$final_path/live_back/public/system" "$final_path/live/public/."
+
+    # Temporary workaround for https://github.com/tootsuite/mastodon/issues/13292
+    ynh_replace_string --match_string="sidekiq-unique-jobs (6.0.18)" --replace_string="sidekiq-unique-jobs (6.0.20)" --target_file="$final_path/live/Gemfile.lock"
+    
+    if [ -d "$tmpdir/system" ]; then
+	    rsync -a "$tmpdir/system" "$final_path/live/public/."
     fi
-    rsync -a "$final_path/live_back/.env.production" "$final_path/live/."
-    ynh_secure_remove --file="$final_path/live_back/"
+    rsync -a "$tmpdir/.env.production" "$final_path/live/."
+    ynh_secure_remove --file="$tmpdir/"
 
     # Clean files which are not needed anymore
     ynh_secure_remove --file="$final_path/live/config/initializers/timeout.rb"
@@ -191,7 +210,8 @@ ynh_add_nginx_config 'port_web port_stream'
 #=================================================
 ynh_script_progression --message="Upgrading dependencies..." --weight=24
 
-ynh_install_nodejs --nodejs_version="8"
+ynh_remove_nodejs
+ynh_install_nodejs --nodejs_version="10"
 ynh_install_app_dependencies $pkg_dependencies	
 ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 
@@ -206,13 +226,30 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 # SPECIFIC UPGRADE
 #=================================================
+# ADD SWAP IF NEEDED
+#=================================================
+ynh_script_progression --message="Adding swap if needed..." --weight=7
+
+total_memory=$(ynh_check_ram)
+total_swap=$(ynh_check_ram --only_swap)
+swap_needed=0
+
+if [ $total_memory -lt 2560 ]; then
+	# Need a minimum of 8Go of memory
+	swap_needed=$((2560 - $total_memory))
+fi
+
+ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
+ynh_add_swap --size=$swap_needed
+
+#=================================================
 # INSTALLING RUBY AND BUNDLER
 #=================================================
 ynh_script_progression --message="Installing Ruby..." --weight=424
 
-ynh_install_ruby --ruby_version=2.6.1
-/opt/rbenv/versions/2.6.1/bin/gem update --system
-#/opt/rbenv/versions/2.6.1/bin/gem install bundler
+ynh_install_ruby --ruby_version=2.6.5
+/opt/rbenv/versions/2.6.5/bin/gem update --system
+/opt/rbenv/versions/2.6.5/bin/gem install bundler:1.17.3 --no-document
 
 #=================================================
 # MODIFY A CONFIG FILE
@@ -248,23 +285,19 @@ chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
     ynh_use_nodejs
-        if [ "$(lsb_release --codename --short)" == "jessie" ]; then
-	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.1/bin/bundle install --deployment --without development test
-        else
-	        sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.1/bin/bundle install --deployment --force --without development test
-        fi
-        sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails assets:clean
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails assets:precompile
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.1/bin/bundle exec rails db:migrate
-        sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl cache clear
+    sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.5/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test
+    sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails assets:clean
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails assets:precompile
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails db:migrate
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl cache clear
 popd
 
 # If vapid_private_key doesn't exist, retrieve it or create it
 #if [[ -z "$vapid_private_key" ]]; then
 #	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
-#	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K\w+" "$final_path/live/key.txt")
-#	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K\w+" "$final_path/live/key.txt")
+#	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")
+#	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
 #	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
 #	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
 #	ynh_secure_remove "$final_path/live/key.txt"

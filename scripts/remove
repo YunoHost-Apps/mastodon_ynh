@@ -7,8 +7,9 @@
 #=================================================
 
 source _common.sh
-source ynh_install_ruby
+source ynh_install_ruby__2
 source ynh_add_extra_apt_repos__3
+source ynh_add_swap
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -26,23 +27,24 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 #=================================================
 # STANDARD REMOVE
 #=================================================
-# REMOVE SERVICE FROM ADMIN PANEL
+# REMOVE SERVICE INTEGRATION IN YUNOHOST
 #=================================================
+ynh_script_progression --message="Removing service integration in YunoHost..." --weight=2
 
-# Remove a service from the admin panel, added by `yunohost service add`
-if yunohost service status "$app-web" >/dev/null 2>&1
+# Remove the service from the list of services known by Yunohost (added from `yunohost service add`)
+if ynh_exec_warn_less yunohost service status "$app-web" >/dev/null
 then
 	ynh_script_progression --message="Removing $app-web service..." --weight=2
 	yunohost service remove "$app-web"
 fi
 
-if yunohost service status "$app-sidekiq" >/dev/null 2>&1
+if ynh_exec_warn_less yunohost service status "$app-sidekiq" >/dev/null
 then
 	ynh_script_progression --message="Removing $app-sidekiq service..." --weight=2
 	yunohost service remove "$app-sidekiq"
 fi
 
-if yunohost service status "$app-streaming" >/dev/null 2>&1
+if ynh_exec_warn_less yunohost service status "$app-streaming" >/dev/null
 then
 	ynh_script_progression --message="Removing $app-streaming service..." --weight=2
 	yunohost service remove "$app-streaming"
@@ -98,9 +100,13 @@ ynh_remove_nginx_config
 #=================================================
 # REMOVE THE CRON FILE
 #=================================================
+ynh_script_progression --message="Removing the cron file..." --weight=2
 
 # Remove a cron file
 ynh_secure_remove --file="/etc/cron.d/$app"
+
+# Remove swap
+ynh_del_swap
 
 #=================================================
 # GENERIC FINALIZATION
