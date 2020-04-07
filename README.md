@@ -11,7 +11,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 ## Overview
 Mastodon is a free, open-source social network. A decentralized alternative to commercial platforms, it avoids the risks of a single company monopolizing your communication. Pick a server that you trust â€” whichever you choose, you can interact with everyone else. Anyone can run their own Mastodon instance and participate in the social network seamlessly.
 
-**Shipped version:** 3.1.2
+**Shipped version:** 3.1.3
 
 ## Important points to read before installing
 

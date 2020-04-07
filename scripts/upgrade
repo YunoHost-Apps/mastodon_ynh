@@ -185,9 +185,6 @@ then
     ynh_secure_remove --file="$final_path/live/"
     ynh_setup_source --dest_dir="$final_path/live"
 
-    # Temporary workaround for https://github.com/tootsuite/mastodon/issues/13292
-    ynh_replace_string --match_string="sidekiq-unique-jobs (6.0.18)" --replace_string="sidekiq-unique-jobs (6.0.20)" --target_file="$final_path/live/Gemfile.lock"
-    
     if [ -d "$tmpdir/system" ]; then
 	    rsync -a "$tmpdir/system" "$final_path/live/public/."
     fi

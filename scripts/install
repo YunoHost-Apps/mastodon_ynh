@@ -110,9 +110,6 @@ ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 mkdir $final_path
 ynh_setup_source  --dest_dir="$final_path/live"
 
-# Temporary workaround for https://github.com/tootsuite/mastodon/issues/13292
-ynh_replace_string --match_string="sidekiq-unique-jobs (6.0.18)" --replace_string="sidekiq-unique-jobs (6.0.20)" --target_file="$final_path/live/Gemfile.lock"
-
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
