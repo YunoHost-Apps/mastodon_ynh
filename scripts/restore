@@ -114,9 +114,9 @@ ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ st
 #=================================================
 ynh_script_progression --message="Installing Ruby..." --weight=393
 
-ynh_install_ruby --ruby_version=2.6.5
-/opt/rbenv/versions/2.6.5/bin/gem update --system
-/opt/rbenv/versions/2.6.5/bin/gem install bundler:1.17.3 --no-document
+ynh_install_ruby --ruby_version=2.6.6
+/opt/rbenv/versions/2.6.6/bin/gem update --system
+/opt/rbenv/versions/2.6.6/bin/gem install bundler:1.17.3 --no-document
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE

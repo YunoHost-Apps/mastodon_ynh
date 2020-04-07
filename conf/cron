@@ -1,2 +1,2 @@
 RAILS_ENV=production
-@daily cd __FINAL__PATH__/live && /opt/rbenv/versions/2.6.5/bin/bundle exec rake __USER__:media:remove_remote
+@daily cd __FINAL__PATH__/live && /opt/rbenv/versions/2.6.6/bin/bundle exec rake __USER__:media:remove_remote
