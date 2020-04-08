@@ -54,7 +54,7 @@ $ screen -r
 
 #### Multi-users support
 
-LDAP authentication is activated.
+LDAP authentication is activated. All YunoHost users can authenticate.
 
 #### Supported architectures
 

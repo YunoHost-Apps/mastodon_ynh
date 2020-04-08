@@ -55,7 +55,7 @@ L'utilisateur admin est crÃ©e automatiquement comme: user@domain.tld
 
 #### Support multi-utilisateurs
 
-L'authentification LDAP est activée
+L'authentification LDAP est activée. Tous les utilisateurs YunoHost peuvent s'authentifier.
 
 #### Architectures supportées
 
