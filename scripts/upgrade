@@ -240,13 +240,11 @@ ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
 ynh_add_swap --size=$swap_needed
 
 #=================================================
-# INSTALLING RUBY AND BUNDLER
+# INSTALLING RUBY
 #=================================================
 ynh_script_progression --message="Installing Ruby..." --weight=424
 
-ynh_install_ruby --ruby_version=2.6.6
-/opt/rbenv/versions/2.6.6/bin/gem update --system
-/opt/rbenv/versions/2.6.6/bin/gem install bundler:1.17.3 --no-document
+ynh_install_ruby --ruby_version=$RUBY_VERSION
 
 #=================================================
 # MODIFY A CONFIG FILE
@@ -282,11 +280,15 @@ chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
     ynh_use_nodejs
-    sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.6/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test
+    gem update --system
+    gem install bundler --no-document
+	sudo -u "$app" env PATH=$PATH bundle config set deployment 'true'
+	sudo -u "$app" env PATH=$PATH bundle config set without 'development test'
+	sudo -u "$app" env PATH=$PATH bundle install -j$(getconf _NPROCESSORS_ONLN)
     sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
-    sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.6/bin/bundle exec rails assets:clean
-    sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.6/bin/bundle exec rails assets:precompile
-    sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.6/bin/bundle exec rails db:migrate
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production bundle exec rails assets:clean
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production bundle exec rails assets:precompile
+    sudo -u "$app" env PATH=$PATH RAILS_ENV=production bundle exec rails db:migrate
     sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl cache clear
 popd
 
@@ -311,6 +313,7 @@ ynh_store_file_checksum --file="${final_path}/live/.env.production"
 ynh_script_progression --message="Setuping a cron job for removing cache..." --weight=1
 
 ynh_replace_string --match_string="__FINAL_PATH__" --replace_string="$final_path" --target_file="../conf/cron"
+ynh_replace_string --match_string="__RBENVROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/cron"
 ynh_replace_string --match_string="__USER__" --replace_string="$app"  --target_file="../conf/cron"
 sudo cp -f ../conf/cron /etc/cron.d/$app 
 
@@ -321,6 +324,8 @@ ynh_script_progression --message="Upgrading systemd configuration..." --weight=1
 
 # Create a dedicated systemd config
 ynh_replace_string --match_string="__PORT_WEB__"    --replace_string="$port_web"    --target_file="../conf/mastodon-web.service"
+ynh_replace_string --match_string="__RBENVROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/mastodon-web.service"
+ynh_replace_string --match_string="__RBENVROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/mastodon-sidekiq.service"
 ynh_replace_string --match_string="__PORT_STREAM__" --replace_string="$port_stream" --target_file="../conf/mastodon-streaming.service"
 ynh_replace_string --match_string="__NODEJS_PATH__" --replace_string="$nodejs_path" --target_file="../conf/mastodon-streaming.service"
 ynh_add_systemd_config --service="$app-web"       --template="mastodon-web.service"

@@ -94,7 +94,7 @@ ynh_install_ruby () {
   test -x /usr/bin/ruby_rbenv && mv /usr/bin/ruby_rbenv /usr/bin/ruby
 
   # Install the requested version of ruby
-  CONFIGURE_OPTS="--disable-install-doc" MAKE_OPTS="-j2" rbenv install --skip-existing $ruby_version
+  CONFIGURE_OPTS="--disable-install-doc --with-jemalloc" MAKE_OPTS="-j2" rbenv install --skip-existing $ruby_version
 
   # Store the ID of this app and the version of ruby requested for it
   echo "$YNH_APP_ID:$ruby_version" | tee --append "$rbenv_install_dir/ynh_app_version"
