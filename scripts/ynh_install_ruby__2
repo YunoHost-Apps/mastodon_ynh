@@ -22,8 +22,8 @@ SOURCE_SUM=80ad89ffe04c0b481503bd375f05c212bbc7d44ef5f5e649e0acdf25eba86736" > "
 
   # Build an app.src for ruby-build
   mkdir -p "../conf"
-  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20191004.tar.gz
-SOURCE_SUM=6f053957acb0af6d621ebf2b9dacc9c265844b2dc6842a021eb10f0a70094fe8" > "../conf/ruby-build.src"
+  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20200401.tar.gz
+SOURCE_SUM=c67517e8c6b015134b1ae4b19a5a15728054a642fad7223cd28af3ba4cc1828e" > "../conf/ruby-build.src"
   # Download and extract ruby-build
   ynh_setup_source "$rbenv_install_dir/plugins/ruby-build" ruby-build
 
@@ -79,7 +79,10 @@ ynh_install_ruby () {
   if ! type rbenv > /dev/null 2>&1
   then
     ynh_install_rbenv
-  elif dpkg --compare-versions "$(/opt/rbenv/bin/rbenv --version | cut -d" " -f2)" lt "1.1.2"
+  elif dpkg --compare-versions "$($rbenv_install_dir/bin/rbenv --version | cut -d" " -f2)" lt "1.1.2"
+  then
+    ynh_install_rbenv
+  elif dpkg --compare-versions "$($rbenv_install_dir/plugins/ruby-build/bin/ruby-build --version | cut -d" " -f2)" lt "20200401"
   then
     ynh_install_rbenv
   fi
