@@ -24,8 +24,6 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 
 ![](https://framalibre.org/sites/default/files/mastodon.png)
 
-[Source code](https://github.com/tootsuite/mastodon)
-
 ## Configuration
 
 ### Install
@@ -41,6 +39,7 @@ Recover after disconnect:
 $ screen -d
 $ screen -r
 ```
+
 ### Update
 
 #### Using __screen__ highly recommended
@@ -52,6 +51,10 @@ $ screen -r
  * Official documentation: https://docs.joinmastodon.org/
 
 ## YunoHost specific features
+
+#### Multi-users support
+
+LDAP authentication is activated. All YunoHost users can authenticate.
 
 #### Supported architectures
 
