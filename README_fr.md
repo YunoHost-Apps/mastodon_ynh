@@ -41,7 +41,7 @@ $ screen -r
 ```
 L'utilisateur admin est crÃ©e automatiquement comme: user@domain.tld
 
-### Mise Ã  jour
+### Mise Ã jour
 
 #### Utilisation de __screen__ fortement recommandÃ©
 
@@ -53,7 +53,11 @@ L'utilisateur admin est crÃ©e automatiquement comme: user@domain.tld
 
 ## Caractéristiques spécifiques YunoHost
 
-#### Supported architectures
+#### Support multi-utilisateurs
+
+L'authentification LDAP est activée. Tous les utilisateurs YunoHost peuvent s'authentifier.
+
+#### Architectures supportées
 
 * x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/mastodon%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
 * ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/mastodon%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/mastodon/)
