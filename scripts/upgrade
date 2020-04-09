@@ -182,14 +182,14 @@ then
 	    rsync -a "$final_path/live/public/system" "$tmpdir/."
     fi    
     rsync -a "$final_path/live/.env.production" "$tmpdir/."
-    ynh_secure_remove --file="$final_path/live/"
+    ynh_secure_remove --file="$final_path/live"
     ynh_setup_source --dest_dir="$final_path/live"
 
     if [ -d "$tmpdir/system" ]; then
 	    rsync -a "$tmpdir/system" "$final_path/live/public/."
     fi
     rsync -a "$tmpdir/.env.production" "$final_path/live/."
-    ynh_secure_remove --file="$tmpdir/"
+    ynh_secure_remove --file="$tmpdir"
 
     # Clean files which are not needed anymore
     ynh_secure_remove --file="$final_path/live/config/initializers/timeout.rb"
