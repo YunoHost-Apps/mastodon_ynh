@@ -3,10 +3,10 @@
 	"id": "mastodon",
 	"packaging_format": 1,
 	"description": {
-		"en": "Mastodon is a free, open-source social network.",
-		"fr": "Mastodon est un réseau social gratuit et open source."
+		"en": "A libre and federated social network.",
+		"fr": "Un réseau social libre et fédéré."
 	},
-	"version": "3.1.2~ynh2",
+	"version": "3.1.2~ynh3",
 	"url": "https://github.com/tootsuite/mastodon",
 	"license": "AGPL-3.0-or-later",
 	"maintainer": [
@@ -23,7 +23,7 @@
 	    }
 	],
     "requirements": {
-        "yunohost": ">= 3.5"
+        "yunohost": ">= 3.7"
     },
     "multi_instance": true,
 	"services": [
