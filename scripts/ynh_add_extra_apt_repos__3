@@ -128,7 +128,7 @@ ynh_install_extra_repo () {
 	local component="${repo##$uri $suite }"
 
 	# Add the repository into sources.list.d
-	ynh_add_repo --uri="$uri" --suite="$suite" --component="$component" --name="$name" $append
+	ynh_add_repo --uri="$uri" --suite="$suite" --component="$component" --name="$name" "$append"
 
 	# Pin the new repo with the default priority, so it won't be used for upgrades.
 	# Build $pin from the uri without http and any sub path
@@ -139,7 +139,7 @@ ynh_install_extra_repo () {
 	then
 		priority="--priority=$priority"
 	fi
-	ynh_pin_repo --package="*" --pin="origin \"$pin\"" $priority --name="$name" $append
+	ynh_pin_repo --package="*" --pin="origin \"$pin\"" $priority --name="$name" "$append"
 
 	# Get the public key for the repo
 	if [ -n "$key" ]
