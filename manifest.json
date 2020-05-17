@@ -67,7 +67,16 @@
 				},
 				"choices": ["en_EN", "fr_FR"],
 				"default": "fr_FR"
-			}
+			},
+            {
+                "name": "ldap_enabled",
+                "type": "boolean",
+                "ask": {
+                    "en": "Do you want to enable ldap authentication?",
+                    "fr": "Voulez vous activer l'authentification LDAP?"
+                },
+                "default": true
+            }
 		]
 	}
 }

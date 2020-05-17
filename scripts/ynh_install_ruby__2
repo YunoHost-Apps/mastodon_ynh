@@ -100,7 +100,7 @@ ynh_install_ruby () {
   ynh_app_setting_set $app ruby_version $ruby_version
 
   # Set environment for ruby users
-  echo  "#rbenv
+  echo "#rbenv
 export RBENV_ROOT=$rbenv_install_dir
 export PATH=\"$rbenv_install_dir/bin:$PATH\"
 eval \"\$(rbenv init -)\"
