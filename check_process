@@ -4,6 +4,8 @@
 		domain="domain.tld"	(DOMAIN)
 		admin="john"   (USER)
 	    language="fr_FR"
+		is_public=1	(PUBLIC|public=1|private=0)
+		ldap_enabled=1
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=0
