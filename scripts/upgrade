@@ -293,18 +293,6 @@ pushd "$final_path/live"
     sudo -u "$app" env PATH=$PATH RAILS_ENV=production bin/tootctl cache clear
 popd
 
-# If vapid_private_key doesn't exist, retrieve it or create it
-#if [[ -z "$vapid_private_key" ]]; then
-#	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
-#	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")
-#	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
-#	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
-#	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
-#	ynh_secure_remove "$final_path/live/key.txt"
-#    ynh_replace_string "__VAPID_PRIVATE_KEY__" "$vapid_private_key" "${final_path}/live/.env.production"
-#    ynh_replace_string "__VAPID_PUBLIC_KEY__" "$vapid_public_key" "${final_path}/live/.env.production"
-#fi
-
 # Recalculate and store the checksum of the file for the next upgrade.
 ynh_store_file_checksum --file="${final_path}/live/.env.production"
 
