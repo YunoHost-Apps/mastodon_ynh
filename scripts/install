@@ -188,6 +188,9 @@ otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c
 ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$config"
 ynh_app_setting_set --app="$app" --key=otp_secret --value="$otp_secret"
 
+ynh_replace_string --match_string="registrations_mode: 'open'" --replace_string="registrations_mode: 'none'" --target_file="$final_path/live/config/settings.yml"
+ynh_replace_string --match_string="min_invite_role: 'admin'" --replace_string="min_invite_role: 'none'" --target_file="$final_path/live/config/settings.yml"
+
 #=================================================
 # INSTALLING MASTODON
 #=================================================
