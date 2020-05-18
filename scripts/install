@@ -176,6 +176,13 @@ language="$(echo $language | head -c 2)"
 ynh_replace_string --match_string="__LANGUAGE__" --replace_string="$language" --target_file="$config"
 
 ynh_replace_string --match_string="__LDAP_ENABLED__" --replace_string="$ldap_enabled" --target_file="$config"
+# Disable registrations and invitations
+if [ $ldap_enabled -eq 1 ]
+then
+	ynh_replace_string --match_string="registrations_mode: 'open'" --replace_string="registrations_mode: 'none'" --target_file="${final_path}/live/config/settings.yml"
+	ynh_replace_string --match_string="min_invite_role: 'admin'" --replace_string="min_invite_role: 'none'" --target_file="${final_path}/live/config/settings.yml"
+	ynh_replace_string --match_string="closed_registrations_message: ''" --replace_string="closed_registrations_message: 'Only YunoHost users are allowed to connect'" --target_file="${final_path}/live/config/settings.yml"
+fi
 
 paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 ynh_replace_string --match_string="PAPERCLIP_SECRET=" --replace_string="PAPERCLIP_SECRET=$paperclip_secret" --target_file="$config"
