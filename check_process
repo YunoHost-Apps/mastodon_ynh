@@ -3,7 +3,7 @@
 	; Manifest
 		domain="domain.tld"	(DOMAIN)
 		admin="john"   (USER)
-	    language="fr_FR"
+		language="fr_FR"
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=0
