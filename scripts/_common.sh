@@ -9,6 +9,8 @@ pkg_dependencies="imagemagick ffmpeg libpq-dev libxml2-dev libxslt1-dev file git
 
 RUBY_VERSION="2.6.5"
 
+BUNDLER_VERSION="1.17.3"
+
 #=================================================
 # PERSONAL HELPERS
 #=================================================
