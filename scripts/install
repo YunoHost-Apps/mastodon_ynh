@@ -162,26 +162,27 @@ ynh_install_ruby --ruby_version=2.6.5
 #=================================================
 ynh_script_progression --message="Modifying a config file..." --weight=2
 
-cp -f ../conf/.env.production.sample "$final_path/live/.env.production"
-ynh_replace_string --match_string="__DB_USER__" --replace_string="$app" --target_file="$final_path/live/.env.production"
-ynh_replace_string --match_string="__DB_NAME__" --replace_string="$db_name" --target_file="$final_path/live/.env.production"
-ynh_replace_string --match_string="__DB_PWD__" --replace_string="$db_pwd" --target_file="$final_path/live/.env.production"
-ynh_replace_string --match_string="__DOMAIN__" --replace_string="$domain" --target_file="$final_path/live/.env.production"
-ynh_replace_string --match_string="__SMTP_FROM_ADDRESS__" --replace_string="$admin_mail" --target_file="${final_path}/live/.env.production"
+config="$final_path/live/.env.production"
+cp -f ../conf/.env.production.sample "$config"
+ynh_replace_string --match_string="__DB_USER__" --replace_string="$app" --target_file="$config"
+ynh_replace_string --match_string="__DB_NAME__" --replace_string="$db_name" --target_file="$config"
+ynh_replace_string --match_string="__DB_PWD__" --replace_string="$db_pwd" --target_file="$config"
+ynh_replace_string --match_string="__DOMAIN__" --replace_string="$domain" --target_file="$config"
+ynh_replace_string --match_string="__SMTP_FROM_ADDRESS__" --replace_string="$admin_mail" --target_file="$config"
 
 language="$(echo $language | head -c 2)"
-ynh_replace_string --match_string="__LANGUAGE__" --replace_string="$language" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__LANGUAGE__" --replace_string="$language" --target_file="$config"
 
 paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
-ynh_replace_string --match_string="PAPERCLIP_SECRET=" --replace_string="PAPERCLIP_SECRET=$paperclip_secret" --target_file="${final_path}/live/.env.production"
+ynh_replace_string --match_string="PAPERCLIP_SECRET=" --replace_string="PAPERCLIP_SECRET=$paperclip_secret" --target_file="$config"
 ynh_app_setting_set --app="$app" --key=paperclip_secret --value="$paperclip_secret"
 
 secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
-ynh_replace_string --match_string="__SECRET_KEY_BASE__" --replace_string="$secret_key_base" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__SECRET_KEY_BASE__" --replace_string="$secret_key_base" --target_file="$config"
 ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
 
 otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
-ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$config"
 ynh_app_setting_set --app="$app" --key=otp_secret --value="$otp_secret"
 
 #=================================================
@@ -195,7 +196,7 @@ pushd "$final_path/live"
 	ynh_use_nodejs
 	sudo -u "$app" env PATH=$PATH /opt/rbenv/versions/2.6.5/bin/bundle install -j$(getconf _NPROCESSORS_ONLN) --deployment --without development test
 	sudo -u "$app" env PATH=$PATH yarn install --pure-lockfile
-	sudo -u "$app" echo "SAFETY_ASSURED=1">> .env.production
+	sudo -u "$app" echo "SAFETY_ASSURED=1">> $config
 	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails db:setup --quiet
 	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rails assets:precompile --quiet
 	sudo -u "$app" env PATH=$PATH RAILS_ENV=production /opt/rbenv/versions/2.6.5/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
@@ -208,8 +209,8 @@ ynh_secure_remove --file="$final_path/live/acc.txt"
 vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")
 vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
 
-ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key" --target_file="${final_path}/live/.env.production"
-ynh_replace_string --match_string="__VAPID_PUBLIC_KEY__" --replace_string="$vapid_public_key" --target_file="${final_path}/live/.env.production"
+ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key" --target_file="$config"
+ynh_replace_string --match_string="__VAPID_PUBLIC_KEY__" --replace_string="$vapid_public_key" --target_file="$config"
 
 ynh_app_setting_set --app="$app" --key=vapid_private_key --value="$vapid_private_key"
 ynh_app_setting_set --app="$app" --key=vapid_public_key --value="$vapid_public_key"
@@ -244,7 +245,7 @@ ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming
 ynh_script_progression --message="Storing the config file checksum..." --weight=1
 
 # Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum --file="${final_path}/live/.env.production"
+ynh_store_file_checksum --file="$config"
 
 #=================================================
 # GENERIC FINALIZATION

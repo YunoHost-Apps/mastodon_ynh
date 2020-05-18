@@ -51,6 +51,8 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
 
+config="$final_path/live/.env.production"
+
 # If db_name doesn't exist, create it
 if [ -z "$db_name" ]; then
 	db_name="${app}_production"
@@ -87,12 +89,12 @@ if [[ -z "$db_pwd" ]]; then
 	ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
 	ynh_psql_test_if_first_run
 	sudo --login --user=postgres psql -c"ALTER user $app WITH PASSWORD '$db_pwd'" postgres
-	ynh_replace_string --match_string="DB_PASS=" --replace_string="DB_PASS=${db_pwd}" --target_file="${final_path}/live/.env.production"
+	ynh_replace_string --match_string="DB_PASS=" --replace_string="DB_PASS=${db_pwd}" --target_file="$config"
 fi
 
 # If paperclip_secret doesn't exist, retrieve it or create it
 if [[ -z "$paperclip_secret" ]]; then
-	paperclip_secret=$(grep -oP "PAPERCLIP_SECRET=\K\w+" ${final_path}/live/.env.production)
+	paperclip_secret=$(grep -oP "PAPERCLIP_SECRET=\K\w+" $config)
 	if [[ -z "$paperclip_secret" ]]; then
 	    paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 	fi
@@ -101,7 +103,7 @@ fi
 
 # If secret_key_base doesn't exist, retrieve it or create it
 if [[ -z "$secret_key_base" ]]; then
-	secret_key_base=$(grep -oP "SECRET_KEY_BASE=\K\w+" ${final_path}/live/.env.production)
+	secret_key_base=$(grep -oP "SECRET_KEY_BASE=\K\w+" $config)
 	if [[ -z "$secret_key_base" ]]; then
 	    secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 	fi
@@ -110,7 +112,7 @@ fi
 
 # If otp_secret doesn't exist, retrieve it or create it
 if [[ -z "$otp_secret" ]]; then
-	otp_secret=$(grep -oP "OTP_SECRET=\K\w+" ${final_path}/live/.env.production)
+	otp_secret=$(grep -oP "OTP_SECRET=\K\w+" $config)
 	if [[ -z "$otp_secret" ]]; then
 	    otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 	fi
@@ -119,8 +121,8 @@ fi
 
 # If vapid_private_key doesn't exist, retrieve it or create it
 if [[ -z "$vapid_private_key" ]]; then
-	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" ${final_path}/live/.env.production)
-	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" ${final_path}/live/.env.production)
+	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" $config)
+	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" $config)
 	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
 	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
 fi
@@ -181,7 +183,7 @@ then
     if [ -d "$final_path/live/public/system" ]; then
 	    rsync -a "$final_path/live/public/system" "$tmpdir/."
     fi
-    rsync -a "$final_path/live/.env.production" "$tmpdir/."
+    rsync -a "$config" "$tmpdir/."
     ynh_secure_remove --file="$final_path/live"
     ynh_setup_source --dest_dir="$final_path/live"
 
@@ -256,25 +258,25 @@ ynh_install_ruby --ruby_version=2.6.5
 #=================================================
 ynh_script_progression --message="Modifying a config file..." --weight=1
 
-ynh_backup_if_checksum_is_different --file="$final_path/live/.env.production"
-cp -f ../conf/.env.production.sample "$final_path/live/.env.production"
-ynh_replace_string --match_string="__DB_USER__" --replace_string="$app" --target_file="$final_path/live/.env.production"
-ynh_replace_string --match_string="__DB_NAME__" --replace_string="$db_name" --target_file="$final_path/live/.env.production"
-ynh_replace_string --match_string="__DB_PWD__" --replace_string="$db_pwd" --target_file="$final_path/live/.env.production"
-ynh_replace_string --match_string="__DOMAIN__" --replace_string="$domain" --target_file="$final_path/live/.env.production"
-ynh_replace_string --match_string="__SMTP_FROM_ADDRESS__" --replace_string="$admin_mail" --target_file="${final_path}/live/.env.production"
+ynh_backup_if_checksum_is_different --file="$config"
+cp -f ../conf/.env.production.sample "$config"
+ynh_replace_string --match_string="__DB_USER__" --replace_string="$app" --target_file="$config"
+ynh_replace_string --match_string="__DB_NAME__" --replace_string="$db_name" --target_file="$config"
+ynh_replace_string --match_string="__DB_PWD__" --replace_string="$db_pwd" --target_file="$config"
+ynh_replace_string --match_string="__DOMAIN__" --replace_string="$domain" --target_file="$config"
+ynh_replace_string --match_string="__SMTP_FROM_ADDRESS__" --replace_string="$admin_mail" --target_file="$config"
 
 language="$(echo $language | head -c 2)"
-ynh_replace_string --match_string="__LANGUAGE__" --replace_string="$language" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__LANGUAGE__" --replace_string="$language" --target_file="$config"
 
-ynh_replace_string --match_string="PAPERCLIP_SECRET=" --replace_string="PAPERCLIP_SECRET=$paperclip_secret" --target_file="${final_path}/live/.env.production"
+ynh_replace_string --match_string="PAPERCLIP_SECRET=" --replace_string="PAPERCLIP_SECRET=$paperclip_secret" --target_file="$config"
 
-ynh_replace_string --match_string="__SECRET_KEY_BASE__" --replace_string="$secret_key_base" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__SECRET_KEY_BASE__" --replace_string="$secret_key_base" --target_file="$config"
 
-ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$config"
 
-ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key" --target_file"$final_path/live/.env.production"
-ynh_replace_string --match_string="__VAPID_PUBLIC_KEY__" --replace_string="$vapid_public_key" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key" --target_file"$config"
+ynh_replace_string --match_string="__VAPID_PUBLIC_KEY__" --replace_string="$vapid_public_key" --target_file="$config"
 
 #=================================================
 # UPGRADE MASTODON
@@ -294,7 +296,7 @@ pushd "$final_path/live"
 popd
 
 # Recalculate and store the checksum of the file for the next upgrade.
-ynh_store_file_checksum --file="${final_path}/live/.env.production"
+ynh_store_file_checksum --file="$config"
 
 #=================================================
 # SETUP CRON JOB FOR REMOVING CACHE
