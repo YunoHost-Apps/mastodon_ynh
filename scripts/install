@@ -20,7 +20,6 @@ source /usr/share/yunohost/helpers
 ynh_script_progression --message="Managing script failure..." --weight=1
 
 ynh_clean_setup () {
-	read -p "key"
 	ynh_clean_check_starting
 }
 # Exit if an error occurs during the execution of the script
