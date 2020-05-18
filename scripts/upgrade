@@ -180,7 +180,7 @@ then
     mkdir $tmpdir/system
     if [ -d "$final_path/live/public/system" ]; then
 	    rsync -a "$final_path/live/public/system" "$tmpdir/."
-    fi    
+    fi
     rsync -a "$final_path/live/.env.production" "$tmpdir/."
     ynh_secure_remove --file="$final_path/live"
     ynh_setup_source --dest_dir="$final_path/live"
@@ -262,10 +262,10 @@ ynh_replace_string --match_string="__DB_USER__" --replace_string="$app" --target
 ynh_replace_string --match_string="__DB_NAME__" --replace_string="$db_name" --target_file="$final_path/live/.env.production"
 ynh_replace_string --match_string="__DB_PWD__" --replace_string="$db_pwd" --target_file="$final_path/live/.env.production"
 ynh_replace_string --match_string="__DOMAIN__" --replace_string="$domain" --target_file="$final_path/live/.env.production"
-ynh_replace_string --match_string="__SMTP_FROM_ADDRESS__" --replace_string="$admin_mail"        --target_file="${final_path}/live/.env.production"
+ynh_replace_string --match_string="__SMTP_FROM_ADDRESS__" --replace_string="$admin_mail" --target_file="${final_path}/live/.env.production"
 
 language="$(echo $language | head -c 2)"
-ynh_replace_string --match_string="__LANGUAGE__"      --replace_string="$language" --target_file="$final_path/live/.env.production"
+ynh_replace_string --match_string="__LANGUAGE__" --replace_string="$language" --target_file="$final_path/live/.env.production"
 
 ynh_replace_string --match_string="PAPERCLIP_SECRET=" --replace_string="PAPERCLIP_SECRET=$paperclip_secret" --target_file="${final_path}/live/.env.production"
 
@@ -273,8 +273,8 @@ ynh_replace_string --match_string="__SECRET_KEY_BASE__" --replace_string="$secre
 
 ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$final_path/live/.env.production"
 
-ynh_replace_string "__VAPID_PRIVATE_KEY__" "$vapid_private_key"        "$final_path/live/.env.production"
-ynh_replace_string "__VAPID_PUBLIC_KEY__" "$vapid_public_key"        "$final_path/live/.env.production"
+ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key" --target_file"$final_path/live/.env.production"
+ynh_replace_string --match_string="__VAPID_PUBLIC_KEY__" --replace_string="$vapid_public_key" --target_file="$final_path/live/.env.production"
 
 #=================================================
 # UPGRADE MASTODON
@@ -301,8 +301,8 @@ popd
 #	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
 #	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
 #	ynh_secure_remove "$final_path/live/key.txt"
-#    ynh_replace_string "__VAPID_PRIVATE_KEY__" "$vapid_private_key"        "${final_path}/live/.env.production"
-#    ynh_replace_string "__VAPID_PUBLIC_KEY__" "$vapid_public_key"        "${final_path}/live/.env.production"
+#    ynh_replace_string "__VAPID_PRIVATE_KEY__" "$vapid_private_key" "${final_path}/live/.env.production"
+#    ynh_replace_string "__VAPID_PUBLIC_KEY__" "$vapid_public_key" "${final_path}/live/.env.production"
 #fi
 
 # Recalculate and store the checksum of the file for the next upgrade.
@@ -314,7 +314,7 @@ ynh_store_file_checksum --file="${final_path}/live/.env.production"
 ynh_script_progression --message="Setuping a cron job for removing cache..." --weight=1
 
 ynh_replace_string --match_string="__FINAL_PATH__" --replace_string="$final_path" --target_file="../conf/cron"
-ynh_replace_string --match_string="__USER__" --replace_string="$app"  --target_file="../conf/cron"
+ynh_replace_string --match_string="__USER__" --replace_string="$app" --target_file="../conf/cron"
 sudo cp -f ../conf/cron /etc/cron.d/$app 
 
 #=================================================
@@ -323,11 +323,11 @@ sudo cp -f ../conf/cron /etc/cron.d/$app
 ynh_script_progression --message="Upgrading systemd configuration..." --weight=13
 
 # Create a dedicated systemd config
-ynh_replace_string --match_string="__PORT_WEB__"    --replace_string="$port_web"    --target_file="../conf/mastodon-web.service"
+ynh_replace_string --match_string="__PORT_WEB__" --replace_string="$port_web" --target_file="../conf/mastodon-web.service"
 ynh_replace_string --match_string="__PORT_STREAM__" --replace_string="$port_stream" --target_file="../conf/mastodon-streaming.service"
 ynh_replace_string --match_string="__NODEJS_PATH__" --replace_string="$nodejs_path" --target_file="../conf/mastodon-streaming.service"
-ynh_add_systemd_config --service="$app-web"       --template="mastodon-web.service"
-ynh_add_systemd_config --service="$app-sidekiq"   --template="mastodon-sidekiq.service"
+ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service"
+ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service"
 ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service"
 
 #=================================================

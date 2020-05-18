@@ -2,7 +2,7 @@
 	auto_remove=1
 	; Manifest
 		domain="domain.tld"	(DOMAIN)
-		admin="john"   (USER)
+		admin="john"	(USER)
 		language="fr_FR"
 		is_public=1	(PUBLIC|public=1|private=0)
 	; Checks
