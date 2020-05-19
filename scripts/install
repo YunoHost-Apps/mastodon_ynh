@@ -230,8 +230,6 @@ ynh_secure_remove --file="$final_path/live/key.txt"
 ynh_script_progression --message="Setuping a cron job for removing cache..." --weight=1
 
 ynh_replace_string --match_string="__FINAL_PATH__" --replace_string="$final_path" --target_file="../conf/cron"
-ynh_replace_string --match_string="__USER__" --replace_string="$app" --target_file="../conf/cron"
-ynh_replace_string --match_string="__RBENVROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/cron"
 cp -f ../conf/cron /etc/cron.d/$app 
 
 #=================================================
