@@ -11,7 +11,7 @@ RUBY_VERSION="2.6.5"
 
 BUNDLER_VERSION="1.17.3"
 
-NODEJS_VERSION="10"
+NODEJS_VERSION="12"
 
 #=================================================
 # PERSONAL HELPERS
