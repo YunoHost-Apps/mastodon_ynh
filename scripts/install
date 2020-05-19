@@ -206,12 +206,9 @@ pushd "$final_path/live"
 	RAILS_ENV=production bundle exec rails db:setup --quiet
 	RAILS_ENV=production bundle exec rails assets:precompile --quiet
 	RAILS_ENV=production bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
-	RAILS_ENV=production bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > acc.txt
+	RAILS_ENV=production bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null
 	RAILS_ENV=production bin/tootctl accounts modify "$admin" --approve
 popd
-
-admin_pass=$( tail -1 $final_path/live/acc.txt | head -1 | cut -c 15- )
-ynh_secure_remove --file="$final_path/live/acc.txt"
 
 vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")
 vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
