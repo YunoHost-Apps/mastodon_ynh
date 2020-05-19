@@ -277,7 +277,7 @@ ynh_replace_string --match_string="__SECRET_KEY_BASE__" --replace_string="$secre
 
 ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$config"
 
-ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key" --target_file"$config"
+ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key" --target_file="$config"
 ynh_replace_string --match_string="__VAPID_PUBLIC_KEY__" --replace_string="$vapid_public_key" --target_file="$config"
 
 #=================================================
