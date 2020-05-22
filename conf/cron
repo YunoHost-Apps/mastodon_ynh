@@ -2,3 +2,4 @@
 @monthly cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl media remove-orphans
 @monthly cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl accounts cull
 @monthly cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl status remove
+@monthly cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl preview_cards remove
