@@ -33,43 +33,27 @@ domain=$(ynh_app_setting_get --app=$app --key=domain)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 
 #=================================================
-# STANDARD BACKUP STEPS
+# DECLARE DATA AND CONF FILES TO BACKUP
 #=================================================
-# STOP SYSTEMD SERVICE
-#=================================================
-ynh_script_progression --message="Stopping a systemd service..." --weight=27
-
-ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
-ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
-ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_print_info --message="Declaring files to be backed up..."
 
 #=================================================
 # BACKUP THE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Backing up the main app directory..." --weight=2
 
 ynh_backup --src_path="$final_path"
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Backing up nginx web server configuration..." --weight=2
 
 ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
-
-#=================================================
-# BACKUP THE POSTGRESQL DATABASE
-#=================================================
-ynh_script_progression --message="Backing up the PostgreSQL database..." --weight=4
-
-ynh_psql_dump_db --database="$db_name" > db.sql
 
 #=================================================
 # SPECIFIC BACKUP
 #=================================================
 # BACKUP SYSTEMD
 #=================================================
-ynh_script_progression --message="Backing up systemd configuration..." --weight=2
 
 ynh_backup --src_path="/etc/systemd/system/$app-web.service"
 ynh_backup --src_path="/etc/systemd/system/$app-sidekiq.service"
@@ -78,18 +62,15 @@ ynh_backup --src_path="/etc/systemd/system/$app-streaming.service"
 #=================================================
 # BACKUP A CRON FILE
 #=================================================
-ynh_script_progression --message="Backing up a cron file..." --weight=1
 
 ynh_backup --src_path="/etc/cron.d/$app"
 
 #=================================================
-# START SYSTEMD SERVICE
+# BACKUP THE POSTGRESQL DATABASE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=1
+ynh_script_progression --message="Backing up the PostgreSQL database..." --weight=4
 
-ynh_systemd_action --action=start --service_name=${app}-web --line_match="Listening on tcp" --log_path=systemd
-ynh_systemd_action --action=start --service_name=${app}-sidekiq --line_match="Starting processing" --log_path=systemd
-ynh_systemd_action --action=start --service_name=${app}-streaming --line_match="Worker 1 now listening" --log_path=systemd
+ynh_psql_dump_db --database="$db_name" > db.sql
 
 #=================================================
 # END OF SCRIPT
