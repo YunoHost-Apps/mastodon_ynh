@@ -29,3 +29,8 @@
 ;;; Options
 Email=yalh@yahoo.com
 Notification=all
+;;; Upgrade options
+	; commit=7e1f4c2dee5f2c8374686aea62f4648cdf2722c3
+		name=3.1.2~ynh2
+	; commit=6b30109fc986d83166b1805ec3ad7e28200e3743
+		name=3.1.2~ynh3
