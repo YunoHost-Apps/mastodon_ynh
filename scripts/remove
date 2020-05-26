@@ -8,7 +8,6 @@
 
 source _common.sh
 source ynh_install_ruby__2
-source ynh_add_extra_apt_repos__3
 source ynh_add_swap
 source /usr/share/yunohost/helpers
 
