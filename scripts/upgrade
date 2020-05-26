@@ -65,8 +65,8 @@ fi
 
 # Check if admin is not null
 if [[ "$admin" = "" || "$language" = "" ]]; then
-    echo "Unable to upgrade, please contact support"
-    ynh_die
+	echo "Unable to upgrade, please contact support"
+	ynh_die
 fi
 
 # If port_web doesn't exist, create it, need for old install
@@ -94,7 +94,7 @@ fi
 if [[ -z "$paperclip_secret" ]]; then
 	paperclip_secret=$(grep -oP "PAPERCLIP_SECRET=\K\w+" $config)
 	if [[ -z "$paperclip_secret" ]]; then
-	    paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+		paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 	fi
 	ynh_app_setting_set --app=$app --key=paperclip_secret --value="$paperclip_secret"
 fi
@@ -103,7 +103,7 @@ fi
 if [[ -z "$secret_key_base" ]]; then
 	secret_key_base=$(grep -oP "SECRET_KEY_BASE=\K\w+" $config)
 	if [[ -z "$secret_key_base" ]]; then
-	    secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+		secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 	fi
 	ynh_app_setting_set --app=$app --key=secret_key_base --value="$secret_key_base"
 fi
@@ -112,7 +112,7 @@ fi
 if [[ -z "$otp_secret" ]]; then
 	otp_secret=$(grep -oP "OTP_SECRET=\K\w+" $config)
 	if [[ -z "$otp_secret" ]]; then
-	    otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+		otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
 	fi
 	ynh_app_setting_set --app=$app --key=otp_secret --value="$otp_secret"
 fi
@@ -172,30 +172,30 @@ ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=sy
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-    ynh_script_progression --message="Upgrading source files..." --weight=14
+	ynh_script_progression --message="Upgrading source files..." --weight=14
 
-    # Download Mastodon
-    tmpdir="$(mktemp -d)"
+	# Download Mastodon
+	tmpdir="$(mktemp -d)"
 
-    mkdir $tmpdir/system
-    if [ -d "$final_path/live/public/system" ]; then
-	    rsync -a "$final_path/live/public/system" "$tmpdir/."
-    fi
-    rsync -a "$config" "$tmpdir/."
-    ynh_secure_remove --file="$final_path/live"
-    ynh_setup_source --dest_dir="$final_path/live"
+	mkdir $tmpdir/system
+	if [ -d "$final_path/live/public/system" ]; then
+		rsync -a "$final_path/live/public/system" "$tmpdir/."
+	fi
+	rsync -a "$config" "$tmpdir/."
+	ynh_secure_remove --file="$final_path/live"
+	ynh_setup_source --dest_dir="$final_path/live"
 
-    # Temporary workaround for https://github.com/tootsuite/mastodon/issues/13292
-    ynh_replace_string --match_string="sidekiq-unique-jobs (6.0.18)" --replace_string="sidekiq-unique-jobs (6.0.20)" --target_file="$final_path/live/Gemfile.lock"
-    
-    if [ -d "$tmpdir/system" ]; then
-	    rsync -a "$tmpdir/system" "$final_path/live/public/."
-    fi
-    rsync -a "$tmpdir/.env.production" "$final_path/live/."
-    ynh_secure_remove --file="$tmpdir"
+	# Temporary workaround for https://github.com/tootsuite/mastodon/issues/13292
+	ynh_replace_string --match_string="sidekiq-unique-jobs (6.0.18)" --replace_string="sidekiq-unique-jobs (6.0.20)" --target_file="$final_path/live/Gemfile.lock"
 
-    # Clean files which are not needed anymore
-    ynh_secure_remove --file="$final_path/live/config/initializers/timeout.rb"
+	if [ -d "$tmpdir/system" ]; then
+		rsync -a "$tmpdir/system" "$final_path/live/public/."
+	fi
+	rsync -a "$tmpdir/.env.production" "$final_path/live/."
+	ynh_secure_remove --file="$tmpdir"
+
+	# Clean files which are not needed anymore
+	ynh_secure_remove --file="$final_path/live/config/initializers/timeout.rb"
 fi
 
 #=================================================
@@ -285,15 +285,15 @@ ynh_script_progression --message="Upgrading Mastodon..." --weight=2640
 chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
-    ynh_use_nodejs
-    bundle config deployment 'true'
-    bundle config without 'development test'
-    bundle install -j$(getconf _NPROCESSORS_ONLN)
-    yarn install --pure-lockfile
-    RAILS_ENV=production bundle exec rails assets:clean
-    RAILS_ENV=production bundle exec rails assets:precompile
-    RAILS_ENV=production bundle exec rails db:migrate
-    RAILS_ENV=production bin/tootctl cache clear
+	ynh_use_nodejs
+	bundle config deployment 'true'
+	bundle config without 'development test'
+	bundle install -j$(getconf _NPROCESSORS_ONLN)
+	yarn install --pure-lockfile
+	RAILS_ENV=production bundle exec rails assets:clean
+	RAILS_ENV=production bundle exec rails assets:precompile
+	RAILS_ENV=production bundle exec rails db:migrate
+	RAILS_ENV=production bin/tootctl cache clear
 popd
 
 # Recalculate and store the checksum of the file for the next upgrade.
