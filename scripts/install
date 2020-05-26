@@ -9,7 +9,6 @@
 source _common.sh
 source ynh_install_ruby__2
 source ynh_add_swap
-source ynh_check_ram
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -134,12 +133,11 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 ynh_script_progression --message="Adding swap is needed..." --weight=4
 
-total_memory=$(ynh_check_ram)
-total_swap=$(ynh_check_ram --only_swap)
+total_memory=$(ynh_get_ram --total)
 swap_needed=0
 
 if [ $total_memory -lt 2560 ]; then
-	# Need a minimum of 8Go of memory
+	# Need a minimum of 2.5Go of memory
 	swap_needed=$((2560 - $total_memory))
 fi
 

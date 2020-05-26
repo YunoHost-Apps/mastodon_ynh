@@ -10,7 +10,6 @@
 source ../settings/scripts/_common.sh
 source ../settings/scripts/ynh_install_ruby__2
 source ../settings/scripts/ynh_add_swap
-source ../settings/scripts/ynh_check_ram
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -87,8 +86,7 @@ chown -R $app: $final_path
 #=================================================
 ynh_script_progression --message="Adding swap if needed..." --weight=4
 
-total_memory=$(ynh_check_ram)
-total_swap=$(ynh_check_ram --only_swap)
+total_memory=$(ynh_get_ram --total)
 swap_needed=0
 
 if [ $total_memory -lt 2560 ]; then
