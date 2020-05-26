@@ -300,9 +300,9 @@ popd
 ynh_store_file_checksum --file="$config"
 
 #=================================================
-# SETUP CRON JOB FOR REMOVING CACHE
+# SETUP THE CRON FILE
 #=================================================
-ynh_script_progression --message="Setuping a cron job..." --weight=1
+ynh_script_progression --message="Setuping the cron file..." --weight=1
 
 ynh_replace_string --match_string="__FINAL_PATH__" --replace_string="$final_path" --target_file="../conf/cron"
 cp -f ../conf/cron /etc/cron.d/$app 
