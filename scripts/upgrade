@@ -323,6 +323,15 @@ ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.ser
 ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service"
 
 #=================================================
+# INTEGRATE SERVICE IN YUNOHOST
+#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..." --weight=3
+
+yunohost service add "$app-web" --description "$app web service" --log_type "systemd"
+yunohost service add "$app-sidekiq" --description "$app sidekiq service" --log_type "systemd"
+yunohost service add "$app-streaming" --description "$app streaming service" --log_type "systemd"
+
+#=================================================
 # GENERIC FINALIZATION
 #=================================================
 # SECURE FILES AND DIRECTORIES

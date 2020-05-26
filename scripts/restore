@@ -142,9 +142,9 @@ systemctl enable "$app-web" "$app-sidekiq" "$app-streaming"
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..." --weight=3
 
-yunohost service add $app-web
-yunohost service add $app-sidekiq
-yunohost service add $app-streaming
+yunohost service add "$app-web" --description "$app web service" --log_type "systemd"
+yunohost service add "$app-sidekiq" --description "$app sidekiq service" --log_type "systemd"
+yunohost service add "$app-streaming" --description "$app streaming service" --log_type "systemd"
 
 #=================================================
 # START SYSTEMD SERVICE
