@@ -13,7 +13,6 @@ source /usr/share/yunohost/helpers
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
-ynh_script_progression --message="Managing script failure..." --weight=1
 
 ynh_clean_setup () {
 	ynh_clean_check_starting
@@ -24,7 +23,7 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --weight=2
+ynh_print_info --message="Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -68,7 +67,7 @@ ynh_backup --src_path="/etc/cron.d/$app"
 #=================================================
 # BACKUP THE POSTGRESQL DATABASE
 #=================================================
-ynh_script_progression --message="Backing up the PostgreSQL database..." --weight=4
+ynh_print_info --message="Backing up the PostgreSQL database..."
 
 ynh_psql_dump_db --database="$db_name" > db.sql
 
@@ -76,4 +75,4 @@ ynh_psql_dump_db --database="$db_name" > db.sql
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)." --last
+ynh_print_info --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)."
