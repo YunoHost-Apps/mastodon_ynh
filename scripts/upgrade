@@ -313,14 +313,9 @@ cp -f ../conf/cron /etc/cron.d/$app
 ynh_script_progression --message="Upgrading systemd configuration..."
 
 # Create a dedicated systemd config
-ynh_replace_string --match_string="__PORT_WEB__" --replace_string="$port_web" --target_file="../conf/mastodon-web.service"
-ynh_replace_string --match_string="__RBENVROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/mastodon-web.service"
-ynh_replace_string --match_string="__RBENVROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/mastodon-sidekiq.service"
-ynh_replace_string --match_string="__PORT_STREAM__" --replace_string="$port_stream" --target_file="../conf/mastodon-streaming.service"
-ynh_replace_string --match_string="__NODEJS_PATH__" --replace_string="$nodejs_path" --target_file="../conf/mastodon-streaming.service"
-ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service"
-ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service"
-ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service"
+ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service" --others_var="port_web RBENV_ROOT"
+ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service" --others_var="RBENV_ROOT"
+ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service" --others_var="port_stream ynh_node_load_PATH ynh_node"
 
 #=================================================
 # INTEGRATE SERVICE IN YUNOHOST
