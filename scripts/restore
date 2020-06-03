@@ -9,15 +9,13 @@
 #Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
 source ../settings/scripts/ynh_install_ruby__2
-source ../settings/scripts/ynh_add_extra_apt_repos__3
 source ../settings/scripts/ynh_add_swap
-source ../settings/scripts/ynh_check_ram
 source /usr/share/yunohost/helpers
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
-ynh_script_progression --message="Managing script failure..." --weight=2
+ynh_script_progression --message="Managing script failure..."
 
 ynh_clean_setup () {
 	ynh_clean_check_starting
@@ -28,7 +26,7 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading settings..." --weight=2
+ynh_script_progression --message="Loading settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -42,7 +40,7 @@ db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
-ynh_script_progression --message="Validating restoration parameters..." --weight=2
+ynh_script_progression --message="Validating restoration parameters..."
 
 ynh_webpath_available --domain=$domain --path_url=$path_url \
 	|| ynh_die --message="Path not available: ${domain}${path_url}"
@@ -54,21 +52,21 @@ test ! -d $final_path \
 #=================================================
 # RESTORE THE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Restoring nginx configuration..." --weight=1
+ynh_script_progression --message="Restoring the nginx configuration..."
 
 ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Restoring the app main directory..." --weight=105
+ynh_script_progression --message="Restoring the app main directory..."
 
 ynh_restore_file --origin_path="$final_path"
 
 #=================================================
 # RECREATE THE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Recreating the dedicated system user..." --weight=5
+ynh_script_progression --message="Recreating the dedicated system user..."
 
 # Create the dedicated user (if not existing)
 ynh_system_user_create --username=$app --home_dir=$final_path
@@ -76,7 +74,7 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 # RESTORE USER RIGHTS
 #=================================================
-ynh_script_progression --message="Restoring users rights..." --weight=4
+ynh_script_progression --message="Restoring user rights..."
 
 # Restore permissions on app files
 chown -R $app: $final_path
@@ -86,40 +84,43 @@ chown -R $app: $final_path
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
-ynh_script_progression --message="Adding swap if needed..." --weight=4
+ynh_script_progression --message="Adding swap if needed..."
 
-total_memory=$(ynh_check_ram)
-total_swap=$(ynh_check_ram --only_swap)
+total_memory=$(ynh_get_ram --total)
 swap_needed=0
 
-if [ $total_memory -lt 2560 ]; then
+if [ $total_memory -lt $MEMORY_NEEDED ]; then
 	# Need a minimum of 8Go of memory
-	swap_needed=$((2560 - $total_memory))
+	swap_needed=$(($MEMORY_NEEDED - $total_memory))
 fi
 
-ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
+ynh_script_progression --message="Adding $swap_needed Mo to swap..."
 ynh_add_swap --size=$swap_needed
 
 #=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Reinstalling dependencies..." --weight=63
+ynh_script_progression --message="Reinstalling dependencies..."
 
-ynh_install_nodejs --nodejs_version="10"
+ynh_install_nodejs --nodejs_version=$NODEJS_VERSION
 ynh_install_app_dependencies $pkg_dependencies	
 ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 
 #=================================================
 # INSTALLING RUBY
 #=================================================
-ynh_script_progression --message="Installing Ruby..." --weight=393
+ynh_script_progression --message="Installing Ruby..."
 
 ynh_install_ruby --ruby_version=$RUBY_VERSION
+pushd "$final_path/live"
+	gem update --system
+	gem install bundler:$BUNDLER_VERSION --no-document
+popd
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
 #=================================================
-ynh_script_progression --message="Restoring the PostgreSQL database..." --weight=18
+ynh_script_progression --message="Restoring the PostgreSQL database..."
 
 ynh_psql_test_if_first_run
 ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
@@ -129,7 +130,7 @@ ynh_psql_execute_file_as_root --file="./db.sql" --database="$db_name"
 #=================================================
 # RESTORE SYSTEMD
 #=================================================
-ynh_script_progression --message="Restoring the systemd configuration..." --weight=3
+ynh_script_progression --message="Restoring the systemd configuration..."
 
 ynh_restore_file --origin_path="/etc/systemd/system/$app-web.service"
 ynh_restore_file --origin_path="/etc/systemd/system/$app-sidekiq.service"
@@ -139,16 +140,16 @@ systemctl enable "$app-web" "$app-sidekiq" "$app-streaming"
 #=================================================
 # INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-ynh_script_progression --message="Integrating service in YunoHost..." --weight=3
+ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add $app-web
-yunohost service add $app-sidekiq
-yunohost service add $app-streaming
+yunohost service add "$app-web" --description "$app web service" --log_type "systemd"
+yunohost service add "$app-sidekiq" --description "$app sidekiq service" --log_type "systemd"
+yunohost service add "$app-streaming" --description "$app streaming service" --log_type "systemd"
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=41
+ynh_script_progression --message="Starting a systemd service..."
 
 ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on tcp"
 ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Starting processing"
@@ -157,7 +158,7 @@ ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=s
 #=================================================
 # RESTORE THE CRON FILE
 #=================================================
-ynh_script_progression --message="Restoring a cron job for removing cache..." --weight=2
+ynh_script_progression --message="Restoring the cron file..."
 
 ynh_restore_file --origin_path="/etc/cron.d/$app"
 
@@ -166,7 +167,7 @@ ynh_restore_file --origin_path="/etc/cron.d/$app"
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --weight=2
+ynh_script_progression --message="Reloading nginx web server..."
 
 ynh_systemd_action --service_name=nginx --action=reload
 
@@ -174,4 +175,4 @@ ynh_systemd_action --service_name=nginx --action=reload
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Restoration completed for $app" --last
+ynh_script_progression --message="Restoration completed for $app"

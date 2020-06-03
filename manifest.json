@@ -1,54 +1,54 @@
 {
-	"name": "Mastodon",
-	"id": "mastodon",
-	"packaging_format": 1,
-	"description": {
-		"en": "A libre and federated social network.",
-		"fr": "Un réseau social libre et fédéré."
-	},
-	"version": "3.1.3~ynh1",
-	"url": "https://github.com/tootsuite/mastodon",
-	"license": "AGPL-3.0-or-later",
-	"maintainer": [
-	    {
-		    "name": "cyp",
-		    "email": "cyp@rouquin.me"
-	    },
-	    {
-		    "name": "nemsia",
-		    "email": "nemsia@nemsia.org"
-	    },
-	    {
-		    "name": "yalh76"
-	    }
-	],
+    "name": "Mastodon",
+    "id": "mastodon",
+    "packaging_format": 1,
+    "description": {
+        "en": "A libre and federated social network.",
+        "fr": "Un réseau social libre et fédéré."
+    },
+    "version": "3.1.3~ynh1",
+    "url": "https://github.com/tootsuite/mastodon",
+    "license": "AGPL-3.0-or-later",
+    "maintainer": [
+        {
+            "name": "cyp",
+            "email": "cyp@rouquin.me"
+        },
+        {
+            "name": "nemsia",
+            "email": "nemsia@nemsia.org"
+        },
+        {
+            "name": "yalh76"
+        }
+    ],
     "requirements": {
-        "yunohost": ">= 4.0"
+        "yunohost": ">= 3.8.1"
     },
     "multi_instance": true,
-	"services": [
-		"nginx"
-	],
-	"arguments": {
-		"install" : [
-			{
-				"name": "domain",
-				"type": "domain",
-				"ask": {
-					"en": "Choose a domain for Mastodon",
-					"fr": "Choisissez un domaine pour Mastodon"
-				},
+    "services": [
+        "nginx"
+    ],
+    "arguments": {
+        "install" : [
+            {
+                "name": "domain",
+                "type": "domain",
+                "ask": {
+                    "en": "Choose a domain for Mastodon",
+                    "fr": "Choisissez un domaine pour Mastodon"
+                },
                 "example": "example.com"
-			},
-			{
-				"name": "admin",
-				"type": "user",
-				"ask": {
-					"en": "Choose an admin user",
-					"fr": "Choisissez l'administrateur"
-				},
+            },
+            {
+                "name": "admin",
+                "type": "user",
+                "ask": {
+                    "en": "Choose an admin user",
+                    "fr": "Choisissez l'administrateur"
+                },
                 "example": "johndoe"
-			},
+            },
             {
                 "name": "is_public",
                 "type": "boolean",
@@ -58,16 +58,16 @@
                 },
                 "default": true
             },
-			{
-				"name": "language",
+            {
+                "name": "language",
                 "type": "string",
-				"ask": {
-					"en": "Choose the application language",
-					"fr": "Choisissez la langue de l'application"
-				},
-				"choices": ["en_EN", "fr_FR"],
-				"default": "fr_FR"
-			}
-		]
-	}
+                "ask": {
+                    "en": "Choose the application language",
+                    "fr": "Choisissez la langue de l'application"
+            },
+                "choices": ["en_EN", "fr_FR"],
+                "default": "fr_FR"
+            }
+        ]
+    }
 }
