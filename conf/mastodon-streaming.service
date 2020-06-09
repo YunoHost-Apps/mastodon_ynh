@@ -9,8 +9,8 @@
  Environment="NODE_ENV=production"
  Environment="PORT=__PORT_STREAM__"
  Environment="STREAMING_CLUSTER_NUM=1"
- Environment=PATH=__NODEJS_PATH__
- ExecStart=__NODEJS_PATH__/node ./streaming
+ Environment=__YNH_LOAD_NODE_PATH__
+ ExecStart=__YNH_NODE__ ./streaming
  TimeoutSec=15
  Restart=always
  StandardError=syslog

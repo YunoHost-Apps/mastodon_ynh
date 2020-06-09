@@ -1,2 +1,5 @@
-RAILS_ENV=production
-@daily cd __FINAL__PATH__/live && /opt/rbenv/versions/2.6.5/bin/bundle exec rake __USER__:media:remove_remote
+@daily cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl media remove
+@monthly cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl media remove-orphans
+@monthly cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl accounts cull
+@monthly cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl statuses remove
+@monthly cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl preview_cards remove
