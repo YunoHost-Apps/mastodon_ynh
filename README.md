@@ -1,6 +1,6 @@
 # Mastodon for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/mastodon.svg)](https://dash.yunohost.org/appci/app/mastodon)  
+[![Integration level](https://dash.yunohost.org/integration/mastodon.svg)](https://dash.yunohost.org/appci/app/mastodon) ![](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)    
 [![Install Mastodon with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=mastodon)
 
 *[Lire ce readme en français.](./README_fr.md)*
@@ -9,7 +9,7 @@
 If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
 
 ## Overview
-Mastodon is a free, open-source social network. A decentralized alternative to commercial platforms, it avoids the risks of a single company monopolizing your communication. 
+Mastodon is a free, open-source microblogging social network. It is a decentralized alternative to commercial platforms like Twitter and avoids the risks of a single company monopolizing your communication for commercial purposes. 
 
 **Shipped version:** 3.1.2
 
@@ -28,7 +28,7 @@ Mastodon is a free, open-source social network. A decentralized alternative to c
 
 ### Install
 
-#### Using __screen__ in case of disconnect
+#### Using *screen* in case of disconnect
 ```
 $ sudo apt-get install screen
 $ screen
@@ -42,7 +42,7 @@ $ screen -r
 
 ### Update
 
-#### Using __screen__ highly recommended
+#### Using *screen* highly recommended
 
 `$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh --debug `
 
@@ -58,7 +58,7 @@ LDAP authentication is activated. All YunoHost users can authenticate.
 
 #### Supported architectures
 
-* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/mastodon%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
+* x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/mastodon%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
 * ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/mastodon%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/mastodon/)
 
 ## Links
