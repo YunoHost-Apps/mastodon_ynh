@@ -179,7 +179,7 @@ then
 
 	mkdir $tmpdir/system
 	if [ -d "$final_path/live/public/system" ]; then
-		rsync -a "$final_path/live/public/system" "$tmpdir/."
+		mv --verbose --no-target-directory --backup=numbered "$final_path/live/public/system" "$final_path/system.tmp"
 	fi
 	rsync -a "$config" "$tmpdir/."
 	ynh_secure_remove --file="$final_path/live"
@@ -188,8 +188,8 @@ then
 	# Temporary workaround for https://github.com/tootsuite/mastodon/issues/13292
 	ynh_replace_string --match_string="sidekiq-unique-jobs (6.0.18)" --replace_string="sidekiq-unique-jobs (6.0.20)" --target_file="$final_path/live/Gemfile.lock"
 
-	if [ -d "$tmpdir/system" ]; then
-		rsync -a "$tmpdir/system" "$final_path/live/public/."
+	if [ -d "$final_path/system.tmp" ]; then
+		mv --verbose --no-target-directory "$final_path/system.tmp" "$final_path/live/public/system"
 	fi
 	rsync -a "$tmpdir/.env.production" "$final_path/live/."
 	ynh_secure_remove --file="$tmpdir"
