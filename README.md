@@ -11,7 +11,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 ## Overview
 Mastodon is a free, open-source microblogging social network. It is a decentralized alternative to commercial platforms like Twitter and avoids the risks of a single company monopolizing your communication for commercial purposes. 
 
-**Shipped version:** 3.2.0 (3.1.2 on Jessie)
+**Shipped version:** 3.2.1 (3.1.2 on Jessie)
 
 ## Important points to read before installing
 
