@@ -102,18 +102,7 @@ ynh_script_progression --message="Setting up source files..."
 
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
-mkdir $final_path
-
-if [ "$(lsb_release --codename --short)" = "buster" ]; then
-    ynh_setup_source --dest_dir="$final_path/live"
-else
-    ynh_script_progression --message="Setting up source files..."
-
-    ynh_setup_source --dest_dir="$final_path/live" --source_id=jessie
-    
-    # Temporary workaround for https://github.com/tootsuite/mastodon/issues/13292
-    ynh_replace_string --match_string="sidekiq-unique-jobs (6.0.18)" --replace_string="sidekiq-unique-jobs (6.0.20)" --target_file="$final_path/live/Gemfile.lock"
-fi
+ynh_setup_source --dest_dir="$final_path/live"
 
 #=================================================
 # NGINX CONFIGURATION
