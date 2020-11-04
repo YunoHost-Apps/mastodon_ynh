@@ -14,9 +14,9 @@
 		setup_public=1
 		upgrade=1
 		# 3.1.2~ynh2
-		upgrade=1	from_commit=7e1f4c2dee5f2c8374686aea62f4648cdf2722c3
+		#upgrade=1	from_commit=7e1f4c2dee5f2c8374686aea62f4648cdf2722c3
 		# 3.1.2~ynh3
-		upgrade=1	from_commit=6b30109fc986d83166b1805ec3ad7e28200e3743
+		#upgrade=1	from_commit=6b30109fc986d83166b1805ec3ad7e28200e3743
 		# 3.1.2~ynh4
 		upgrade=1	from_commit=d3df899e0a99a63ee1cf7ad845cc513aeaaf30ef
 		# 3.2.0~ynh1
