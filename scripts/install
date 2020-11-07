@@ -7,6 +7,7 @@
 #=================================================
 
 source _common.sh
+source ynh_detect_arch__2
 source ynh_install_ruby__2
 source ynh_add_swap
 source /usr/share/yunohost/helpers
@@ -40,16 +41,18 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 ynh_script_progression --message="Validating installation parameters..."
 
+architecture=$(ynh_detect_arch)
+# Check machine architecture (in particular, we don't support ARM and 32bit machines)
+if [ $architecture == "arm" ]
+then
+    ynh_die --message="Sorry, but this app can only be installed on a 64 bits machine :("
+fi
+
 final_path=/var/www/$app
 test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
 
 # Register (book) web path
 ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
-
-if uname -m | grep -q arm
-then
-   ynh_die --message="Unfortunately, this app can not be installed on ARM at the moment. Feel free to open a discussion on https://github.com/YunoHost-Apps/mastodon_ynh/issues to discuss the compatibility. (Additionaly, for small ARM boards you may consider Pleroma as a lighter and more suitable alternative to Mastodon)"
-fi
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
