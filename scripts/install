@@ -165,15 +165,15 @@ ynh_replace_string --match_string="__SMTP_FROM_ADDRESS__" --replace_string="$adm
 language="$(echo $language | head -c 2)"
 ynh_replace_string --match_string="__LANGUAGE__" --replace_string="$language" --target_file="$config"
 
-paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+paperclip_secret=$(ynh_string_random --length=128)
 ynh_replace_string --match_string="PAPERCLIP_SECRET=" --replace_string="PAPERCLIP_SECRET=$paperclip_secret" --target_file="$config"
 ynh_app_setting_set --app="$app" --key=paperclip_secret --value="$paperclip_secret"
 
-secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+secret_key_base=$(ynh_string_random --length=128)
 ynh_replace_string --match_string="__SECRET_KEY_BASE__" --replace_string="$secret_key_base" --target_file="$config"
 ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
 
-otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+otp_secret=$(ynh_string_random --length=128)
 ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$config"
 ynh_app_setting_set --app="$app" --key=otp_secret --value="$otp_secret"
 

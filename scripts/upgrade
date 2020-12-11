@@ -94,7 +94,7 @@ fi
 if [[ -z "$paperclip_secret" ]]; then
 	paperclip_secret=$(grep -oP "PAPERCLIP_SECRET=\K\w+" $config)
 	if [[ -z "$paperclip_secret" ]]; then
-		paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+		paperclip_secret=$(ynh_string_random --length=128)
 	fi
 	ynh_app_setting_set --app=$app --key=paperclip_secret --value="$paperclip_secret"
 fi
@@ -103,7 +103,7 @@ fi
 if [[ -z "$secret_key_base" ]]; then
 	secret_key_base=$(grep -oP "SECRET_KEY_BASE=\K\w+" $config)
 	if [[ -z "$secret_key_base" ]]; then
-		secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+		secret_key_base=$(ynh_string_random --length=128)
 	fi
 	ynh_app_setting_set --app=$app --key=secret_key_base --value="$secret_key_base"
 fi
@@ -112,7 +112,7 @@ fi
 if [[ -z "$otp_secret" ]]; then
 	otp_secret=$(grep -oP "OTP_SECRET=\K\w+" $config)
 	if [[ -z "$otp_secret" ]]; then
-		otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+		otp_secret=$(ynh_string_random --length=128)
 	fi
 	ynh_app_setting_set --app=$app --key=otp_secret --value="$otp_secret"
 fi
