@@ -263,7 +263,7 @@ yunohost service add "$app-streaming" --description "$app streaming service" --l
 ynh_script_progression --message="Starting a systemd service..."
 
 ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on tcp"
-ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Starting processing"
+ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
 ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=systemd --line_match="Worker 1 now listening"
 
 #=================================================
