@@ -1,19 +1,19 @@
 [Unit]
- Description=__APP__-streaming
- After=network.target
+Description=__APP__-streaming
+After=network.target
 
 [Service]
- Type=simple
- User=__APP__
- WorkingDirectory=__FINALPATH__/live
- Environment="NODE_ENV=production"
- Environment="PORT=__PORT_STREAM__"
- Environment="STREAMING_CLUSTER_NUM=1"
- Environment="__YNH_NODE_LOAD_PATH__"
- ExecStart=__YNH_NODE__ ./streaming
- TimeoutSec=15
- Restart=always
- StandardError=syslog
+Type=simple
+User=__APP__
+WorkingDirectory=__FINALPATH__/live
+Environment="NODE_ENV=production"
+Environment="PORT=__PORT_STREAM__"
+Environment="STREAMING_CLUSTER_NUM=1"
+Environment="__YNH_NODE_LOAD_PATH__"
+ExecStart=__YNH_NODE__ ./streaming
+TimeoutSec=15
+Restart=always
+StandardError=syslog
 
 [Install]
- WantedBy=multi-user.target
+WantedBy=multi-user.target

@@ -1,18 +1,18 @@
 [Unit]
- Description=__APP__-web
- After=network.target
+Description=__APP__-web
+After=network.target
 
 [Service]
- Type=simple
- User=__APP__
- WorkingDirectory=__FINALPATH__/live
- Environment="RAILS_ENV=production"
- Environment="PORT=__PORT_WEB__"
- ExecStart=__RBENV_ROOT__/shims/bundle exec puma -C config/puma.rb
- ExecReload=/bin/kill -SIGUSR1 $MAINPID
- TimeoutSec=15
- Restart=always
- StandardError=syslog
+Type=simple
+User=__APP__
+WorkingDirectory=__FINALPATH__/live
+Environment="RAILS_ENV=production"
+Environment="PORT=__PORT_WEB__"
+ExecStart=__RBENV_ROOT__/shims/bundle exec puma -C config/puma.rb
+ExecReload=/bin/kill -SIGUSR1 $MAINPID
+TimeoutSec=15
+Restart=always
+StandardError=syslog
 
 [Install]
- WantedBy=multi-user.target
+WantedBy=multi-user.target

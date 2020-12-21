@@ -165,15 +165,15 @@ ynh_replace_string --match_string="__SMTP_FROM_ADDRESS__" --replace_string="$adm
 language="$(echo $language | head -c 2)"
 ynh_replace_string --match_string="__LANGUAGE__" --replace_string="$language" --target_file="$config"
 
-paperclip_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+paperclip_secret=$(ynh_string_random --length=128)
 ynh_replace_string --match_string="PAPERCLIP_SECRET=" --replace_string="PAPERCLIP_SECRET=$paperclip_secret" --target_file="$config"
 ynh_app_setting_set --app="$app" --key=paperclip_secret --value="$paperclip_secret"
 
-secret_key_base=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+secret_key_base=$(ynh_string_random --length=128)
 ynh_replace_string --match_string="__SECRET_KEY_BASE__" --replace_string="$secret_key_base" --target_file="$config"
 ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
 
-otp_secret=$(head -n128 /dev/urandom | tail -n +1 | tr -dc -d 'a-z0-9' | head -c128)
+otp_secret=$(ynh_string_random --length=128)
 ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$config"
 ynh_app_setting_set --app="$app" --key=otp_secret --value="$otp_secret"
 
@@ -189,16 +189,16 @@ chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
 	ynh_use_nodejs
-	bundle config deployment 'true'
-	bundle config without 'development test'
-	bundle install -j$(getconf _NPROCESSORS_ONLN)
-	yarn install --pure-lockfile
+	sudo -u $app PATH=$PATH $RBENV_ROOT/shims/bundle config deployment 'true'
+	sudo -u $app PATH=$PATH $RBENV_ROOT/shims/bundle config without 'development test'
+	sudo -u $app PATH=$PATH $RBENV_ROOT/shims/bundle install -j$(getconf _NPROCESSORS_ONLN)
+	sudo -u $app PATH=$PATH yarn install --pure-lockfile
 	echo "SAFETY_ASSURED=1">> $config
-	RAILS_ENV=production bundle exec rails db:setup --quiet
-	RAILS_ENV=production bundle exec rails assets:precompile --quiet
-	RAILS_ENV=production bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
-	RAILS_ENV=production bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null
-	RAILS_ENV=production bin/tootctl accounts modify "$admin" --approve
+	sudo -u $app RAILS_ENV=production PATH=$PATH bin/bundle exec rails db:setup --quiet
+	sudo -u $app RAILS_ENV=production PATH=$PATH bin/bundle exec rails assets:precompile --quiet
+	sudo -u $app RAILS_ENV=production PATH=$PATH bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
+	sudo -u $app RAILS_ENV=production PATH=$PATH bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null
+	sudo -u $app RAILS_ENV=production PATH=$PATH bin/tootctl accounts modify "$admin" --approve
 popd
 
 vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")
@@ -263,7 +263,7 @@ yunohost service add "$app-streaming" --description "$app streaming service" --l
 ynh_script_progression --message="Starting a systemd service..."
 
 ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on tcp"
-ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Starting processing"
+ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
 ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=systemd --line_match="Worker 1 now listening"
 
 #=================================================
