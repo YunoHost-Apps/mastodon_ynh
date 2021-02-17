@@ -1,5 +1,4 @@
-;; Nom du test
-	auto_remove=1
+;; Test complet
 	; Manifest
 		domain="domain.tld"	(DOMAIN)
 		admin="john"	(USER)
@@ -29,13 +28,8 @@
 		upgrade=1	from_commit=a233ccc644d97aa89756fac9f0ce68c98d81d27c
 		backup_restore=1
 		multi_instance=1
-		# This test is no longer necessary since the version 2.7 (PR: https://github.com/YunoHost/yunohost/pull/304), you can still do it if your app could be installed with this version.
-		# incorrect_path=1
 		port_already_use=0
 		change_url=0
-;;; Levels
-	# If the level 5 (Package linter) is forced to 1. Please add justifications here.
-	Level 5=auto
 ;;; Options
 Email=yalh@yahoo.com
 Notification=all

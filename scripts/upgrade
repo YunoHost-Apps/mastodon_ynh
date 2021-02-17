@@ -37,6 +37,8 @@ otp_secret=$(ynh_app_setting_get --app=$app --key=otp_secret)
 vapid_private_key=$(ynh_app_setting_get --app=$app --key=vapid_private_key)
 vapid_public_key=$(ynh_app_setting_get --app=$app --key=vapid_public_key)
 
+config="$final_path/live/.env.production"
+
 #=================================================
 # CHECK VERSION
 #=================================================
@@ -49,39 +51,27 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..."
 
-config="$final_path/live/.env.production"
 
-# If db_name doesn't exist, create it
-if [ -z "$db_name" ]; then
-	db_name="${app}_production"
-	ynh_app_setting_set --app=$app --key=db_name --value=$db_name
+# Cleaning legacy permissions
+if ynh_legacy_permissions_exists; then
+	ynh_legacy_permissions_delete_all
+
+	ynh_app_setting_delete --app=$app --key=is_public
 fi
 
-# If final_path doesn't exist, create it
-if [ -z "$final_path" ]; then
-	final_path=/var/www/$app
-	ynh_app_setting_set --app=$app --key=final_path --value=$final_path
-fi
-
-# Check if admin is not null
-if [[ "$admin" = "" || "$language" = "" ]]; then
-	echo "Unable to upgrade, please contact support"
-	ynh_die
-fi
-
-# If port_web doesn't exist, create it, need for old install
+# If port_web doesn't exist, create it, needed for old install
 if [[ -z "$port_web" ]]; then
 	port_web=3000
 	ynh_app_setting_set --app=$app --key=port_web --value=$port_web
 fi
 
-# If port_web doesn't exist, create it, need for old install
+# If port_web doesn't exist, create it, needed for old install
 if [[ -z "$port_stream" ]]; then
 	port_stream=4000
 	ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
 fi
 
-# If db_pwd doesn't exist, create it, need for old install
+# If db_pwd doesn't exist, create it, needed for old install
 if [[ -z "$db_pwd" ]]; then
 	db_pwd=$(ynh_string_random)
 	ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
@@ -144,18 +134,6 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# CHECK THE PATH
-#=================================================
-
-# Normalize the URL path syntax
-# N.B. : this is for app installations before YunoHost 2.7
-# where this value might be something like /foo/ or foo/
-# instead of /foo ....
-# If nobody installed your app before 2.7, then you may
-# safely remove this line
-path_url=$(ynh_normalize_url_path --path_url=$path_url)
-
-#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # STOP SYSTEMD SERVICE
@@ -201,6 +179,7 @@ fi
 #=================================================
 ynh_script_progression --message="Upgrading nginx web server configuration..."
 
+# Create a dedicated NGINX config
 ynh_add_nginx_config 'port_web port_stream'
 
 #=================================================
@@ -316,15 +295,6 @@ ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.ser
 ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service" --others_var="port_stream ynh_node_load_PATH ynh_node"
 
 #=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..."
-
-yunohost service add "$app-web" --description "$app web service" --log_type "systemd"
-yunohost service add "$app-sidekiq" --description "$app sidekiq service" --log_type "systemd"
-yunohost service add "$app-streaming" --description "$app streaming service" --log_type "systemd"
-
-#=================================================
 # GENERIC FINALIZATION
 #=================================================
 # SECURE FILES AND DIRECTORIES
@@ -335,16 +305,13 @@ ynh_script_progression --message="Securing files and directories..."
 chown -R $app: $final_path
 
 #=================================================
-# SETUP SSOWAT
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-ynh_script_progression --message="Upgrading SSOwat configuration..."
+ynh_script_progression --message="Integrating service in YunoHost..."
 
-# Make app public if necessary
-if [ $is_public -eq 1 ]
-then
-	# unprotected_uris allows SSO credentials to be passed anyway
-	ynh_app_setting_set --app=$app --key=unprotected_uris --value="/"
-fi
+yunohost service add "$app-web" --description "$app web service" --log_type "systemd"
+yunohost service add "$app-sidekiq" --description "$app sidekiq service" --log_type "systemd"
+yunohost service add "$app-streaming" --description "$app streaming service" --log_type "systemd"
 
 #=================================================
 # START SYSTEMD SERVICE

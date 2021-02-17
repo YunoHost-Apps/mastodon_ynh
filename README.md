@@ -1,12 +1,12 @@
 # Mastodon for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/mastodon.svg)](https://dash.yunohost.org/appci/app/mastodon) ![](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)    
+[![Integration level](https://dash.yunohost.org/integration/mastodon.svg)](https://dash.yunohost.org/appci/app/mastodon) ![](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)  
 [![Install Mastodon with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=mastodon)
 
 *[Lire ce readme en français.](./README_fr.md)*
 
-> *This package allow you to install Mastodon quickly and simply on a YunoHost server.  
-If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
+> *This package allows you to install Mastodon quickly and simply on a YunoHost server.  
+If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/install) to learn how to install it.*
 
 ## Overview
 Mastodon is a free, open-source microblogging social network. It is a decentralized alternative to commercial platforms like Twitter and avoids the risks of a single company monopolizing your communication for commercial purposes. 
@@ -70,10 +70,9 @@ LDAP authentication is activated. All YunoHost users can authenticate.
 
 ---
 
-Developers info
-----------------
+## Developer info
 
-Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/mastodon_ynh/tree/testing).
+Please send your pull request to the [testing branch](https://github.com/YunoHost-Apps/mastodon_ynh/tree/testing).
 
 To try the testing branch, please proceed like that.
 ```
