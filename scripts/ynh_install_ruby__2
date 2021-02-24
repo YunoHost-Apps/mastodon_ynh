@@ -118,7 +118,10 @@ ynh_install_ruby () {
     # Remove previous version
     if grep --quiet "$YNH_APP_INSTANCE_NAME:" "$rbenv_install_dir/ynh_app_version"
     then
-      rbenv alias $YNH_APP_INSTANCE_NAME --remove
+      if  grep --quiet "$YNH_APP_INSTANCE_NAME" $(rbenv alias --list)
+      then
+        rbenv alias $YNH_APP_INSTANCE_NAME --remove
+      fi
       sed --in-place "/$YNH_APP_INSTANCE_NAME:/d" "$rbenv_install_dir/ynh_app_version"
     fi
 
