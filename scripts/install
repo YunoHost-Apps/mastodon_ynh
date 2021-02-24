@@ -144,8 +144,8 @@ ynh_script_progression --message="Installing Ruby..."
 
 ynh_install_ruby --ruby_version=$RUBY_VERSION
 pushd "$final_path/live"
-	gem update --system
-	gem install bundler:$BUNDLER_VERSION --no-document
+	/opt/rbenv/versions/$app/bin/gem update --system
+	/opt/rbenv/versions/$app/bin/gem install bundler:$BUNDLER_VERSION --no-document
 popd
 
 #=================================================
@@ -188,14 +188,14 @@ chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
 	ynh_use_nodejs
-	sudo -u $app PATH=$PATH $RBENV_ROOT/shims/bundle config deployment 'true'
-	sudo -u $app PATH=$PATH $RBENV_ROOT/shims/bundle config without 'development test'
-	sudo -u $app PATH=$PATH $RBENV_ROOT/shims/bundle install -j$(getconf _NPROCESSORS_ONLN)
+	sudo -u $app PATH=$PATH /opt/rbenv/versions/$app/bin/bundle config deployment 'true'
+	sudo -u $app PATH=$PATH /opt/rbenv/versions/$app/bin/bundle config without 'development test'
+	sudo -u $app PATH=$PATH /opt/rbenv/versions/$app/bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
 	sudo -u $app PATH=$PATH yarn install --pure-lockfile
 	echo "SAFETY_ASSURED=1">> $config
-	sudo -u $app RAILS_ENV=production PATH=$PATH bin/bundle exec rails db:setup --quiet
-	sudo -u $app RAILS_ENV=production PATH=$PATH bin/bundle exec rails assets:precompile --quiet
-	sudo -u $app RAILS_ENV=production PATH=$PATH bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
+	sudo -u $app RAILS_ENV=production PATH=$PATH /opt/rbenv/versions/$app/bin/bundle exec rails db:setup --quiet
+	sudo -u $app RAILS_ENV=production PATH=$PATH /opt/rbenv/versions/$app/bin/bundle exec rails assets:precompile --quiet
+	sudo -u $app RAILS_ENV=production PATH=$PATH /opt/rbenv/versions/$app/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
 	sudo -u $app RAILS_ENV=production PATH=$PATH bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null
 	sudo -u $app RAILS_ENV=production PATH=$PATH bin/tootctl accounts modify "$admin" --approve
 popd
