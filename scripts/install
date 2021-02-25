@@ -54,7 +54,6 @@ ynh_script_progression --message="Storing installation settings..."
 ynh_app_setting_set --app=$app --key=domain --value=$domain
 ynh_app_setting_set --app=$app --key=path --value=$path_url
 ynh_app_setting_set --app=$app --key=admin --value=$admin
-ynh_app_setting_set --app=$app --key=is_public --value=$is_public
 ynh_app_setting_set --app=$app --key=language --value=$language
 
 #=================================================
@@ -83,9 +82,9 @@ ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ st
 #=================================================
 # CREATE A POSTGRESQL DATABASE
 #=================================================
-ynh_script_progression --message="Creating a MySQL database..."
+ynh_script_progression --message="Creating a PostgreSQL database..."
 
-# Create postgresql database
+# Create PostgreSQL database
 db_name="${app}_production"
 db_user=$app
 db_pwd=$(ynh_string_random --length=30)
@@ -145,8 +144,8 @@ ynh_script_progression --message="Installing Ruby..."
 
 ynh_install_ruby --ruby_version=$RUBY_VERSION
 pushd "$final_path/live"
-	gem update --system
-	gem install bundler:$BUNDLER_VERSION --no-document
+	$RBENV_ROOT/versions/$app/bin/gem update --system
+	$RBENV_ROOT/versions/$app/bin/gem install bundler:$BUNDLER_VERSION --no-document
 popd
 
 #=================================================
@@ -189,14 +188,14 @@ chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
 	ynh_use_nodejs
-	sudo -u $app PATH=$PATH $RBENV_ROOT/shims/bundle config deployment 'true'
-	sudo -u $app PATH=$PATH $RBENV_ROOT/shims/bundle config without 'development test'
-	sudo -u $app PATH=$PATH $RBENV_ROOT/shims/bundle install -j$(getconf _NPROCESSORS_ONLN)
+	sudo -u $app PATH=$PATH $RBENV_ROOT/versions/$app/bin/bundle config deployment 'true'
+	sudo -u $app PATH=$PATH $RBENV_ROOT/versions/$app/bin/bundle config without 'development test'
+	sudo -u $app PATH=$PATH $RBENV_ROOT/versions/$app/bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
 	sudo -u $app PATH=$PATH yarn install --pure-lockfile
 	echo "SAFETY_ASSURED=1">> $config
-	sudo -u $app RAILS_ENV=production PATH=$PATH bin/bundle exec rails db:setup --quiet
-	sudo -u $app RAILS_ENV=production PATH=$PATH bin/bundle exec rails assets:precompile --quiet
-	sudo -u $app RAILS_ENV=production PATH=$PATH bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
+	sudo -u $app RAILS_ENV=production PATH=$PATH $RBENV_ROOT/versions/$app/bin/bundle exec rails db:setup --quiet
+	sudo -u $app RAILS_ENV=production PATH=$PATH $RBENV_ROOT/versions/$app/bin/bundle exec rails assets:precompile --quiet
+	sudo -u $app RAILS_ENV=production PATH=$PATH $RBENV_ROOT/versions/$app/bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
 	sudo -u $app RAILS_ENV=production PATH=$PATH bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null
 	sudo -u $app RAILS_ENV=production PATH=$PATH bin/tootctl accounts modify "$admin" --approve
 popd
@@ -253,9 +252,9 @@ chown -R "$app": "$final_path"
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add "$app-web" --description "$app web service" --log_type "systemd"
-yunohost service add "$app-sidekiq" --description "$app sidekiq service" --log_type "systemd"
-yunohost service add "$app-streaming" --description "$app streaming service" --log_type "systemd"
+yunohost service add "$app-web" --description "$app web service"
+yunohost service add "$app-sidekiq" --description "$app sidekiq service"
+yunohost service add "$app-streaming" --description "$app streaming service"
 
 #=================================================
 # START SYSTEMD SERVICE
@@ -269,13 +268,14 @@ ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=s
 #=================================================
 # SETUP SSOWAT
 #=================================================
-ynh_script_progression --message="Configuring SSOwat..."
+ynh_script_progression --message="Configuring permissions..."
 
 # Make app public if necessary
 if [ $is_public -eq 1 ]
 then
-	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_set --app=$app --key=unprotected_uris --value="/"
+	# Everyone can access the app.
+	# The "main" permission is automatically created before the install script.
+	ynh_permission_update --permission="main" --add="visitors"
 fi
 
 #=================================================

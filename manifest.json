@@ -6,7 +6,7 @@
         "en": "A libre and federated social network.",
         "fr": "Un réseau social libre et fédéré."
     },
-    "version": "3.2.2~ynh1",
+    "version": "3.3.0~ynh1",
     "url": "https://github.com/tootsuite/mastodon",
     "license": "AGPL-3.0-or-later",
     "maintainer": [

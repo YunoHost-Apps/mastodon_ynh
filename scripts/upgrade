@@ -21,7 +21,6 @@ app=$YNH_APP_INSTANCE_NAME
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 admin=$(ynh_app_setting_get --app=$app --key=admin)
-is_public=$(ynh_app_setting_get --app=$app --key=is_public)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 language=$(ynh_app_setting_get --app=$app --key=language)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
@@ -37,6 +36,8 @@ otp_secret=$(ynh_app_setting_get --app=$app --key=otp_secret)
 vapid_private_key=$(ynh_app_setting_get --app=$app --key=vapid_private_key)
 vapid_public_key=$(ynh_app_setting_get --app=$app --key=vapid_public_key)
 
+config="$final_path/live/.env.production"
+
 #=================================================
 # CHECK VERSION
 #=================================================
@@ -49,39 +50,27 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..."
 
-config="$final_path/live/.env.production"
 
-# If db_name doesn't exist, create it
-if [ -z "$db_name" ]; then
-	db_name="${app}_production"
-	ynh_app_setting_set --app=$app --key=db_name --value=$db_name
+# Cleaning legacy permissions
+if ynh_legacy_permissions_exists; then
+	ynh_legacy_permissions_delete_all
+
+	ynh_app_setting_delete --app=$app --key=is_public
 fi
 
-# If final_path doesn't exist, create it
-if [ -z "$final_path" ]; then
-	final_path=/var/www/$app
-	ynh_app_setting_set --app=$app --key=final_path --value=$final_path
-fi
-
-# Check if admin is not null
-if [[ "$admin" = "" || "$language" = "" ]]; then
-	echo "Unable to upgrade, please contact support"
-	ynh_die
-fi
-
-# If port_web doesn't exist, create it, need for old install
+# If port_web doesn't exist, create it, needed for old install
 if [[ -z "$port_web" ]]; then
 	port_web=3000
 	ynh_app_setting_set --app=$app --key=port_web --value=$port_web
 fi
 
-# If port_web doesn't exist, create it, need for old install
+# If port_web doesn't exist, create it, needed for old install
 if [[ -z "$port_stream" ]]; then
 	port_stream=4000
 	ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
 fi
 
-# If db_pwd doesn't exist, create it, need for old install
+# If db_pwd doesn't exist, create it, needed for old install
 if [[ -z "$db_pwd" ]]; then
 	db_pwd=$(ynh_string_random)
 	ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
@@ -144,18 +133,6 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# CHECK THE PATH
-#=================================================
-
-# Normalize the URL path syntax
-# N.B. : this is for app installations before YunoHost 2.7
-# where this value might be something like /foo/ or foo/
-# instead of /foo ....
-# If nobody installed your app before 2.7, then you may
-# safely remove this line
-path_url=$(ynh_normalize_url_path --path_url=$path_url)
-
-#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # STOP SYSTEMD SERVICE
@@ -201,6 +178,7 @@ fi
 #=================================================
 ynh_script_progression --message="Upgrading nginx web server configuration..."
 
+# Create a dedicated NGINX config
 ynh_add_nginx_config 'port_web port_stream'
 
 #=================================================
@@ -284,13 +262,13 @@ chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
 	ynh_use_nodejs
-	sudo -u $app PATH=$PATH $RBENV_ROOT/shims/bundle config deployment 'true'
-	sudo -u $app PATH=$PATH $RBENV_ROOT/shims/bundle config without 'development test'
-	sudo -u $app PATH=$PATH $RBENV_ROOT/shims/bundle install -j$(getconf _NPROCESSORS_ONLN)
+	sudo -u $app PATH=$PATH $RBENV_ROOT/versions/$app/bin/bundle config deployment 'true'
+	sudo -u $app PATH=$PATH $RBENV_ROOT/versions/$app/bin/bundle config without 'development test'
+	sudo -u $app PATH=$PATH $RBENV_ROOT/versions/$app/bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
 	sudo -u $app PATH=$PATH yarn install --pure-lockfile
-	sudo -u $app RAILS_ENV=production PATH=$PATH bin/bundle exec rails assets:clean
-	sudo -u $app RAILS_ENV=production PATH=$PATH bin/bundle exec rails assets:precompile
-	sudo -u $app RAILS_ENV=production PATH=$PATH bin/bundle exec rails db:migrate
+	sudo -u $app RAILS_ENV=production PATH=$PATH $RBENV_ROOT/versions/$app/bin/bundle exec rails assets:clean
+	sudo -u $app RAILS_ENV=production PATH=$PATH $RBENV_ROOT/versions/$app/bin/bundle exec rails assets:precompile
+	sudo -u $app RAILS_ENV=production PATH=$PATH $RBENV_ROOT/versions/$app/bin/bundle exec rails db:migrate
 	sudo -u $app RAILS_ENV=production PATH=$PATH bin/tootctl cache clear
 popd
 
@@ -316,15 +294,6 @@ ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.ser
 ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service" --others_var="port_stream ynh_node_load_PATH ynh_node"
 
 #=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..."
-
-yunohost service add "$app-web" --description "$app web service" --log_type "systemd"
-yunohost service add "$app-sidekiq" --description "$app sidekiq service" --log_type "systemd"
-yunohost service add "$app-streaming" --description "$app streaming service" --log_type "systemd"
-
-#=================================================
 # GENERIC FINALIZATION
 #=================================================
 # SECURE FILES AND DIRECTORIES
@@ -335,16 +304,13 @@ ynh_script_progression --message="Securing files and directories..."
 chown -R $app: $final_path
 
 #=================================================
-# SETUP SSOWAT
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-ynh_script_progression --message="Upgrading SSOwat configuration..."
+ynh_script_progression --message="Integrating service in YunoHost..."
 
-# Make app public if necessary
-if [ $is_public -eq 1 ]
-then
-	# unprotected_uris allows SSO credentials to be passed anyway
-	ynh_app_setting_set --app=$app --key=unprotected_uris --value="/"
-fi
+yunohost service add "$app-web" --description "$app web service"
+yunohost service add "$app-sidekiq" --description "$app sidekiq service"
+yunohost service add "$app-streaming" --description "$app streaming service"
 
 #=================================================
 # START SYSTEMD SERVICE

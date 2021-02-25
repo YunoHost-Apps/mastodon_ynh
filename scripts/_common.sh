@@ -9,15 +9,9 @@ pkg_dependencies="imagemagick ffmpeg libpq-dev libxml2-dev libxslt1-dev file git
 
 MEMORY_NEEDED="2560"
 
-if [ "$(lsb_release --codename --short)" = "buster" ]; then
-    RUBY_VERSION="2.6.6"
-    BUNDLER_VERSION="1.17.3"
-    NODEJS_VERSION="12"
-else
-    RUBY_VERSION="2.6.5"
-    BUNDLER_VERSION="1.17.3"
-    NODEJS_VERSION="10"
-fi
+RUBY_VERSION="2.7.2"
+BUNDLER_VERSION="1.17.3"
+NODEJS_VERSION="12"
 
 #=================================================
 # PERSONAL HELPERS
