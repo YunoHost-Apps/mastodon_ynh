@@ -1,17 +1,17 @@
 # Mastodon pour YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/mastodon.svg)](https://dash.yunohost.org/appci/app/mastodon) ![](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)    
-[![Install Mastodon with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=mastodon)
+[![Niveau d'intégration](https://dash.yunohost.org/integration/mastodon.svg)](https://dash.yunohost.org/appci/app/mastodon) ![](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)  
+[![Installer Mastodon avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=mastodon)
 
 *[Read this readme in english.](./README.md)* 
 
 > *Ce package vous permet d'installer Mastodon rapidement et simplement sur un serveur YunoHost.  
-Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
+Si vous n'avez pas YunoHost, consultez [le guide](https://yunohost.org/#/install) pour apprendre comment l'installer.*
 
 ## Vue d'ensemble
 Mastodon est un réseau social de microblog auto-hébergé et open source. C'est une alternative décentralisée aux plates-formes commerciales comme Twitter. Mastodon évite ainsi les risques qu'une seule société monopolise votre communication à des fins commerciales.
 
-**Version incluse:** 3.2.2
+**Version incluse:** 3.3.0
 
 ## Points importants à lire avant l'installation
 
@@ -53,7 +53,7 @@ L'utilisateur admin est créé automatiquement comme : user@domain.tld
 
 ## Caractéristiques spécifiques YunoHost
 
-#### Support multi-utilisateurs
+#### Support multi-utilisateur
 
 L'authentification LDAP est activée. Tous les utilisateurs YunoHost peuvent s'authentifier.
 
@@ -62,7 +62,7 @@ L'authentification LDAP est activée. Tous les utilisateurs YunoHost peuvent s'a
 * x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/mastodon%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
 * ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/mastodon%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/mastodon/)
 
-## Links
+## Liens
 
  * Signaler un bug : https://github.com/YunoHost-Apps/mastodon_ynh/issues
  * Site de l'application : https://joinmastodon.org/
@@ -71,8 +71,7 @@ L'authentification LDAP est activée. Tous les utilisateurs YunoHost peuvent s'a
 
 ---
 
-Informations pour les développeurs
-----------------
+## Informations pour les développeurs
 
 Merci de faire vos pull request sur la [branche testing](https://github.com/YunoHost-Apps/mastodon_ynh/tree/testing).
 

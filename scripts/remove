@@ -32,19 +32,19 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 # Remove the service from the list of services known by Yunohost (added from `yunohost service add`)
 if ynh_exec_warn_less yunohost service status "$app-web" >/dev/null
 then
-	ynh_script_progression --message="Removing $app-web service..."
+	ynh_script_progression --message="Removing $app-web service integration..."
 	yunohost service remove "$app-web"
 fi
 
 if ynh_exec_warn_less yunohost service status "$app-sidekiq" >/dev/null
 then
-	ynh_script_progression --message="Removing $app-sidekiq service..."
+	ynh_script_progression --message="Removing $app-sidekiq service integration..."
 	yunohost service remove "$app-sidekiq"
 fi
 
 if ynh_exec_warn_less yunohost service status "$app-streaming" >/dev/null
 then
-	ynh_script_progression --message="Removing $app-streaming service..."
+	ynh_script_progression --message="Removing $app-streaming service integration..."
 	yunohost service remove "$app-streaming"
 fi
 
