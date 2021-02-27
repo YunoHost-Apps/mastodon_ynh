@@ -30,7 +30,6 @@ admin_mail=$(ynh_user_get_info --username=$admin --key='mail')
 port_web=$(ynh_app_setting_get --app=$app --key=port_web)
 port_stream=$(ynh_app_setting_get --app=$app --key=port_stream)
 
-paperclip_secret=$(ynh_app_setting_get --app=$app --key=paperclip_secret)
 secret_key_base=$(ynh_app_setting_get --app=$app --key=secret_key_base)
 otp_secret=$(ynh_app_setting_get --app=$app --key=otp_secret)
 vapid_private_key=$(ynh_app_setting_get --app=$app --key=vapid_private_key)
@@ -79,14 +78,8 @@ if [[ -z "$db_pwd" ]]; then
 	ynh_replace_string --match_string="DB_PASS=" --replace_string="DB_PASS=${db_pwd}" --target_file="$config"
 fi
 
-# If paperclip_secret doesn't exist, retrieve it or create it
-if [[ -z "$paperclip_secret" ]]; then
-	paperclip_secret=$(grep -oP "PAPERCLIP_SECRET=\K\w+" $config)
-	if [[ -z "$paperclip_secret" ]]; then
-		paperclip_secret=$(ynh_string_random --length=128)
-	fi
-	ynh_app_setting_set --app=$app --key=paperclip_secret --value="$paperclip_secret"
-fi
+# Remove paperclip_secret
+ynh_app_setting_delete --app=$app --key=paperclip_secret
 
 # If secret_key_base doesn't exist, retrieve it or create it
 if [[ -z "$secret_key_base" ]]; then
@@ -233,25 +226,9 @@ popd
 #=================================================
 ynh_script_progression --message="Modifying a config file..."
 
-ynh_backup_if_checksum_is_different --file="$config"
-cp -f ../conf/.env.production.sample "$config"
-ynh_replace_string --match_string="__DB_USER__" --replace_string="$app" --target_file="$config"
-ynh_replace_string --match_string="__DB_NAME__" --replace_string="$db_name" --target_file="$config"
-ynh_replace_string --match_string="__DB_PWD__" --replace_string="$db_pwd" --target_file="$config"
-ynh_replace_string --match_string="__DOMAIN__" --replace_string="$domain" --target_file="$config"
-ynh_replace_string --match_string="__SMTP_FROM_ADDRESS__" --replace_string="$admin_mail" --target_file="$config"
-
 language="$(echo $language | head -c 2)"
-ynh_replace_string --match_string="__LANGUAGE__" --replace_string="$language" --target_file="$config"
 
-ynh_replace_string --match_string="PAPERCLIP_SECRET=" --replace_string="PAPERCLIP_SECRET=$paperclip_secret" --target_file="$config"
-
-ynh_replace_string --match_string="__SECRET_KEY_BASE__" --replace_string="$secret_key_base" --target_file="$config"
-
-ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$config"
-
-ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key" --target_file="$config"
-ynh_replace_string --match_string="__VAPID_PUBLIC_KEY__" --replace_string="$vapid_public_key" --target_file="$config"
+ynh_add_config --template="../conf/.env.production.sample" --destination="$config"
 
 #=================================================
 # UPGRADE MASTODON
@@ -272,16 +249,12 @@ pushd "$final_path/live"
 	sudo -u $app RAILS_ENV=production PATH=$PATH bin/tootctl cache clear
 popd
 
-# Recalculate and store the checksum of the file for the next upgrade.
-ynh_store_file_checksum --file="$config"
-
 #=================================================
 # SETUP THE CRON FILE
 #=================================================
 ynh_script_progression --message="Setuping the cron file..."
 
-ynh_replace_string --match_string="__FINAL_PATH__" --replace_string="$final_path" --target_file="../conf/cron"
-cp -f ../conf/cron /etc/cron.d/$app 
+ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
 
 #=================================================
 # SETUP SYSTEMD

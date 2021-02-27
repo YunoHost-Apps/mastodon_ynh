@@ -65,9 +65,9 @@ ynh_script_progression --message="Finding an available port..."
 
 # Find an available port
 port_web=$(ynh_find_port --port=3000)
-port_stream=$(ynh_find_port --port=4000)
-# Open this port
 ynh_app_setting_set --app=$app --key=port_web --value=$port_web
+
+port_stream=$(ynh_find_port --port=4000)
 ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
 
 #=================================================
@@ -154,30 +154,24 @@ popd
 ynh_script_progression --message="Modifying a config file..."
 
 config="$final_path/live/.env.production"
-cp -f ../conf/.env.production.sample "$config"
-ynh_replace_string --match_string="__DB_USER__" --replace_string="$app" --target_file="$config"
-ynh_replace_string --match_string="__DB_NAME__" --replace_string="$db_name" --target_file="$config"
-ynh_replace_string --match_string="__DB_PWD__" --replace_string="$db_pwd" --target_file="$config"
-ynh_replace_string --match_string="__DOMAIN__" --replace_string="$domain" --target_file="$config"
-ynh_replace_string --match_string="__SMTP_FROM_ADDRESS__" --replace_string="$admin_mail" --target_file="$config"
 
 language="$(echo $language | head -c 2)"
-ynh_replace_string --match_string="__LANGUAGE__" --replace_string="$language" --target_file="$config"
-
-paperclip_secret=$(ynh_string_random --length=128)
-ynh_replace_string --match_string="PAPERCLIP_SECRET=" --replace_string="PAPERCLIP_SECRET=$paperclip_secret" --target_file="$config"
-ynh_app_setting_set --app="$app" --key=paperclip_secret --value="$paperclip_secret"
 
 secret_key_base=$(ynh_string_random --length=128)
-ynh_replace_string --match_string="__SECRET_KEY_BASE__" --replace_string="$secret_key_base" --target_file="$config"
 ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
 
 otp_secret=$(ynh_string_random --length=128)
-ynh_replace_string --match_string="__OTP_SECRET__" --replace_string="$otp_secret" --target_file="$config"
 ynh_app_setting_set --app="$app" --key=otp_secret --value="$otp_secret"
+
+ynh_add_config --template="../conf/.env.production.sample" --destination="$config"
+
+vapid_private_key=""
+vapid_public_key=""
 
 ynh_replace_string --match_string="registrations_mode: 'open'" --replace_string="registrations_mode: 'none'" --target_file="$final_path/live/config/settings.yml"
 ynh_replace_string --match_string="min_invite_role: 'admin'" --replace_string="min_invite_role: 'none'" --target_file="$final_path/live/config/settings.yml"
+
+ynh_store_file_checksum --file="$final_path/live/config/settings.yml"
 
 #=================================================
 # INSTALLING MASTODON
@@ -201,13 +195,12 @@ pushd "$final_path/live"
 popd
 
 vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")
-vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
-
-ynh_replace_string --match_string="__VAPID_PRIVATE_KEY__" --replace_string="$vapid_private_key" --target_file="$config"
-ynh_replace_string --match_string="__VAPID_PUBLIC_KEY__" --replace_string="$vapid_public_key" --target_file="$config"
-
 ynh_app_setting_set --app="$app" --key=vapid_private_key --value="$vapid_private_key"
+
+vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
 ynh_app_setting_set --app="$app" --key=vapid_public_key --value="$vapid_public_key"
+
+ynh_add_config --template="../conf/.env.production.sample" --destination="$config"
 
 ynh_secure_remove --file="$final_path/live/key.txt"
 
@@ -216,8 +209,7 @@ ynh_secure_remove --file="$final_path/live/key.txt"
 #=================================================
 ynh_script_progression --message="Setuping the cron file..."
 
-ynh_replace_string --match_string="__FINAL_PATH__" --replace_string="$final_path" --target_file="../conf/cron"
-cp -f ../conf/cron /etc/cron.d/$app 
+ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
 
 #=================================================
 # SETUP SYSTEMD
