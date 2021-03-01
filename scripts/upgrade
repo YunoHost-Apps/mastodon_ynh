@@ -57,6 +57,11 @@ if ynh_legacy_permissions_exists; then
 	ynh_app_setting_delete --app=$app --key=is_public
 fi
 
+# Create a permission if needed
+if ! ynh_permission_exists --permission="api"; then
+	ynh_permission_create --permission="api" --url="/api" --allowed="visitors" --auth_header="false" --show_tile="false" --protected="true"
+fi
+
 # If port_web doesn't exist, create it, needed for old install
 if [[ -z "$port_web" ]]; then
 	port_web=3000
