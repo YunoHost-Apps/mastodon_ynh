@@ -85,8 +85,8 @@ ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ st
 ynh_script_progression --message="Creating a PostgreSQL database..."
 
 # Create PostgreSQL database
-db_name="${app}_production"
-db_user=$app
+db_name=$(ynh_sanitize_dbid --db_name="${app}_production")
+db_user=$(ynh_sanitize_dbid --db_name=$app)
 db_pwd=$(ynh_string_random --length=30)
 ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd

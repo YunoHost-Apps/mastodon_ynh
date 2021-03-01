@@ -33,7 +33,7 @@ domain=$(ynh_app_setting_get --app=$app --key=domain)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$app
+db_user=$(ynh_sanitize_dbid --db_name=$app)
 db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
 
 #=================================================
