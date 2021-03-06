@@ -191,8 +191,8 @@ pushd "$final_path/live"
 	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path $ruby_path/bundle exec rails db:setup --quiet
 	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path $ruby_path/bundle exec rails assets:precompile --quiet
 	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path $ruby_path/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
-	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path $ruby_path/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null
-	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path $ruby_path/tootctl accounts modify "$admin" --approve
+	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null
+	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/tootctl accounts modify "$admin" --approve
 popd
 
 vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")

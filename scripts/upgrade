@@ -251,7 +251,7 @@ pushd "$final_path/live"
 	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path $ruby_path/bundle exec rails assets:clean
 	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path $ruby_path/bundle exec rails assets:precompile
 	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path $ruby_path/bundle exec rails db:migrate
-	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path $ruby_path/tootctl cache clear
+	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/tootctl cache clear
 popd
 
 #=================================================
