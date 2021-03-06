@@ -125,7 +125,7 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
-ynh_script_progression --message="Adding swap is needed..."
+ynh_script_progression --message="Adding swap if needed..."
 
 total_memory=$(ynh_get_ram --total)
 swap_needed=0
