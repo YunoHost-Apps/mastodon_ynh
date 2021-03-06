@@ -105,9 +105,8 @@ ynh_use_ruby () {
     if [[ :$PATH: != *":$ruby_path"* ]]; then
         PATH="$ruby_path:$PATH"
     fi
-    ruby_path="$PATH"
     # Create an alias to easily load the PATH
-    ynh_ruby_load_path="PATH=$ruby_path"
+    ynh_ruby_load_path="PATH=$PATH"
 
     # Sets the local application-specific Ruby version
     (cd $final_path
