@@ -145,8 +145,8 @@ ynh_script_progression --message="Installing Ruby..."
 
 pushd "$final_path/live"
 	ynh_use_ruby
-	$ynh_gem update --system
-	$ynh_gem install bundler:$BUNDLER_VERSION --no-document
+	ynh_gem update --system
+	ynh_gem install bundler --no-document
 popd
 
 #=================================================
@@ -182,17 +182,17 @@ ynh_script_progression --message="Installing Mastodon..."
 chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
-	sudo -u $app $ynh_ruby_load_path $ruby_path/bundle config deployment 'true'
-	sudo -u $app $ynh_ruby_load_path $ruby_path/bundle config without 'development test'
-	sudo -u $app $ynh_ruby_load_path $ruby_path/bundle install -j$(getconf _NPROCESSORS_ONLN)
+	sudo -u $app bin/bundle config deployment 'true'
+	sudo -u $app bin/bundle config without 'development test'
+	sudo -u $app bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
 	ynh_use_nodejs
 	sudo -u $app $ynh_node_load_PATH yarn install --pure-lockfile
 	echo "SAFETY_ASSURED=1">> $config
-	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path $ruby_path/bundle exec rails db:setup --quiet
-	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path $ruby_path/bundle exec rails assets:precompile --quiet
-	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path $ruby_path/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
-	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null
-	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/tootctl accounts modify "$admin" --approve
+	sudo -u $app RAILS_ENV=production bin/bundle exec rails db:setup --quiet
+	sudo -u $app RAILS_ENV=production bin/bundle exec rails assets:precompile --quiet
+	sudo -u $app RAILS_ENV=production bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
+	sudo -u $app RAILS_ENV=production bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null
+	sudo -u $app RAILS_ENV=production bin/tootctl accounts modify "$admin" --approve
 popd
 
 vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")
@@ -254,7 +254,7 @@ yunohost service add "$app-streaming" --description "$app streaming service"
 #=================================================
 ynh_script_progression --message="Starting a systemd service..."
 
-ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on tcp"
+ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on"
 ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
 ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=systemd --line_match="Worker 1 now listening"
 

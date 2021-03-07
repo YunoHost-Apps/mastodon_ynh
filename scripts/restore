@@ -113,7 +113,7 @@ ynh_script_progression --message="Installing Ruby..."
 ynh_install_ruby --ruby_version=$RUBY_VERSION
 pushd "$final_path/live"
 	gem update --system
-	gem install bundler:$BUNDLER_VERSION --no-document
+	gem install bundler --no-document
 popd
 
 #=================================================
@@ -150,7 +150,7 @@ yunohost service add "$app-streaming" --description "$app streaming service"
 #=================================================
 ynh_script_progression --message="Starting a systemd service..."
 
-ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on tcp"
+ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on"
 ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
 ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=systemd --line_match="Worker 1 now listening"
 
