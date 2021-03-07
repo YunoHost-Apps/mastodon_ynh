@@ -75,9 +75,9 @@ ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
 #=================================================
 ynh_script_progression --message="Installing dependencies..."
 
-ynh_install_app_dependencies $pkg_dependencies	
-ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
+ynh_install_app_dependencies $pkg_dependencies
 ynh_install_nodejs --nodejs_version=$NODEJS_VERSION
+ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 ynh_install_ruby --ruby_version=$RUBY_VERSION
 
 #=================================================
@@ -145,7 +145,7 @@ ynh_script_progression --message="Installing Ruby..."
 
 pushd "$final_path/live"
 	ynh_use_ruby
-	ynh_gem update --system
+	# ynh_gem update --system
 	ynh_gem install bundler --no-document
 popd
 
@@ -182,17 +182,17 @@ ynh_script_progression --message="Installing Mastodon..."
 chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
-	sudo -u $app bin/bundle config deployment 'true'
-	sudo -u $app bin/bundle config without 'development test'
-	sudo -u $app bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
+	sudo -u $app $ynh_ruby_load_path bin/bundle config deployment 'true'
+	sudo -u $app $ynh_ruby_load_path bin/bundle config without 'development test'
+	sudo -u $app $ynh_ruby_load_path bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
 	ynh_use_nodejs
 	sudo -u $app $ynh_node_load_PATH yarn install --pure-lockfile
 	echo "SAFETY_ASSURED=1">> $config
-	sudo -u $app RAILS_ENV=production bin/bundle exec rails db:setup --quiet
-	sudo -u $app RAILS_ENV=production bin/bundle exec rails assets:precompile --quiet
-	sudo -u $app RAILS_ENV=production bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
-	sudo -u $app RAILS_ENV=production bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null
-	sudo -u $app RAILS_ENV=production bin/tootctl accounts modify "$admin" --approve
+	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/bundle exec rails db:setup --quiet
+	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/bundle exec rails assets:precompile --quiet
+	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
+	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null
+	sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/tootctl accounts modify "$admin" --approve
 popd
 
 vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")
