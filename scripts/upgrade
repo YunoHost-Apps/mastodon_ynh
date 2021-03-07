@@ -222,7 +222,7 @@ ynh_script_progression --message="Installing Ruby..."
 
 pushd "$final_path/live"
 	ynh_use_ruby
-	# ynh_gem update --system
+	ynh_gem update --system
 	ynh_gem install bundler --no-document
 popd
 
