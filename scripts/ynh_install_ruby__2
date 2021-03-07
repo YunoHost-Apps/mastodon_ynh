@@ -165,9 +165,6 @@ ynh_install_ruby () {
     elif dpkg --compare-versions "$($rbenv_install_dir/plugins/ruby-build/bin/ruby-build --version | cut -d" " -f2)" lt $ruby_build_version
     then
         ynh_install_rbenv
-    elif dpkg --compare-versions "$($rbenv_install_dir/plugins/rbenv-aliases/bin/rbenv-aliases --version | cut -d" " -f2)" lt $rbenv_aliases_version
-    then
-        ynh_install_rbenv
     fi
 
     # Restore /usr/local/bin in PATH
@@ -266,4 +263,4 @@ ynh_cleanup_ruby () {
         ynh_secure_remove --file="$rbenv_install_dir"
         rm /etc/profile.d/rbenv.sh
     fi
-}    
+}
