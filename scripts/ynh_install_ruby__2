@@ -88,6 +88,7 @@ SOURCE_SUM=12e89bc4499e85d8babac2b02bc8b66ceb0aa3f8047b26728a3eca8a6030273d" > "
 # Requires YunoHost version 2.7.12 or higher.
 ynh_use_ruby () {
     ruby_version=$(ynh_app_setting_get --app=$app --key=ruby_version)
+
     # Get the absolute path of this version of Ruby
     ruby_path="$ruby_version_path/$YNH_APP_INSTANCE_NAME/bin"
 
