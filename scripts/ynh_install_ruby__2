@@ -155,10 +155,10 @@ ynh_install_ruby () {
         git clone -q https://github.com/rbenv/ruby-build.git "${rbenv_install_dir}/plugins/ruby-build"
     fi
 
-    rb_alias="$(command -v "$rbenv_install_dir"/plugins/*/bin/rbenv-alias rbenv-alias | head -1)"
-    if [ -n "$rb_alias" ]; then
-        ynh_print_info --message="\`rbenv alias' command already available in \`$rb_alias'."
-        pushd "${rb_alias%/*/*}"
+    rbenv_alias="$(command -v "$rbenv_install_dir"/plugins/*/bin/rbenv-alias rbenv-alias | head -1)"
+    if [ -n "$rbenv_alias" ]; then
+        ynh_print_info --message="\`rbenv alias' command already available in \`$rbenv_alias'."
+        pushd "${rbenv_alias%/*/*}"
             if git remote -v 2>/dev/null | grep -q rbenv-aliases; then
                 ynh_print_info --message="Trying to update rbenv-aliases with git..."
                 git pull -q origin master
@@ -170,10 +170,10 @@ ynh_install_ruby () {
         git clone -q https://github.com/tpope/rbenv-aliases.git "${rbenv_install_dir}/plugins/rbenv-aliase"
     fi
 
-    rb_latest="$(command -v "$rbenv_install_dir"/plugins/*/bin/rbenv-latest rbenv-latest | head -1)"
-    if [ -n "$rb_latest" ]; then
-        ynh_print_info --message="\`rbenv latest' command already available in \`$rb_latest'."
-        pushd "${rb_latest%/*/*}"
+    rbenv_latest="$(command -v "$rbenv_install_dir"/plugins/*/bin/rbenv-latest rbenv-latest | head -1)"
+    if [ -n "$rbenv_latest" ]; then
+        ynh_print_info --message="\`rbenv latest' command already available in \`$rbenv_latest'."
+        pushd "${rbenv_latest%/*/*}"
             if git remote -v 2>/dev/null | grep -q xxenv-latest; then
                 ynh_print_info --message="Trying to update xxenv-latest with git..."
                 git pull -q origin master
@@ -222,7 +222,7 @@ ynh_install_ruby () {
 export RBENV_ROOT=$rbenv_install_dir
 export PATH=\"$rbenv_install_dir/bin:$PATH\"
 eval \"\$(rbenv init -)\"
-    #rbenv" > /etc/profile.d/rbenv.sh
+#rbenv" > /etc/profile.d/rbenv.sh
 
     # Load the environment
     eval "$(rbenv init -)"
