@@ -206,6 +206,9 @@ ynh_install_ruby () {
 
     # Install the requested version of Ruby
     local final_ruby_version=$(rbenv latest --print $ruby_version)
+    if ! [ -n "$final_ruby_version" ]; then
+        final_ruby_version=$ruby_version
+    fi
     ynh_print_info --message="Installing Ruby-$final_ruby_version"
     CONFIGURE_OPTS="--disable-install-doc --with-jemalloc" MAKE_OPTS="-j2" rbenv install --skip-existing $final_ruby_version > /dev/null 2>&1
 
