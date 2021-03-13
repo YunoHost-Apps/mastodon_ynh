@@ -275,7 +275,7 @@ ynh_cleanup_ruby () {
     local required_ruby_versions=""
     for installed_app in $installed_apps
     do
-        local installed_app_ruby_version=$(yunohost app setting $installed_app ruby_version)
+        local installed_app_ruby_version=$(ynh_app_setting_get --app=$installed_app --key="ruby_version")
         if [[ $installed_app_ruby_version ]]
         then
             required_ruby_versions="${installed_app_ruby_version}\n${required_ruby_versions}"
