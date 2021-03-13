@@ -3,7 +3,7 @@
 ynh_ruby_try_bash_extension() {
   if [ -x src/configure ]; then
     src/configure && make -C src || {
-      echo "Optional bash extension failed to build, but things will still work normally."
+      ynh_print_info --message="Optional bash extension failed to build, but things will still work normally."
     }
   fi
 }
@@ -84,9 +84,6 @@ ynh_use_ruby () {
 #
 # ynh_install_ruby will install the version of Ruby provided as argument by using rbenv.
 #
-# rbenv (Ruby Version Management) stores the target Ruby version in a .ruby_version file created in the target folder (using rbenv local <version>)
-# It then uses that information for every Ruby user that uses rbenv provided Ruby command
-#
 # This helper creates a /etc/profile.d/rbenv.sh that configures PATH environment for rbenv
 # for every LOGIN user, hence your user must have a defined shell (as opposed to /usr/sbin/nologin)
 #
@@ -116,16 +113,26 @@ ynh_install_ruby () {
     # Move an existing Ruby binary, to avoid to block rbenv
     test -x /usr/bin/ruby && mv /usr/bin/ruby /usr/bin/ruby_rbenv
 
-    # Instal or update rbenv
-    rbenv="$(command -v rbenv $rbenv_install_dir/bin/rbenv | head -1)"
+    # Install or update rbenv
+    rbenv="$(command -v rbenv $rbenv_install_dir/bin/rbenv | grep "$rbenv_install_dir/bin/rbenv" | head -1)"
     if [ -n "$rbenv" ]; then
         ynh_print_info --message="rbenv already seems installed in \`$rbenv'."
         pushd "${rbenv%/*/*}"
-            if git remote -v 2>/dev/null | grep -q rbenv; then
-                echo "Trying to update with git..."
+            if git remote -v 2>/dev/null | grep -q "origin https://github.com/rbenv/rbenv.git"; then
+                ynh_print_info --message="Trying to update with git..."
                 git pull -q --tags origin master
-                cd ..
                 ynh_ruby_try_bash_extension
+            else
+                ynh_print_info --message="Reinstalling rbenv with git..."
+                cd ..
+                ynh_secure_remove --file=$rbenv_install_dir
+                mkdir -p $rbenv_install_dir
+                cd $rbenv_install_dir
+                git init -q
+                git remote add -f -t master origin https://github.com/rbenv/rbenv.git > /dev/null 2>&1
+                git checkout -q -b master origin/master
+                ynh_ruby_try_bash_extension
+                rbenv=$rbenv_install_dir/bin/rbenv
             fi
         popd
     else
