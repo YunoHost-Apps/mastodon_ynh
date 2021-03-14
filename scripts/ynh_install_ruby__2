@@ -118,7 +118,7 @@ ynh_install_ruby () {
     if [ -n "$rbenv" ]; then
         ynh_print_info --message="rbenv already seems installed in \`$rbenv'."
         pushd "${rbenv%/*/*}"
-            if git remote -v 2>/dev/null | grep -q "origin https://github.com/rbenv/rbenv.git"; then
+            if git remote -v 2>/dev/null | grep "https://github.com/rbenv/rbenv.git"; then
                 ynh_print_info --message="Trying to update with git..."
                 git pull -q --tags origin master
                 ynh_ruby_try_bash_extension
@@ -151,7 +151,7 @@ ynh_install_ruby () {
     if [ -n "$ruby_build" ]; then
         ynh_print_info --message="\`rbenv install' command already available in \`$ruby_build'."
         pushd "${ruby_build%/*/*}"
-            if git remote -v 2>/dev/null | grep -q ruby-build; then
+            if git remote -v 2>/dev/null | grep "https://github.com/rbenv/ruby-build.git"; then
                 ynh_print_info --message="Trying to update rbenv with git..."
                 git pull -q origin master
             fi
@@ -166,7 +166,7 @@ ynh_install_ruby () {
     if [ -n "$rbenv_alias" ]; then
         ynh_print_info --message="\`rbenv alias' command already available in \`$rbenv_alias'."
         pushd "${rbenv_alias%/*/*}"
-            if git remote -v 2>/dev/null | grep -q rbenv-aliases; then
+            if git remote -v 2>/dev/null | grep "https://github.com/tpope/rbenv-aliases.git"; then
                 ynh_print_info --message="Trying to update rbenv-aliases with git..."
                 git pull -q origin master
             fi
@@ -181,7 +181,7 @@ ynh_install_ruby () {
     if [ -n "$rbenv_latest" ]; then
         ynh_print_info --message="\`rbenv latest' command already available in \`$rbenv_latest'."
         pushd "${rbenv_latest%/*/*}"
-            if git remote -v 2>/dev/null | grep -q xxenv-latest; then
+            if git remote -v 2>/dev/null | grep "https://github.com/momo-lab/xxenv-latest.git"; then
                 ynh_print_info --message="Trying to update xxenv-latest with git..."
                 git pull -q origin master
             fi
