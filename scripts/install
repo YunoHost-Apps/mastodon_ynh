@@ -201,6 +201,8 @@ ynh_app_setting_set --app="$app" --key=vapid_private_key --value="$vapid_private
 vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
 ynh_app_setting_set --app="$app" --key=vapid_public_key --value="$vapid_public_key"
 
+ynh_delete_file_checksum --file="$config"
+
 ynh_add_config --template="../conf/.env.production.sample" --destination="$config"
 
 ynh_secure_remove --file="$final_path/live/key.txt"
