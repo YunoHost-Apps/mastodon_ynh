@@ -49,7 +49,6 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..."
 
-
 # Cleaning legacy permissions
 if ynh_legacy_permissions_exists; then
 	ynh_legacy_permissions_delete_all
@@ -124,7 +123,7 @@ ynh_script_progression --message="Backing up the app before upgrading (may take 
 ynh_backup_before_upgrade
 ynh_clean_setup () {
 	ynh_clean_check_starting
-	# restore it if the upgrade fails
+	# Restore it if the upgrade fails
 	ynh_restore_upgradebackup
 }
 # Exit if an error occurs during the execution of the script
@@ -140,6 +139,14 @@ ynh_script_progression --message="Stopping a systemd service..."
 ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
 ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
 ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=systemd --line_match="Stopped"
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Making sure dedicated system user exists..."
+
+# Create a dedicated user (if not existing)
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -171,10 +178,14 @@ then
 	ynh_secure_remove --file="$final_path/live/config/initializers/timeout.rb"
 fi
 
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R root:$app "$final_path"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Upgrading nginx web server configuration..."
+ynh_script_progression --message="Upgrading NGINX web server configuration..."
 
 # Create a dedicated NGINX config
 ynh_add_nginx_config 'port_web port_stream'
@@ -188,14 +199,6 @@ ynh_remove_nodejs
 ynh_install_nodejs --nodejs_version=$NODEJS_VERSION
 ynh_install_app_dependencies $pkg_dependencies
 ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..."
-
-# Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir=$final_path
 
 #=================================================
 # SPECIFIC UPGRADE
@@ -274,21 +277,13 @@ ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
-# SECURE FILES AND DIRECTORIES
-#=================================================
-ynh_script_progression --message="Securing files and directories..."
-
-# Set permissions on app files
-chown -R $app: $final_path
-
-#=================================================
 # INTEGRATE SERVICE IN YUNOHOST
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add "$app-web" --description "$app web service"
-yunohost service add "$app-sidekiq" --description "$app sidekiq service"
-yunohost service add "$app-streaming" --description "$app streaming service"
+yunohost service add "$app-web" --description="$app web service"
+yunohost service add "$app-sidekiq" --description="$app sidekiq service"
+yunohost service add "$app-streaming" --description="$app streaming service"
 
 #=================================================
 # START SYSTEMD SERVICE
@@ -302,7 +297,7 @@ ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=s
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..."
+ynh_script_progression --message="Reloading NGINX web server..."
 
 ynh_systemd_action --service_name=nginx --action=reload
 

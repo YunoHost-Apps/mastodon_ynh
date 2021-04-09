@@ -76,8 +76,16 @@ ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
 ynh_script_progression --message="Installing dependencies..."
 
 ynh_install_nodejs --nodejs_version=$NODEJS_VERSION
-ynh_install_app_dependencies $pkg_dependencies	
+ynh_install_app_dependencies $pkg_dependencies
 ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Configuring system user..."
+
+# Create a system user
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # CREATE A POSTGRESQL DATABASE
@@ -103,21 +111,17 @@ ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$final_path/live"
 
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R root:$app "$final_path"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring nginx web server..."
+ynh_script_progression --message="Configuring NGINX web server..."
 
-# Create a dedicated nginx config
+# Create a dedicated NGINX config
 ynh_add_nginx_config 'port_web port_stream'
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Configuring system user..."
-
-# Create a system user
-ynh_system_user_create --username=$app --home_dir=$final_path
 
 #=================================================
 # SPECIFIC SETUP
@@ -232,21 +236,13 @@ ynh_store_file_checksum --file="$config"
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
-# SECURE FILES AND DIRECTORIES
-#=================================================
-ynh_script_progression --message="Securing files and directories..."
-
-# Set permissions to app files
-chown -R "$app": "$final_path"
-
-#=================================================
 # INTEGRATE SERVICE IN YUNOHOST
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add "$app-web" --description "$app web service"
-yunohost service add "$app-sidekiq" --description "$app sidekiq service"
-yunohost service add "$app-streaming" --description "$app streaming service"
+yunohost service add "$app-web" --description="$app web service"
+yunohost service add "$app-sidekiq" --description="$app sidekiq service"
+yunohost service add "$app-streaming" --description="$app streaming service"
 
 #=================================================
 # START SYSTEMD SERVICE
@@ -275,7 +271,7 @@ ynh_permission_create --permission="api" --url="/api" --allowed="visitors" --aut
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..."
+ynh_script_progression --message="Reloading NGINX web server..."
 
 ynh_systemd_action --service_name=nginx --action=reload
 

@@ -26,10 +26,12 @@
 		upgrade=1	from_commit=74908bf3e70c134bc838c7db3ae8b5aa0938cd75
 		# 3.2.2~ynh1
 		upgrade=1	from_commit=a233ccc644d97aa89756fac9f0ce68c98d81d27c
+		# 3.3.0~ynh1
+		upgrade=1	from_commit=1b7de8c3acc9607c619c02aae49a2485e40eef4d
 		backup_restore=1
 		multi_instance=1
 		port_already_use=0
-		change_url=0
+		change_url=1
 ;;; Options
 Email=yalh@yahoo.com
 Notification=all
@@ -48,3 +50,5 @@ Notification=all
 		name=3.2.1~ynh2
 	; commit=a233ccc644d97aa89756fac9f0ce68c98d81d27c
 		name=3.2.2~ynh1
+	; commit=1b7de8c3acc9607c619c02aae49a2485e40eef4d
+		name=3.3.0~ynh1
