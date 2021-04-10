@@ -154,9 +154,9 @@ pushd "$final_path/live"
 popd
 
 #=================================================
-# MODIFY A CONFIG FILE
+# ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Modifying a config file..."
+ynh_script_progression --message="Adding a config file..."
 
 config="$final_path/live/.env.production"
 
@@ -173,17 +173,31 @@ vapid_public_key=""
 
 ynh_add_config --template="../conf/.env.production.sample" --destination="$config"
 
+chmod 400 "$config"
+chown $app:$app "$config"
+
 ynh_replace_string --match_string="registrations_mode: 'open'" --replace_string="registrations_mode: 'none'" --target_file="$final_path/live/config/settings.yml"
 ynh_replace_string --match_string="min_invite_role: 'admin'" --replace_string="min_invite_role: 'none'" --target_file="$final_path/live/config/settings.yml"
 
 ynh_store_file_checksum --file="$final_path/live/config/settings.yml"
 
+chmod 400 "$final_path/live/config/settings.yml"
+chown $app:$app "$final_path/live/config/settings.yml"
+
+#=================================================
+# SETUP SYSTEMD
+#=================================================
+ynh_script_progression --message="Configuring a systemd service..."
+
+# Create a dedicated systemd config
+ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service" --others_var="port_web RBENV_ROOT"
+ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service" --others_var="RBENV_ROOT"
+ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service" --others_var="port_stream ynh_node_load_PATH ynh_node"
+
 #=================================================
 # INSTALLING MASTODON
 #=================================================
 ynh_script_progression --message="Installing Mastodon..."
-
-chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
 	sudo -u $app $ynh_ruby_load_path bin/bundle config deployment 'true'
@@ -205,11 +219,14 @@ ynh_app_setting_set --app="$app" --key=vapid_private_key --value="$vapid_private
 vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
 ynh_app_setting_set --app="$app" --key=vapid_public_key --value="$vapid_public_key"
 
+ynh_secure_remove --file="$final_path/live/key.txt"
+
 ynh_delete_file_checksum --file="$config"
 
 ynh_add_config --template="../conf/.env.production.sample" --destination="$config"
 
-ynh_secure_remove --file="$final_path/live/key.txt"
+chmod 400 "$config"
+chown $app:$app "$config"
 
 #=================================================
 # SETUP THE CRON FILE
@@ -217,24 +234,6 @@ ynh_secure_remove --file="$final_path/live/key.txt"
 ynh_script_progression --message="Setuping the cron file..."
 
 ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
-
-#=================================================
-# SETUP SYSTEMD
-#=================================================
-ynh_script_progression --message="Configuring a systemd service..."
-
-# Create a dedicated systemd config
-ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service" --others_var="port_web RBENV_ROOT"
-ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service" --others_var="RBENV_ROOT"
-ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service" --others_var="port_stream ynh_node_load_PATH ynh_node"
-
-#=================================================
-# STORE THE CONFIG FILE CHECKSUM
-#=================================================
-ynh_script_progression --message="Storing the config file checksum..."
-
-# Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum --file="$config"
 
 #=================================================
 # GENERIC FINALIZATION

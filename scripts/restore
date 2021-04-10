@@ -93,6 +93,13 @@ ynh_script_progression --message="Adding $swap_needed Mo to swap..."
 ynh_add_swap --size=$swap_needed
 
 #=================================================
+# RESTORE THE CRON FILE
+#=================================================
+ynh_script_progression --message="Restoring the cron file..."
+
+ynh_restore_file --origin_path="/etc/cron.d/$app"
+
+#=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
 ynh_script_progression --message="Reinstalling dependencies..."
@@ -150,13 +157,6 @@ ynh_script_progression --message="Starting a systemd service..."
 ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on"
 ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
 ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=systemd --line_match="Worker 1 now listening"
-
-#=================================================
-# RESTORE THE CRON FILE
-#=================================================
-ynh_script_progression --message="Restoring the cron file..."
-
-ynh_restore_file --origin_path="/etc/cron.d/$app"
 
 #=================================================
 # GENERIC FINALIZATION
