@@ -9,7 +9,10 @@
     "version": "3.3.0~ynh2",
     "url": "https://github.com/tootsuite/mastodon",
     "license": "AGPL-3.0-or-later",
-    "maintainer": [
+    "maintainer": {
+        "name": "yalh76"
+    },
+    "previous_maintainer": [
         {
             "name": "cyp",
             "email": "cyp@rouquin.me"
@@ -17,9 +20,6 @@
         {
             "name": "nemsia",
             "email": "nemsia@nemsia.org"
-        },
-        {
-            "name": "yalh76"
         }
     ],
     "requirements": {
@@ -34,28 +34,16 @@
             {
                 "name": "domain",
                 "type": "domain",
-                "ask": {
-                    "en": "Choose a domain for Mastodon",
-                    "fr": "Choisissez un domaine pour Mastodon"
-                },
                 "example": "example.com"
             },
             {
                 "name": "admin",
                 "type": "user",
-                "ask": {
-                    "en": "Choose an admin user",
-                    "fr": "Choisissez l'administrateur"
-                },
                 "example": "johndoe"
             },
             {
                 "name": "is_public",
                 "type": "boolean",
-                "ask": {
-                    "en": "Is it a public application?",
-                    "fr": "Est-ce une application publique ?"
-                },
                 "default": true
             },
             {

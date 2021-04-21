@@ -81,6 +81,14 @@ ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ st
 ynh_install_ruby --ruby_version=$RUBY_VERSION
 
 #=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Configuring system user..."
+
+# Create a system user
+ynh_system_user_create --username=$app --home_dir="$final_path"
+
+#=================================================
 # CREATE A POSTGRESQL DATABASE
 #=================================================
 ynh_script_progression --message="Creating a PostgreSQL database..."
@@ -104,21 +112,17 @@ ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$final_path/live"
 
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring nginx web server..."
+ynh_script_progression --message="Configuring NGINX web server..."
 
-# Create a dedicated nginx config
+# Create a dedicated NGINX config
 ynh_add_nginx_config 'port_web port_stream'
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Configuring system user..."
-
-# Create a system user
-ynh_system_user_create --username=$app --home_dir=$final_path
 
 #=================================================
 # SPECIFIC SETUP
@@ -150,9 +154,9 @@ pushd "$final_path/live"
 popd
 
 #=================================================
-# MODIFY A CONFIG FILE
+# ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Modifying a config file..."
+ynh_script_progression --message="Adding a config file..."
 
 config="$final_path/live/.env.production"
 
@@ -169,17 +173,31 @@ vapid_public_key=""
 
 ynh_add_config --template="../conf/.env.production.sample" --destination="$config"
 
+chmod 400 "$config"
+chown $app:$app "$config"
+
 ynh_replace_string --match_string="registrations_mode: 'open'" --replace_string="registrations_mode: 'none'" --target_file="$final_path/live/config/settings.yml"
 ynh_replace_string --match_string="min_invite_role: 'admin'" --replace_string="min_invite_role: 'none'" --target_file="$final_path/live/config/settings.yml"
 
 ynh_store_file_checksum --file="$final_path/live/config/settings.yml"
 
+chmod 400 "$final_path/live/config/settings.yml"
+chown $app:$app "$final_path/live/config/settings.yml"
+
+#=================================================
+# SETUP SYSTEMD
+#=================================================
+ynh_script_progression --message="Configuring a systemd service..."
+
+# Create a dedicated systemd config
+ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service" --others_var="port_web RBENV_ROOT"
+ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service" --others_var="RBENV_ROOT"
+ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service" --others_var="port_stream ynh_node_load_PATH ynh_node"
+
 #=================================================
 # INSTALLING MASTODON
 #=================================================
 ynh_script_progression --message="Installing Mastodon..."
-
-chown -R "$app": "$final_path"
 
 pushd "$final_path/live"
 	sudo -u $app $ynh_ruby_load_path bin/bundle config deployment 'true'
@@ -201,11 +219,14 @@ ynh_app_setting_set --app="$app" --key=vapid_private_key --value="$vapid_private
 vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
 ynh_app_setting_set --app="$app" --key=vapid_public_key --value="$vapid_public_key"
 
+ynh_secure_remove --file="$final_path/live/key.txt"
+
 ynh_delete_file_checksum --file="$config"
 
 ynh_add_config --template="../conf/.env.production.sample" --destination="$config"
 
-ynh_secure_remove --file="$final_path/live/key.txt"
+chmod 400 "$config"
+chown $app:$app "$config"
 
 #=================================================
 # SETUP THE CRON FILE
@@ -215,41 +236,15 @@ ynh_script_progression --message="Setuping the cron file..."
 ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
 
 #=================================================
-# SETUP SYSTEMD
-#=================================================
-ynh_script_progression --message="Configuring a systemd service..."
-
-# Create a dedicated systemd config
-ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service" --others_var="port_web RBENV_ROOT"
-ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service" --others_var="RBENV_ROOT"
-ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service" --others_var="port_stream ynh_node_load_PATH ynh_node"
-
-#=================================================
-# STORE THE CONFIG FILE CHECKSUM
-#=================================================
-ynh_script_progression --message="Storing the config file checksum..."
-
-# Calculate and store the config file checksum into the app settings
-ynh_store_file_checksum --file="$config"
-
-#=================================================
 # GENERIC FINALIZATION
-#=================================================
-# SECURE FILES AND DIRECTORIES
-#=================================================
-ynh_script_progression --message="Securing files and directories..."
-
-# Set permissions to app files
-chown -R "$app": "$final_path"
-
 #=================================================
 # INTEGRATE SERVICE IN YUNOHOST
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add "$app-web" --description "$app web service"
-yunohost service add "$app-sidekiq" --description "$app sidekiq service"
-yunohost service add "$app-streaming" --description "$app streaming service"
+yunohost service add "$app-web" --description="$app web service"
+yunohost service add "$app-sidekiq" --description="$app sidekiq service"
+yunohost service add "$app-streaming" --description="$app streaming service"
 
 #=================================================
 # START SYSTEMD SERVICE
@@ -278,7 +273,7 @@ ynh_permission_create --permission="api" --url="/api" --allowed="visitors" --aut
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..."
+ynh_script_progression --message="Reloading NGINX web server..."
 
 ynh_systemd_action --service_name=nginx --action=reload
 
