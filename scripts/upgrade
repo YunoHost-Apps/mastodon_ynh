@@ -256,8 +256,6 @@ ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming
 #=================================================
 ynh_script_progression --message="Upgrading Mastodon..."
 
-chown -R "$app": "$final_path"
-
 pushd "$final_path/live"
 	sudo -u $app $ynh_ruby_load_path bin/bundle config deployment 'true'
 	sudo -u $app $ynh_ruby_load_path bin/bundle config without 'development test'
