@@ -190,9 +190,9 @@ chown $app:$app "$final_path/live/config/settings.yml"
 ynh_script_progression --message="Configuring a systemd service..."
 
 # Create a dedicated systemd config
-ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service" --others_var="port_web RBENV_ROOT"
-ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service" --others_var="RBENV_ROOT"
-ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service" --others_var="port_stream ynh_node_load_PATH ynh_node"
+ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service"
+ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service"
+ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service"
 
 #=================================================
 # INSTALLING MASTODON
