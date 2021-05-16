@@ -162,6 +162,9 @@ config="$final_path/live/.env.production"
 
 language="$(echo $language | head -c 2)"
 
+redis_namespace=${app}_production
+ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
+
 secret_key_base=$(ynh_string_random --length=128)
 ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
 
