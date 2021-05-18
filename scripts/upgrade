@@ -23,6 +23,7 @@ path_url=$(ynh_app_setting_get --app=$app --key=path)
 admin=$(ynh_app_setting_get --app=$app --key=admin)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 language=$(ynh_app_setting_get --app=$app --key=language)
+redis_namespace=$(ynh_app_setting_get --app=$app --key=db_name)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_user=$(ynh_sanitize_dbid --db_name=$app)
 db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
@@ -109,6 +110,12 @@ if [[ -z "$vapid_private_key" ]]; then
 	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" $config)
 	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
 	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
+fi
+
+# If redis_namespace doesn't exist, create it
+if [[ -z "$redis_namespace" ]]; then
+	redis_namespace=${app}_production
+	ynh_app_setting_set --app=$app --key=redis_namespace --value=$redis_namespace
 fi
 
 #Remove previous added repository
