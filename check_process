@@ -28,7 +28,7 @@
 		#upgrade=1	from_commit=a233ccc644d97aa89756fac9f0ce68c98d81d27c
 		# 3.3.0~ynh1
 		#upgrade=1	from_commit=a7eb98db3fac0697b923072dcd78c1ca04bf0a12
-		# 3.4.0~ynh1
+		# 3.4.1~ynh1
 		#upgrade=1	from_commit=efbdbb05350b820c6e59a7bbbf70f57cf679fff8
 		backup_restore=1
 		multi_instance=1
@@ -55,4 +55,4 @@ Notification=all
 	; commit=a7eb98db3fac0697b923072dcd78c1ca04bf0a12
 		name=3.3.0~ynh1
 	; commit=efbdbb05350b820c6e59a7bbbf70f57cf679fff8
-		name=3.4.0~ynh1
+		name=3.4.1~ynh1
