@@ -1,9 +1,9 @@
 ;; Test complet
 	; Manifest
-		domain="domain.tld"	(DOMAIN)
-		admin="john"	(USER)
+		domain="domain.tld"
+		admin="john"
 		language="fr_FR"
-		is_public=1	(PUBLIC|public=1|private=0)
+		is_public=1
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=0

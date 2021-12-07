@@ -3,8 +3,8 @@
     "id": "mastodon",
     "packaging_format": 1,
     "description": {
-        "en": "A libre and federated social network.",
-        "fr": "Un réseau social libre et fédéré."
+        "en": "Libre and federated social network.",
+        "fr": "Réseau social libre et fédéré."
     },
     "version": "3.4.1~ynh4",
     "url": "https://github.com/tootsuite/mastodon",
@@ -23,7 +23,7 @@
         }
     ],
     "requirements": {
-        "yunohost": ">= 4.2.0"
+        "yunohost": ">= 4.3.0"
     },
     "multi_instance": true,
     "services": [
@@ -33,13 +33,11 @@
         "install" : [
             {
                 "name": "domain",
-                "type": "domain",
-                "example": "example.com"
+                "type": "domain"
             },
             {
                 "name": "admin",
-                "type": "user",
-                "example": "johndoe"
+                "type": "user"
             },
             {
                 "name": "is_public",
