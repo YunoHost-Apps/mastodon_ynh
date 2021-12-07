@@ -3,10 +3,10 @@
     "id": "mastodon",
     "packaging_format": 1,
     "description": {
-        "en": "Libre and federated social network.",
-        "fr": "Réseau social libre et fédéré."
+        "en": "Libre and federated social network",
+        "fr": "Réseau social libre et fédéré"
     },
-    "version": "3.4.1~ynh4",
+    "version": "3.4.4~ynh1",
     "url": "https://github.com/tootsuite/mastodon",
     "license": "AGPL-3.0-or-later",
     "maintainer": {
