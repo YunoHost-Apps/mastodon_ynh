@@ -32,7 +32,6 @@
 		#upgrade=1	from_commit=efbdbb05350b820c6e59a7bbbf70f57cf679fff8
 		backup_restore=1
 		multi_instance=1
-		port_already_use=0
 		change_url=0
 ;;; Options
 Email=yalh@yahoo.com
