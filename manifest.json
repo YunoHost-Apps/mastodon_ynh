@@ -8,6 +8,13 @@
     },
     "version": "3.4.4~ynh1",
     "url": "https://github.com/tootsuite/mastodon",
+    "upstream": {
+        "license": "AGPL-3.0-or-later",
+        "website": "https://joinmastodon.org/",
+        "demo": "https://joinmastodon.org/",
+        "admindoc": "https://docs.joinmastodon.org/",
+        "code": "https://github.com/tootsuite/mastodon"
+    },
     "license": "AGPL-3.0-or-later",
     "maintainer": {
         "name": "yalh76"
