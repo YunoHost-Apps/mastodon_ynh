@@ -1,7 +1,6 @@
-SOURCE_URL=https://github.com/tootsuite/mastodon/archive/refs/tags/v3.4.1.tar.gz
-SOURCE_SUM=9e449805ea78afa62fee8ab31a427dee57b50cdb391335d4986d10e611103fbd
+SOURCE_URL=https://github.com/tootsuite/mastodon/archive/refs/tags/v3.4.4.tar.gz
+SOURCE_SUM=567e57cc9d35306cbd708a33bc0bf1adf7981f3706ca4eced0d0c2b4f980034d
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
-SOURCE_FILENAME=
 SOURCE_EXTRACT=true
