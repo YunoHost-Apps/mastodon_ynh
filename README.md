@@ -70,7 +70,7 @@ LDAP authentication is activated. All YunoHost users can authenticate.
 
 * Official app website: https://joinmastodon.org/
 * Official admin documentation: https://docs.joinmastodon.org/
-* Upstream app code repository: https://github.com/tootsuite/mastodon
+* Upstream app code repository: https://github.com/mastodon/mastodon
 * YunoHost documentation for this app: https://yunohost.org/app_mastodon
 * Report a bug: https://github.com/YunoHost-Apps/mastodon_ynh/issues
 

@@ -76,7 +76,7 @@ L'authentification LDAP est activée. Tous les utilisateurs YunoHost peuvent s'a
 
 * Site officiel de l'app : https://joinmastodon.org/
 * Documentation officielle de l'admin : https://docs.joinmastodon.org/
-* Dépôt de code officiel de l'app : https://github.com/tootsuite/mastodon
+* Dépôt de code officiel de l'app : https://github.com/mastodon/mastodon
 * Documentation YunoHost pour cette app : https://yunohost.org/app_mastodon
 * Signaler un bug : https://github.com/YunoHost-Apps/mastodon_ynh/issues
 
