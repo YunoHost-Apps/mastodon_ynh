@@ -3,15 +3,26 @@
 [![Niveau d'intégration](https://dash.yunohost.org/integration/mastodon.svg)](https://dash.yunohost.org/appci/app/mastodon) ![](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)  
 [![Installer Mastodon avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=mastodon)
 
-*[Read this readme in english.](./README.md)* 
+*[Read this readme in english.](./README.md)*
+*[Lire ce readme en français.](./README_fr.md)*
 
-> *Ce package vous permet d'installer Mastodon rapidement et simplement sur un serveur YunoHost.  
-Si vous n'avez pas YunoHost, consultez [le guide](https://yunohost.org/#/install) pour apprendre comment l'installer.*
+> *Ce package vous permet d'installer Mastodon rapidement et simplement sur un serveur YunoHost.
+Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
 
 ## Vue d'ensemble
+
 Mastodon est un réseau social de microblog auto-hébergé et open source. C'est une alternative décentralisée aux plates-formes commerciales comme Twitter. Mastodon évite ainsi les risques qu'une seule société monopolise votre communication à des fins commerciales.
 
-**Version incluse:** 3.4.1
+
+**Version incluse :** 3.4.4~ynh1
+
+**Démo :** https://joinmastodon.org/
+
+## Captures d'écran
+
+![](./doc/screenshots/mastodon.png)
+
+## Avertissements / informations importantes
 
 ## Points importants à lire avant l'installation
 
@@ -61,19 +72,13 @@ L'utilisateur admin est créé automatiquement comme : user@domain.tld
 
 L'authentification LDAP est activée. Tous les utilisateurs YunoHost peuvent s'authentifier.
 
-#### Architectures supportées
+## Documentations et ressources
 
-* x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/mastodon.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
-* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/mastodon.svg)](https://ci-apps-arm.yunohost.org/ci/apps/mastodon/)
-
-## Liens
-
- * Signaler un bug : https://github.com/YunoHost-Apps/mastodon_ynh/issues
- * Site de l'application : https://joinmastodon.org/
- * Dépôt de l'application principale : https://github.com/tootsuite/mastodon
- * Site web YunoHost : https://yunohost.org/
-
----
+* Site officiel de l'app : https://joinmastodon.org/
+* Documentation officielle de l'admin : https://docs.joinmastodon.org/
+* Dépôt de code officiel de l'app : https://github.com/mastodon/mastodon
+* Documentation YunoHost pour cette app : https://yunohost.org/app_mastodon
+* Signaler un bug : https://github.com/YunoHost-Apps/mastodon_ynh/issues
 
 ## Informations pour les développeurs
 
@@ -85,3 +90,5 @@ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh/tree/tes
 ou
 sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh/tree/testing --debug
 ```
+
+**Plus d'infos sur le packaging d'applications :** https://yunohost.org/packaging_apps

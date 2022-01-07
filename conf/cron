@@ -1,5 +1,5 @@
-@daily cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl media remove
-@monthly cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl media remove-orphans
-@monthly cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl accounts cull
-@monthly cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl statuses remove
-@monthly cd __FINAL_PATH__/live && RAILS_ENV=production bin/tootctl preview_cards remove
+@daily cd __FINAL_PATH__/live && sudo -u __APP__ __YNH_RUBY_LOAD_PATH__ RAILS_ENV=production bin/tootctl media remove
+@monthly cd __FINAL_PATH__/live && sudo -u __APP__ __YNH_RUBY_LOAD_PATH__ RAILS_ENV=production bin/tootctl media remove-orphans
+@monthly cd __FINAL_PATH__/live && sudo -u __APP__ __YNH_RUBY_LOAD_PATH__ RAILS_ENV=production bin/tootctl accounts cull
+@monthly cd __FINAL_PATH__/live && sudo -u __APP__ __YNH_RUBY_LOAD_PATH__ RAILS_ENV=production bin/tootctl statuses remove
+@monthly cd __FINAL_PATH__/live && sudo -u __APP__ __YNH_RUBY_LOAD_PATH__ RAILS_ENV=production bin/tootctl preview_cards remove

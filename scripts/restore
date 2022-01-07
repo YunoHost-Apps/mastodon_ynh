@@ -41,10 +41,7 @@ db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
 #=================================================
 ynh_script_progression --message="Validating restoration parameters..."
 
-ynh_webpath_available --domain=$domain --path_url=$path_url \
-	|| ynh_die --message="Path not available: ${domain}${path_url}"
-test ! -d $final_path \
-	|| ynh_die --message="There is already a directory: $final_path "
+test ! -d $final_path || ynh_die --message="There is already a directory: $final_path "
 
 #=================================================
 # STANDARD RESTORATION STEPS
@@ -104,8 +101,8 @@ ynh_restore_file --origin_path="/etc/cron.d/$app"
 #=================================================
 ynh_script_progression --message="Reinstalling dependencies..."
 
-ynh_install_app_dependencies $pkg_dependencies
-ynh_install_nodejs --nodejs_version=$NODEJS_VERSION
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
+ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$NODEJS_VERSION
 ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 ynh_install_ruby --ruby_version=$RUBY_VERSION
 
