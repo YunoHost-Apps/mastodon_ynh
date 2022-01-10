@@ -20,7 +20,7 @@ app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$(ynh_sanitize_dbid --db_name=$app)
+db_user=$(ynh_app_setting_get --app=$app --key=db_user)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 
 #=================================================
@@ -67,17 +67,6 @@ ynh_script_progression --message="Removing the PostgreSQL database..."
 ynh_psql_remove_db --db_user=$db_user --db_name=$db_name
 
 #=================================================
-# REMOVE DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Removing dependencies..."
-
-# Remove metapackage and its dependencies
-ynh_remove_ruby
-ynh_remove_nodejs
-ynh_remove_app_dependencies
-ynh_remove_extra_repo
-
-#=================================================
 # REMOVE APP MAIN DIR
 #=================================================
 ynh_script_progression --message="Removing app main directory..."
@@ -94,11 +83,22 @@ ynh_script_progression --message="Removing NGINX web server configuration..."
 ynh_remove_nginx_config
 
 #=================================================
+# REMOVE DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Removing dependencies..."
+
+# Remove metapackage and its dependencies
+ynh_remove_ruby
+ynh_remove_nodejs
+ynh_remove_app_dependencies
+ynh_remove_extra_repo
+
+#=================================================
 # SPECIFIC REMOVE
 #=================================================
-# REMOVE THE CRON FILE
+# REMOVE VARIOUS FILES
 #=================================================
-ynh_script_progression --message="Removing the cron file..."
+ynh_script_progression --message="Removing various files..."
 
 # Remove a cron file
 ynh_secure_remove --file="/etc/cron.d/$app"

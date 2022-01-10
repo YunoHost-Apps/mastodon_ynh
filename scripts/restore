@@ -33,7 +33,7 @@ domain=$(ynh_app_setting_get --app=$app --key=domain)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$(ynh_sanitize_dbid --db_name=$app)
+db_user=$(ynh_app_setting_get --app=$app --key=db_user)
 db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
 
 #=================================================
@@ -41,7 +41,8 @@ db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
 #=================================================
 ynh_script_progression --message="Validating restoration parameters..."
 
-test ! -d $final_path || ynh_die --message="There is already a directory: $final_path "
+test ! -d $final_path \
+	|| ynh_die --message="There is already a directory: $final_path "
 
 #=================================================
 # STANDARD RESTORATION STEPS
@@ -58,7 +59,7 @@ ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 ynh_script_progression --message="Recreating the dedicated system user..."
 
 # Create the dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir="$final_path"
+ynh_system_user_create --username=$app --home_dir=$final_path
 
 #=================================================
 # RESTORE THE APP MAIN DIR
@@ -73,6 +74,27 @@ chown -R $app:www-data "$final_path"
 
 #=================================================
 # SPECIFIC RESTORATION
+#=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Reinstalling dependencies..."
+
+# Define and install dependencies
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
+ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$NODEJS_VERSION
+ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
+ynh_install_ruby --ruby_version=$RUBY_VERSION
+
+#=================================================
+# RESTORE THE POSTGRESQL DATABASE
+#=================================================
+ynh_script_progression --message="Restoring the PostgreSQL database..."
+
+ynh_psql_test_if_first_run
+ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
+ynh_psql_execute_as_root --sql="ALTER USER $db_user CREATEDB;"
+ynh_psql_execute_file_as_root --file="./db.sql" --database="$db_name"
+
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
@@ -90,23 +112,6 @@ ynh_script_progression --message="Adding $swap_needed Mo to swap..."
 ynh_add_swap --size=$swap_needed
 
 #=================================================
-# RESTORE THE CRON FILE
-#=================================================
-ynh_script_progression --message="Restoring the cron file..."
-
-ynh_restore_file --origin_path="/etc/cron.d/$app"
-
-#=================================================
-# REINSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Reinstalling dependencies..."
-
-ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$NODEJS_VERSION
-ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
-ynh_install_ruby --ruby_version=$RUBY_VERSION
-
-#=================================================
 # INSTALLING RUBY AND BUNDLER
 #=================================================
 ynh_script_progression --message="Installing Ruby..."
@@ -118,14 +123,11 @@ pushd "$final_path/live"
 popd
 
 #=================================================
-# RESTORE THE POSTGRESQL DATABASE
+# RESTORE VARIOUS FILES
 #=================================================
-ynh_script_progression --message="Restoring the PostgreSQL database..."
+ynh_script_progression --message="Restoring various files..."
 
-ynh_psql_test_if_first_run
-ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
-ynh_psql_execute_as_root --sql="ALTER USER $db_user CREATEDB;"
-ynh_psql_execute_file_as_root --file="./db.sql" --database="$db_name"
+ynh_restore_file --origin_path="/etc/cron.d/$app"
 
 #=================================================
 # RESTORE SYSTEMD

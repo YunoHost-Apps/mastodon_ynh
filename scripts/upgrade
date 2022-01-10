@@ -25,7 +25,7 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 language=$(ynh_app_setting_get --app=$app --key=language)
 redis_namespace=$(ynh_app_setting_get --app=$app --key=db_name)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$(ynh_sanitize_dbid --db_name=$app)
+db_user=$(ynh_app_setting_get --app=$app --key=db_user)
 db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
 admin_mail=$(ynh_user_get_info --username=$admin --key='mail')
 port_web=$(ynh_app_setting_get --app=$app --key=port_web)
@@ -44,6 +44,32 @@ config="$final_path/live/.env.production"
 ynh_script_progression --message="Checking version..."
 
 upgrade_type=$(ynh_check_app_version_changed)
+
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..."
+
+# Backup the current version of the app
+ynh_backup_before_upgrade
+ynh_clean_setup () {
+	ynh_clean_check_starting
+	# Restore it if the upgrade fails
+	ynh_restore_upgradebackup
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# STOP SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Stopping a systemd service..."
+
+ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=systemd --line_match="Stopped"
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -72,6 +98,12 @@ fi
 if [[ -z "$port_stream" ]]; then
 	port_stream=4000
 	ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
+fi
+
+# If db_user doesn't exist, create it, needed for old install
+if [[ -z "$db_user" ]]; then
+	db_user=$(ynh_sanitize_dbid --db_name=$app)
+	ynh_app_setting_set --app=$app --key=db_user --value=$db_user
 fi
 
 # If db_pwd doesn't exist, create it, needed for old install
@@ -122,38 +154,12 @@ fi
 ynh_remove_extra_repo
 
 #=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
-#=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..."
-
-# Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
-	ynh_clean_check_starting
-	# Restore it if the upgrade fails
-	ynh_restore_upgradebackup
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# STANDARD UPGRADE STEPS
-#=================================================
-# STOP SYSTEMD SERVICE
-#=================================================
-ynh_script_progression --message="Stopping a systemd service..."
-
-ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
-ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
-ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=systemd --line_match="Stopped"
-
-#=================================================
 # CREATE DEDICATED USER
 #=================================================
 ynh_script_progression --message="Making sure dedicated system user exists..."
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir="$final_path"
+ynh_system_user_create --username=$app --home_dir=$final_path
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -195,7 +201,7 @@ chown -R $app:www-data "$final_path"
 ynh_script_progression --message="Upgrading NGINX web server configuration..."
 
 # Create a dedicated NGINX config
-ynh_add_nginx_config 'port_web port_stream'
+ynh_add_nginx_config
 
 #=================================================
 # UPGRADE DEPENDENCIES
@@ -264,15 +270,15 @@ ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming
 ynh_script_progression --message="Upgrading Mastodon..."
 
 pushd "$final_path/live"
-	sudo -u $app $ynh_ruby_load_path bin/bundle config deployment 'true'
-	sudo -u $app $ynh_ruby_load_path bin/bundle config without 'development test'
-	sudo -u $app $ynh_ruby_load_path bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
+	ynh_exec_as $app $ynh_ruby_load_path bin/bundle config deployment 'true'
+	ynh_exec_as $app $ynh_ruby_load_path bin/bundle config without 'development test'
+	ynh_exec_as $app $ynh_ruby_load_path bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
 	ynh_use_nodejs
-	sudo -u $app $ynh_node_load_PATH yarn install --pure-lockfile
-	ynh_exec_warn_less sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/bundle exec rails assets:clean
-	ynh_exec_warn_less sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/bundle exec rails assets:precompile
-	ynh_exec_warn_less sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/bundle exec rails db:migrate
-	ynh_exec_warn_less sudo -u $app RAILS_ENV=production $ynh_ruby_load_path bin/tootctl cache clear
+	ynh_exec_as $app $ynh_node_load_PATH yarn install --pure-lockfile
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path bin/bundle exec rails assets:clean
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path bin/bundle exec rails assets:precompile
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path bin/bundle exec rails db:migrate
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path bin/tootctl cache clear
 popd
 
 #=================================================
