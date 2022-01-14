@@ -36,3 +36,5 @@ $ screen -r
 #### Multi-users support
 
 LDAP authentication is activated. All YunoHost users can authenticate.
+
+Log-out from YunoHost's portal doesn't log out from Mastodon. See https://github.com/YunoHost/issues/issues/501
