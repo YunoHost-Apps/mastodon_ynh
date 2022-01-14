@@ -66,6 +66,8 @@ $ screen -r
 
 LDAP authentication is activated. All YunoHost users can authenticate.
 
+Log-out from YunoHost's portal doesn't log out from Mastodon. See https://github.com/YunoHost/issues/issues/501
+
 ## Documentation and resources
 
 * Official app website: https://joinmastodon.org/

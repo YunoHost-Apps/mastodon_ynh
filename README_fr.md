@@ -62,15 +62,13 @@ L'utilisateur admin est créé automatiquement comme : user@domain.tld
 
 `$ (cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl --help)`
 
-## Documentation
-
- * Documentation officielle : https://docs.joinmastodon.org/
-
 ## Caractéristiques spécifiques YunoHost
 
 #### Support multi-utilisateur
 
 L'authentification LDAP est activée. Tous les utilisateurs YunoHost peuvent s'authentifier.
+
+Se déconnecter depuis le portail YunoHost ne vous déconnecte pas de Mastodon. Voir https://github.com/YunoHost/issues/issues/501
 
 ## Documentations et ressources
 
