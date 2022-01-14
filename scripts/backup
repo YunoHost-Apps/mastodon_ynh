@@ -59,7 +59,7 @@ ynh_backup --src_path="/etc/systemd/system/$app-sidekiq.service"
 ynh_backup --src_path="/etc/systemd/system/$app-streaming.service"
 
 #=================================================
-# BACKUP A CRON FILE
+# BACKUP VARIOUS FILES
 #=================================================
 
 ynh_backup --src_path="/etc/cron.d/$app"
