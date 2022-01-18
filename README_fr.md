@@ -14,7 +14,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 Mastodon est un réseau social de microblog auto-hébergé et open source. C'est une alternative décentralisée aux plates-formes commerciales comme Twitter. Mastodon évite ainsi les risques qu'une seule société monopolise votre communication à des fins commerciales.
 
 
-**Version incluse :** 3.4.4~ynh1
+**Version incluse :** 3.4.4~ynh2
 
 **Démo :** https://joinmastodon.org/
 
@@ -62,15 +62,13 @@ L'utilisateur admin est créé automatiquement comme : user@domain.tld
 
 `$ (cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl --help)`
 
-## Documentation
-
- * Documentation officielle : https://docs.joinmastodon.org/
-
 ## Caractéristiques spécifiques YunoHost
 
 #### Support multi-utilisateur
 
 L'authentification LDAP est activée. Tous les utilisateurs YunoHost peuvent s'authentifier.
+
+Se déconnecter depuis le portail YunoHost ne vous déconnecte pas de Mastodon. Voir https://github.com/YunoHost/issues/issues/501
 
 ## Documentations et ressources
 
