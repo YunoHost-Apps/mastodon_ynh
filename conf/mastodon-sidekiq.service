@@ -6,10 +6,10 @@ After=network.target
 Type=simple
 User=__APP__
 WorkingDirectory=__FINALPATH__/live
+Environment="__LD_PRELOAD__"
 Environment="RAILS_ENV=production"
 Environment="DB_POOL=25"
 Environment="MALLOC_ARENA_MAX=2"
-Environment="__LD_PRELOAD__"
 ExecStart=__RBENV_ROOT__/versions/__APP__/bin/bundle exec sidekiq -c 25
 TimeoutSec=15
 Restart=always
