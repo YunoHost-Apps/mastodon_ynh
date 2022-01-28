@@ -6,6 +6,7 @@ After=network.target
 Type=simple
 User=__APP__
 WorkingDirectory=__FINALPATH__/live
+Environment="__LD_PRELOAD__"
 Environment="RAILS_ENV=production"
 Environment="PORT=__PORT_WEB__"
 ExecStart=__RBENV_ROOT__/versions/__APP__/bin/bundle exec puma -C config/puma.rb
