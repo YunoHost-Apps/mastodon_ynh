@@ -6,7 +6,7 @@
         "en": "Libre and federated social network",
         "fr": "Réseau social libre et fédéré"
     },
-    "version": "3.4.4~ynh3",
+    "version": "3.4.5~ynh1",
     "url": "https://github.com/mastodon/mastodon",
     "upstream": {
         "license": "AGPL-3.0-or-later",
@@ -37,7 +37,7 @@
         "nginx"
     ],
     "arguments": {
-        "install" : [
+        "install": [
             {
                 "name": "domain",
                 "type": "domain"
@@ -57,8 +57,11 @@
                 "ask": {
                     "en": "Choose the application language",
                     "fr": "Choisissez la langue de l'application"
-            },
-                "choices": ["en_EN", "fr_FR"],
+                },
+                "choices": [
+                    "en_EN",
+                    "fr_FR"
+                ],
                 "default": "fr_FR"
             }
         ]
