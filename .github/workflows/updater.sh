@@ -38,7 +38,6 @@ echo "PROCEED=false" >> $GITHUB_ENV
 if ! dpkg --compare-versions "$current_version" "lt" "$version" ; then
     echo "::warning ::No new version available"
     exit 0
-fi
 # Proceed only if a PR for this new version does not already exist
 elif git ls-remote -q --exit-code --heads https://github.com/$GITHUB_REPOSITORY.git ci-auto-update-v$version ; then
     echo "::warning ::A branch already exists for this update"
