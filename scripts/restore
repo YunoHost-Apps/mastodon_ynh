@@ -120,6 +120,7 @@ pushd "$final_path/live"
 	ynh_use_ruby
 	ynh_gem update --system
 	ynh_gem install bundler --no-document
+	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle install  --redownload -j$(getconf _NPROCESSORS_ONLN)
 popd
 
 #=================================================
