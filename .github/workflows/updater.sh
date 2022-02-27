@@ -22,7 +22,7 @@ assets="https://github.com/tootsuite/mastodon/archive/refs/tags/$version.tar.gz"
 
 # Later down the script, we assume the version has only digits and dots
 # Sometimes the release name starts with a "v", so let's filter it out.
-# You may need more tweaks here if the upstream repository has different naming conventions. 
+# You may need more tweaks here if the upstream repository has different naming conventions.
 if [[ ${version:0:1} == "v" || ${version:0:1} == "V" ]]; then
     version=${version:1}
 fi
@@ -50,7 +50,9 @@ fi
 
 # Let's download source tarball
 asset_url=$assets
+
 echo "Handling asset at $asset_url"
+
 src="app"
 
 # Create the temporary directory
@@ -82,7 +84,6 @@ SOURCE_FILENAME=
 EOT
 echo "... conf/$src.src updated"
 
-#
 #=================================================
 # SPECIFIC UPDATE STEPS
 #=================================================
