@@ -93,7 +93,7 @@ ynh_system_user_create --username=$app --home_dir=$final_path
 #=================================================
 ynh_script_progression --message="Creating a PostgreSQL database..."
 
-ynh_psql_test_if_first_run
+
 # Create PostgreSQL database
 db_name=$(ynh_sanitize_dbid --db_name="${app}_production")
 db_user=$(ynh_sanitize_dbid --db_name=$app)
@@ -101,6 +101,7 @@ db_pwd=$(ynh_string_random --length=30)
 ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 ynh_app_setting_set --app=$app --key=db_user --value=$db_user
 ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
+ynh_psql_test_if_first_run
 ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
 ynh_psql_execute_as_root --sql="ALTER USER $db_user CREATEDB;"
 
