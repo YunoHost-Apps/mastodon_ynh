@@ -43,10 +43,6 @@
                 "type": "domain"
             },
             {
-                "name": "admin",
-                "type": "user"
-            },
-            {
                 "name": "is_public",
                 "type": "boolean",
                 "default": true
@@ -63,6 +59,10 @@
                     "fr_FR"
                 ],
                 "default": "fr_FR"
+            },
+            {
+                "name": "admin",
+                "type": "user"
             }
         ]
     }
