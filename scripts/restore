@@ -34,7 +34,6 @@ path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_user=$(ynh_app_setting_get --app=$app --key=db_user)
-db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
@@ -59,7 +58,7 @@ ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 ynh_script_progression --message="Recreating the dedicated system user..."
 
 # Create the dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir=$final_path
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # RESTORE THE APP MAIN DIR
@@ -80,10 +79,10 @@ chown -R $app:www-data "$final_path"
 ynh_script_progression --message="Reinstalling dependencies..."
 
 # Define and install dependencies
-ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$NODEJS_VERSION
-ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
-ynh_install_ruby --ruby_version=$RUBY_VERSION
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies $build_pkg_dependencies
+ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
+ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
+ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
@@ -91,6 +90,7 @@ ynh_install_ruby --ruby_version=$RUBY_VERSION
 ynh_script_progression --message="Restoring the PostgreSQL database..."
 
 ynh_psql_test_if_first_run
+db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
 ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
 ynh_psql_execute_as_root --sql="ALTER USER $db_user CREATEDB;"
 ynh_psql_execute_file_as_root --file="./db.sql" --database="$db_name"
@@ -103,25 +103,28 @@ ynh_script_progression --message="Adding swap if needed..."
 total_memory=$(ynh_get_ram --total)
 swap_needed=0
 
-if [ $total_memory -lt $MEMORY_NEEDED ]; then
+if [ $total_memory -lt $memory_needed ]; then
 	# Need a minimum of 8Go of memory
-	swap_needed=$(($MEMORY_NEEDED - $total_memory))
+	swap_needed=$(($memory_needed - $total_memory))
 fi
 
 ynh_script_progression --message="Adding $swap_needed Mo to swap..."
 ynh_add_swap --size=$swap_needed
 
 #=================================================
-# INSTALLING RUBY AND BUNDLER
+# BUILD APP
 #=================================================
-ynh_script_progression --message="Installing Ruby..."
+ynh_script_progression --message="Building app..."
 
 pushd "$final_path/live"
 	ynh_use_ruby
 	ynh_gem update --system
 	ynh_gem install bundler --no-document
-	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle install  --redownload -j$(getconf _NPROCESSORS_ONLN)
+	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle install --redownload -j$(getconf _NPROCESSORS_ONLN)
 popd
+
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
+ynh_package_autoremove
 
 #=================================================
 # RESTORE VARIOUS FILES

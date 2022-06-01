@@ -9,7 +9,8 @@ WorkingDirectory=__FINALPATH__/live
 Environment="__LD_PRELOAD__"
 Environment="RAILS_ENV=production"
 Environment="PORT=__PORT_WEB__"
-ExecStart=__RBENV_ROOT__/versions/__APP__/bin/bundle exec puma -C config/puma.rb
+Environment="__YNH_RUBY_LOAD_PATH__"
+ExecStart=__FINALPATH__/live/bin/bundle exec puma -C config/puma.rb
 ExecReload=/bin/kill -SIGUSR1 $MAINPID
 TimeoutSec=15
 Restart=always

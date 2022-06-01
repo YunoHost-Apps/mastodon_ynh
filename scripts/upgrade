@@ -20,13 +20,13 @@ app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
+language=$(ynh_app_setting_get --app=$app --key=language)
 admin=$(ynh_app_setting_get --app=$app --key=admin)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-language=$(ynh_app_setting_get --app=$app --key=language)
 redis_namespace=$(ynh_app_setting_get --app=$app --key=db_name)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_user=$(ynh_app_setting_get --app=$app --key=db_user)
-db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
+db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
 admin_mail=$(ynh_user_get_info --username=$admin --key='mail')
 port_web=$(ynh_app_setting_get --app=$app --key=port_web)
 port_stream=$(ynh_app_setting_get --app=$app --key=port_stream)
@@ -159,7 +159,7 @@ ynh_remove_extra_repo
 ynh_script_progression --message="Making sure dedicated system user exists..."
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir=$final_path
+ynh_system_user_create --username=$app --home_dir="$final_path"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -208,10 +208,10 @@ ynh_add_nginx_config
 #=================================================
 ynh_script_progression --message="Upgrading dependencies..."
 
-ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$NODEJS_VERSION
-ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
-ynh_install_ruby --ruby_version=$RUBY_VERSION
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies $build_pkg_dependencies
+ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
+ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
+ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 
 #=================================================
 # SPECIFIC UPGRADE
@@ -223,24 +223,37 @@ ynh_script_progression --message="Adding swap if needed..."
 total_memory=$(ynh_get_ram --total)
 swap_needed=0
 
-if [ $total_memory -lt $MEMORY_NEEDED ]; then
+if [ $total_memory -lt $memory_needed ]; then
 	# Need a minimum of 8Go of memory
-	swap_needed=$(($MEMORY_NEEDED - $total_memory))
+	swap_needed=$(($memory_needed - $total_memory))
 fi
 
 ynh_script_progression --message="Adding $swap_needed Mo to swap..."
 ynh_add_swap --size=$swap_needed
 
 #=================================================
-# INSTALLING RUBY AND BUNDLER
+# BUILD APP
 #=================================================
-ynh_script_progression --message="Installing Ruby..."
+ynh_script_progression --message="Building app..."
 
 pushd "$final_path/live"
 	ynh_use_ruby
 	ynh_gem update --system
 	ynh_gem install bundler --no-document
+	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config deployment 'true'
+	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config without 'development test'
+	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config set force_ruby_platform true --quiet
+	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
+	ynh_use_nodejs
+	ynh_exec_as $app $ynh_node_load_PATH yarn install --pure-lockfile
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:clean
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl cache clear
 popd
+
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
+ynh_package_autoremove
 
 #=================================================
 # UPDATE A CONFIG FILE
@@ -263,24 +276,6 @@ ynh_script_progression --message="Upgrading systemd configuration..."
 ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service"
 ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service"
 ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service"
-
-#=================================================
-# UPGRADE MASTODON
-#=================================================
-ynh_script_progression --message="Upgrading Mastodon..."
-
-pushd "$final_path/live"
-	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config deployment 'true'
-	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config without 'development test'
-	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config set force_ruby_platform true --quiet
-	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
-	ynh_use_nodejs
-	ynh_exec_as $app $ynh_node_load_PATH yarn install --pure-lockfile
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:clean
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl cache clear
-popd
 
 #=================================================
 # SETUP THE CRON FILE
