@@ -14,6 +14,11 @@ ruby_version_path="$rbenv_install_dir/versions"
 export RBENV_ROOT="$rbenv_install_dir"
 export rbenv_root="$rbenv_install_dir"
 
+ruby_dependencies=""
+build_ruby_dependencies="libjemalloc-dev curl build-essential libreadline-dev zlib1g-dev libsqlite3-dev libssl-dev libxml2-dev libxslt-dev autoconf automake bison libtool"
+pkg_dependencies="$pkg_dependencies $ruby_dependencies"
+build_pkg_dependencies="$build_pkg_dependencies $build_ruby_dependencies"
+
 # Load the version of Ruby for an app, and set variables.
 #
 # ynh_use_ruby has to be used in any app scripts before using Ruby for the first time.
@@ -37,9 +42,9 @@ export rbenv_root="$rbenv_install_dir"
 # Finally, to start a Ruby service with the correct version, 2 solutions
 #  Either the app is dependent of Ruby or gem, but does not called it directly.
 #  In such situation, you need to load PATH
-#    `Environment="__YNH_RUBY_LOAD_ENV_PATH__"`
+#    `Environment="__YNH_RUBY_LOAD_PATH__"`
 #    `ExecStart=__FINALPATH__/my_app`
-#     You will replace __YNH_RUBY_LOAD_ENV_PATH__ with $ynh_ruby_load_path
+#     You will replace __YNH_RUBY_LOAD_PATH__ with $ynh_ruby_load_path
 #
 #  Or Ruby start the app directly, then you don't need to load the PATH variable
 #    `ExecStart=__YNH_RUBY__ my_app run`

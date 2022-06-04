@@ -91,7 +91,6 @@ ynh_script_progression --message="Removing dependencies..."
 ynh_remove_ruby
 ynh_remove_nodejs
 ynh_remove_app_dependencies
-ynh_remove_extra_repo
 
 #=================================================
 # SPECIFIC REMOVE

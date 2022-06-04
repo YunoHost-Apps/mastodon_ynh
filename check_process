@@ -18,16 +18,11 @@
 		#upgrade=1	from_commit=adec07db890dec787416e1b7c4493d24391d3500
 		# 3.4.4~ynh1
 		upgrade=1	from_commit=4d413848bf444586e28f3658de0ebe36d6ebf059
+		# 3.5.3~ynh1
+		upgrade=1	from_commit=acdc124f76fb9724cb22acb18c45cf0c3c2e62b5
 		backup_restore=1
 		multi_instance=0
 		change_url=0
 ;;; Options
 Email=yalh@yahoo.com
 Notification=all
-;;; Upgrade options
-	; commit=efbdbb05350b820c6e59a7bbbf70f57cf679fff8
-		name=3.4.1~ynh1
-	; commit=adec07db890dec787416e1b7c4493d24391d3500
-		name=3.4.1~ynh4
-	; commit=4d413848bf444586e28f3658de0ebe36d6ebf059
-		name=3.4.4~ynh1

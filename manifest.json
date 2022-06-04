@@ -6,7 +6,7 @@
         "en": "Libre and federated social network",
         "fr": "Réseau social libre et fédéré"
     },
-    "version": "3.5.3~ynh1",
+    "version": "3.5.3~ynh2",
     "url": "https://github.com/mastodon/mastodon",
     "upstream": {
         "license": "AGPL-3.0-or-later",
@@ -43,10 +43,6 @@
                 "type": "domain"
             },
             {
-                "name": "admin",
-                "type": "user"
-            },
-            {
                 "name": "is_public",
                 "type": "boolean",
                 "default": true
@@ -63,6 +59,10 @@
                     "fr_FR"
                 ],
                 "default": "fr_FR"
+            },
+            {
+                "name": "admin",
+                "type": "user"
             }
         ]
     }
