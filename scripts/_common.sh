@@ -9,7 +9,7 @@ pkg_dependencies="imagemagick ffmpeg libpq-dev libxml2-dev libxslt1-dev file git
 build_pkg_dependencies=""
 
 memory_needed="2560"
-ruby_version=2.7.2
+ruby_version=3.0.3
 nodejs_version=12
 
 # Workaround for Mastodon on Bullseye
