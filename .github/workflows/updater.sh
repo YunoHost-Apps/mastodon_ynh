@@ -24,24 +24,25 @@ assets="https://github.com/tootsuite/mastodon/archive/refs/tags/$version.tar.gz"
 # Sometimes the release name starts with a "v", so let's filter it out.
 # You may need more tweaks here if the upstream repository has different naming conventions.
 if [[ ${version:0:1} == "v" || ${version:0:1} == "V" ]]; then
-    version=${version:1}
+	version=${version:1}
 fi
 
 # Setting up the environment variables
 echo "Current version: $current_version"
 echo "Latest release from upstream: $version"
 echo "VERSION=$version" >> $GITHUB_ENV
+echo "REPO=$repo" >> $GITHUB_ENV
 # For the time being, let's assume the script will fail
 echo "PROCEED=false" >> $GITHUB_ENV
 
 # Proceed only if the retrieved version is greater than the current one
 if ! dpkg --compare-versions "$current_version" "lt" "$version" ; then
-    echo "::warning ::No new version available"
-    exit 0
+	echo "::warning ::No new version available"
+	exit 0
 # Proceed only if a PR for this new version does not already exist
 elif git ls-remote -q --exit-code --heads https://github.com/$GITHUB_REPOSITORY.git ci-auto-update-v$version ; then
-    echo "::warning ::A branch already exists for this update"
-    exit 0
+	echo "::warning ::A branch already exists for this update"
+	exit 0
 fi
 
 #=================================================
@@ -81,6 +82,7 @@ SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=$extension
 SOURCE_IN_SUBDIR=true
 SOURCE_FILENAME=
+SOURCE_EXTRACT=true
 EOT
 echo "... conf/$src.src updated"
 
