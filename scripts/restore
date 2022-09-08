@@ -46,13 +46,6 @@ test ! -d $final_path \
 #=================================================
 # STANDARD RESTORATION STEPS
 #=================================================
-# RESTORE THE NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Restoring the NGINX web server configuration..."
-
-ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
-
-#=================================================
 # RECREATE THE DEDICATED USER
 #=================================================
 ynh_script_progression --message="Recreating the dedicated system user..."
@@ -83,6 +76,13 @@ ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies $build_pkg_dep
 ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
 ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
 ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
+
+#=================================================
+# RESTORE THE NGINX CONFIGURATION
+#=================================================
+ynh_script_progression --message="Restoring the NGINX web server configuration..."
+
+ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
