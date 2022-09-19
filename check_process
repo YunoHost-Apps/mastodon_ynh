@@ -1,9 +1,9 @@
 ;; Test complet
 	; Manifest
 		domain="domain.tld"
+		is_public=1
 		admin="john"
 		language="fr_FR"
-		is_public=1
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=0
@@ -20,6 +20,8 @@
 		upgrade=1	from_commit=4d413848bf444586e28f3658de0ebe36d6ebf059
 		# 3.5.3~ynh1
 		upgrade=1	from_commit=acdc124f76fb9724cb22acb18c45cf0c3c2e62b5
+		# 3.5.3~ynh3
+		upgrade=1	from_commit=efa2d628920edce255ff406b28a97b1dd20e3d74
 		backup_restore=1
 		multi_instance=0
 		change_url=0
