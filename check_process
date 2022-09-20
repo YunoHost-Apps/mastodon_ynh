@@ -17,7 +17,7 @@
 		# 3.4.1~ynh4
 		#upgrade=1	from_commit=adec07db890dec787416e1b7c4493d24391d3500
 		# 3.4.4~ynh1
-		upgrade=1	from_commit=4d413848bf444586e28f3658de0ebe36d6ebf059
+		#upgrade=1	from_commit=4d413848bf444586e28f3658de0ebe36d6ebf059
 		# 3.5.3~ynh1
 		upgrade=1	from_commit=acdc124f76fb9724cb22acb18c45cf0c3c2e62b5
 		# 3.5.3~ynh3
