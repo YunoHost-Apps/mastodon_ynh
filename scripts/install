@@ -194,7 +194,7 @@ pushd "$final_path/live"
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:setup --quiet
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile --quiet
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=admin > /dev/null
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=Admin > /dev/null
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts modify "$admin" --approve
 popd
 
