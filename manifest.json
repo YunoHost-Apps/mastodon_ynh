@@ -6,7 +6,7 @@
         "en": "Libre and federated social network",
         "fr": "Réseau social libre et fédéré"
     },
-    "version": "3.5.3~ynh4",
+    "version": "4.0.2~ynh1",
     "url": "https://github.com/mastodon/mastodon",
     "upstream": {
         "license": "AGPL-3.0-or-later",
