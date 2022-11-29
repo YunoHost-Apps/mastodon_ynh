@@ -46,6 +46,15 @@ ynh_script_progression --message="Checking version..." --weight=1
 upgrade_type=$(ynh_check_app_version_changed)
 
 #=================================================
+# STOP SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Stopping a systemd service..." --weight=1
+
+ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=systemd --line_match="Stopped"
+
+#=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
 ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=1
@@ -61,15 +70,6 @@ ynh_abort_if_errors
 
 #=================================================
 # STANDARD UPGRADE STEPS
-#=================================================
-# STOP SYSTEMD SERVICE
-#=================================================
-ynh_script_progression --message="Stopping a systemd service..." --weight=1
-
-ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
-ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
-ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=systemd --line_match="Stopped"
-
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
