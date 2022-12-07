@@ -216,20 +216,23 @@ ynh_add_nginx_config
 # SPECIFIC UPGRADE
 #=================================================
 # ADD SWAP IF NEEDED
-#=================================================
-ynh_script_progression --message="Adding swap if needed..." --weight=1
+#==if [ -n "$(grep 'kthreadd' /proc/2/status 2>/dev/null)" ]; then
 
-total_memory=$(ynh_get_ram --total)
-swap_needed=0
+	ynh_script_progression --message="Adding swap if needed..." --weight=1
 
-if [ $total_memory -lt $memory_needed ]; then
-	# Need a minimum of 8Go of memory
-	swap_needed=$(($memory_needed - $total_memory))
+	total_memory=$(ynh_get_ram --total)
+	swap_needed=0
+
+	if [ $total_memory -lt $memory_needed ]; then
+		# Need a minimum of memory
+		swap_needed=$(($memory_needed - $total_memory))
+		ynh_script_progression --message="Adding $swap_needed Mo to swap..."
+		ynh_add_swap --size=$swap_needed
+	fi
+	
+else
+    	ynh_script_progression --message="No swap will be added as you are inside a container. Please take care of having more than 2,5G memory available..."
 fi
-
-ynh_script_progression --message="Adding $swap_needed Mo to swap..."
-ynh_add_swap --size=$swap_needed
-
 #=================================================
 # BUILD APP
 #=================================================
