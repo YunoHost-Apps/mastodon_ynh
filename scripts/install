@@ -126,7 +126,7 @@ ynh_add_nginx_config
 #=================================================
 # SPECIFIC SETUP
 #=================================================
-# ADD SWAP IF NEEDED
+# ADD SWAP IF NEEDED and not contenerized
 #=================================================
 if [ -n "$(grep 'kthreadd' /proc/2/status 2>/dev/null)" ]; then
 
