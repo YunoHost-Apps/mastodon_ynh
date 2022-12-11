@@ -215,8 +215,10 @@ ynh_add_nginx_config
 #=================================================
 # SPECIFIC UPGRADE
 #=================================================
-# ADD SWAP IF NEEDED
-#==if [ -n "$(grep 'kthreadd' /proc/2/status 2>/dev/null)" ]; then
+# ADD SWAP IF NEEDED and not contenerized
+#=================================================
+
+if [ -n "$(grep 'kthreadd' /proc/2/status 2>/dev/null)" ]; then
 
 	ynh_script_progression --message="Adding swap if needed..." --weight=1
 
