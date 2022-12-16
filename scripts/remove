@@ -104,7 +104,13 @@ ynh_secure_remove --file="/etc/cron.d/$app"
 
 # Remove swap
 ynh_del_swap
+if [ -n "$(grep 'kthreadd' /proc/2/status 2>/dev/null)" ]; then
 
+	ynh_del_swap
+	
+else
+    	ynh_script_progression --message="No swap will be deleted as you are inside a container. Please take care of having more than 2,5G memory available..."
+fi
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
