@@ -26,6 +26,20 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 #=================================================
 # STANDARD REMOVE
 #=================================================
+# SELF-DESTRUCT
+#=================================================
+
+# Self-destruct the instance if --purge option is used
+if [ "${YNH_APP_PURGE:-0}" -eq 1 ]
+then
+	ynh_script_progression --message="Self-destructing the instance..." --weight=1
+	pushd "$final_path/live"
+		ynh_use_ruby
+		ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl self-destruct
+	popd
+fi
+
+#=================================================
 # REMOVE SERVICE INTEGRATION IN YUNOHOST
 #=================================================
 
