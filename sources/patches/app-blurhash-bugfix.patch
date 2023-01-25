@@ -1,0 +1,60 @@
+diff --git a/Gemfile b/Gemfile
+index 7c36bc6b8..3f691d102 100644
+--- a/Gemfile
++++ b/Gemfile
+@@ -22,7 +22,8 @@
+ gem 'fog-core', '<= 2.1.0'
+ gem 'fog-openstack', '~> 0.3', require: false
+ gem 'kt-paperclip', '~> 7.1'
+-gem 'blurhash', '~> 0.1'
++gem 'blurhash', github: 'Gargron/blurhash', ref: '870a34e01ce7d09a7bd4d700435e1764ca823246'
++
+ 
+ gem 'active_model_serializers', '~> 0.10'
+ gem 'addressable', '~> 2.8'
+
+diff --git a/Gemfile.lock b/Gemfile.lock
+index 7c36bc6b8..3f691d102 100644
+--- a/Gemfile.lock
++++ b/Gemfile.lock
+@@ -7,6 +7,13 @@
+       hkdf (~> 0.2)
+       jwt (~> 2.0)
+ 
++GIT
++  remote: https://github.com/Gargron/blurhash.git
++  revision: 870a34e01ce7d09a7bd4d700435e1764ca823246
++  ref: 870a34e01ce7d09a7bd4d700435e1764ca823246
++  specs:
++    blurhash (0.1.6)
++
+ GEM
+   remote: https://rubygems.org/
+   specs:
+@@ -120,8 +127,6 @@
+     bindata (2.4.10)
+     binding_of_caller (1.0.0)
+       debug_inspector (>= 0.0.1)
+-    blurhash (0.1.6)
+-      ffi (~> 1.14)
+     bootsnap (1.13.0)
+       msgpack (~> 1.2)
+     brakeman (5.3.1)
+@@ -448,7 +453,7 @@
+     openssl-signature_algorithm (1.2.1)
+       openssl (> 2.0, < 3.1)
+     orm_adapter (0.5.0)
+-    ox (2.14.11)
++    ox (2.14.13)
+     parallel (1.22.1)
+     parser (3.1.2.1)
+       ast (~> 2.4.1)
+@@ -738,7 +743,7 @@
+   aws-sdk-s3 (~> 1.114)
+   better_errors (~> 2.9)
+   binding_of_caller (~> 1.0)
+-  blurhash (~> 0.1)
++  blurhash!
+   bootsnap (~> 1.13.0)
+   brakeman (~> 5.3)
+   browser
