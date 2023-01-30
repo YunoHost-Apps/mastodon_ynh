@@ -96,26 +96,23 @@ ynh_psql_execute_as_root --sql="ALTER USER $db_user CREATEDB;"
 ynh_psql_execute_file_as_root --file="./db.sql" --database="$db_name"
 
 #=================================================
-# ADD SWAP IF NEEDED
+# ADD SWAP IF NEEDED and not contenerized
 #=================================================
 
-if [ -n "$(grep 'kthreadd' /proc/2/status 2>/dev/null)" ]; then
+ynh_script_progression --message="Adding swap if needed..." --weight=1
 
-	ynh_script_progression --message="Adding swap if needed..." --weight=1
+total_memory=$(ynh_get_ram --total)
+swap_needed=0
 
-	total_memory=$(ynh_get_ram --total)
-	swap_needed=0
-
-	if [ $total_memory -lt $memory_needed ]; then
-		# Need a minimum of 8Go of memory
+if [ $total_memory -lt $memory_needed ]; then
+	# Need a minimum of memory
+	if [ -n "$(grep 'kthreadd' /proc/2/status 2>/dev/null)" ]; then
 		swap_needed=$(($memory_needed - $total_memory))
-		ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
+		ynh_script_progression --message="Adding $swap_needed Mo to swap..."
 		ynh_add_swap --size=$swap_needed
-
+	else
+    		ynh_script_progression --message="No swap will be added as you are inside a container. Please take care of having more than 2,5G memory available..."
 	fi
-
-else
-    	ynh_script_progression --message="No swap will be added as you are inside a container. Please take care of having more than 2,5G memory available..."
 fi
 
 #=================================================
