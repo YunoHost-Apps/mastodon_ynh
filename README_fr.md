@@ -5,26 +5,26 @@ It shall NOT be edited by hand.
 
 # Mastodon pour YunoHost
 
-[![Niveau d'intégration](https://dash.yunohost.org/integration/mastodon.svg)](https://dash.yunohost.org/appci/app/mastodon) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)  
+[![Niveau d’intégration](https://dash.yunohost.org/integration/mastodon.svg)](https://dash.yunohost.org/appci/app/mastodon) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)
 [![Installer Mastodon avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=mastodon)
 
 *[Read this readme in english.](./README.md)*
 
-> *Ce package vous permet d'installer Mastodon rapidement et simplement sur un serveur YunoHost.
-Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
+> *Ce package vous permet d’installer Mastodon rapidement et simplement sur un serveur YunoHost.
+Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l’installer et en profiter.*
 
-## Vue d'ensemble
+## Vue d’ensemble
 
 Mastodon est un réseau social de microblog auto-hébergé et open source. C'est une alternative décentralisée aux plates-formes commerciales comme Twitter. Mastodon évite ainsi les risques qu'une seule société monopolise votre communication à des fins commerciales.
 
 
-**Version incluse :** 4.0.2~ynh1
+**Version incluse :** 4.0.2~ynh2
 
 **Démo :** https://joinmastodon.org/
 
-## Captures d'écran
+## Captures d’écran
 
-![Capture d'écran de Mastodon](./doc/screenshots/mastodon.png)
+![Capture d’écran de Mastodon](./doc/screenshots/mastodon.png)
 
 ## Avertissements / informations importantes
 
@@ -76,9 +76,9 @@ Se déconnecter depuis le portail YunoHost ne vous déconnecte pas de Mastodon. 
 
 ## Documentations et ressources
 
-* Site officiel de l'app : <https://joinmastodon.org/>
-* Documentation officielle de l'admin : <https://docs.joinmastodon.org/>
-* Dépôt de code officiel de l'app : <https://github.com/mastodon/mastodon>
+* Site officiel de l’app : <https://joinmastodon.org/>
+* Documentation officielle de l’admin : <https://docs.joinmastodon.org/>
+* Dépôt de code officiel de l’app : <https://github.com/mastodon/mastodon>
 * Documentation YunoHost pour cette app : <https://yunohost.org/app_mastodon>
 * Signaler un bug : <https://github.com/YunoHost-Apps/mastodon_ynh/issues>
 
@@ -94,4 +94,4 @@ ou
 sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh/tree/testing --debug
 ```
 
-**Plus d'infos sur le packaging d'applications :** <https://yunohost.org/packaging_apps>
+**Plus d’infos sur le packaging d’applications :** <https://yunohost.org/packaging_apps>
