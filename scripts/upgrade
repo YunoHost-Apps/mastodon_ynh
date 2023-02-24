@@ -18,8 +18,9 @@ ynh_script_progression --message="Loading installation settings..." --weight=1
 
 app=$YNH_APP_INSTANCE_NAME
 
+_local_domain=$(ynh_app_setting_get --app=$app --key=local_domain)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
-local_domain=$(ynh_app_setting_get --app=$app --key=local_domain)
+local_domain=${_local_domain:=$domain}
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 language=$(ynh_app_setting_get --app=$app --key=language)
 admin=$(ynh_app_setting_get --app=$app --key=admin)
