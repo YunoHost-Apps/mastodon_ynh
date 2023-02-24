@@ -44,10 +44,13 @@
             },
             {
                 "name": "local_domain",
-                "type": "domain",
+                "type": "string",
                 "default": "",
+                "ask": {
+                    "en": "What domain do you want to ues for users?"
+                },
                 "help": {
-                    "en": "Use a different domain for users than the installation domain"
+                    "en": "Use a different domain for users than the installation domain, you'll need to setup the well-known redirects your self"
                 }
             },
             {
