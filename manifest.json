@@ -43,6 +43,14 @@
                 "type": "domain"
             },
             {
+                "name": "local_domain",
+                "type": "domain",
+                "default": "",
+                "help": {
+                    "en": "Use a different domain for users than the installation domain"
+                }
+            },
+            {
                 "name": "is_public",
                 "type": "boolean",
                 "default": true
