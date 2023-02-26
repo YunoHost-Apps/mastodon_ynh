@@ -6,7 +6,7 @@
         "en": "Libre and federated social network",
         "fr": "Réseau social libre et fédéré"
     },
-    "version": "4.0.2~ynh2",
+    "version": "4.0.2~ynh3",
     "url": "https://github.com/mastodon/mastodon",
     "upstream": {
         "license": "AGPL-3.0-or-later",
@@ -44,7 +44,8 @@
             },
             {
                 "name": "local_domain",
-                "type": "string",
+                "type": "domain",
+                "optional": true,
                 "default": "",
                 "ask": {
                     "en": "What domain do you want to ues for users?"
