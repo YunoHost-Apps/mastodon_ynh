@@ -26,7 +26,7 @@ ynh_abort_if_errors
 #=================================================
 
 domain=$YNH_APP_ARG_DOMAIN
-local_domain=${YNH_APP_ARG_LOCAL_DOMAIN:=$YNH_APP_ARG_DOMAIN}
+local_domain=$YNH_APP_ARG_LOCAL_DOMAIN
 path_url="/"
 is_public=$YNH_APP_ARG_IS_PUBLIC
 language=$YNH_APP_ARG_LANGUAGE
@@ -35,6 +35,11 @@ admin=$YNH_APP_ARG_ADMIN
 app=$YNH_APP_INSTANCE_NAME
 
 admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
+
+# Serving domain is identical to Identity domain
+if [[ "$local_domain" == "Same as the domain" ]]; then
+  local_domain=$domain
+fi
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
@@ -121,6 +126,11 @@ chown -R $app:www-data "$final_path"
 # NGINX CONFIGURATION
 #=================================================
 ynh_script_progression --message="Configuring NGINX web server..." --weight=1
+
+# Create .well-known redirection for access by federation, if Identity domain is different from Serving domain
+if [[ "$domain" != "$local_domain" ]] && yunohost --output-as plain domain list | grep -q "^$local_domain$"; then
+  ynh_add_config --template="well_known.conf" --destination="/etc/nginx/conf.d/${local_domain}.d/${app}_well_known.conf"
+fi
 
 # Create a dedicated NGINX config
 ynh_add_nginx_config
@@ -269,6 +279,13 @@ then
 fi
 
 ynh_permission_create --permission="api" --url="/api" --allowed="visitors" --auth_header="false" --show_tile="false" --protected="true"
+
+# Create .well-known redirection for access by federation, if Identity domain is different from Serving domain
+if [[ "$domain" != "$local_domain" ]] && yunohost --output-as plain domain list | grep -q "^$local_domain$"; then
+  ynh_permission_create --permission=well_known --url=$local_domain/.well-known/webfinger \
+                        --additional_urls $local_domain/.well-known/host-meta $local_domain/.well-known/nodeinfo \
+                        --label="Well known path redirects" --show_tile=false --allowed=visitors --auth_header=false
+fi
 
 #=================================================
 # RELOAD NGINX

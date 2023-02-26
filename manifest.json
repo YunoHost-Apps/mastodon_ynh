@@ -44,14 +44,13 @@
             },
             {
                 "name": "local_domain",
-                "type": "domain",
-                "optional": true,
-                "default": "",
+                "type": "string",
+                "default": "Same as the domain",
                 "ask": {
-                    "en": "What domain do you want to ues for users?"
+                    "en": "Local Domain: Set a different domain for user identity"
                 },
                 "help": {
-                    "en": "Use a different domain for users than the installation domain, you'll need to setup the well-known redirects your self"
+                    "en": "You can specify another domain so users are referred to @user@domain.tld instead of @user@social.domain.tld. URL redirects will automatically be created if the domain is locally managed."
                 }
             },
             {

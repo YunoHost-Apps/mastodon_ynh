@@ -29,6 +29,7 @@ app=$YNH_APP_INSTANCE_NAME
 
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
+local_domain=$(ynh_app_setting_get --app=$app --key=local_domain)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 
 #=================================================
@@ -47,6 +48,9 @@ ynh_backup --src_path="$final_path"
 #=================================================
 
 ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
+if [[ "$domain" != "$local_domain" ]] && yunohost --output-as plain domain list | grep -q "^$local_domain$"; then
+  ynh_backup --src_path="/etc/nginx/conf.d/${local_domain}.d/${app}_well_known.conf"
+fi
 
 #=================================================
 # SPECIFIC BACKUP
