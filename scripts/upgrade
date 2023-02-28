@@ -19,6 +19,7 @@ ynh_script_progression --message="Loading installation settings..." --weight=1
 app=$YNH_APP_INSTANCE_NAME
 
 domain=$(ynh_app_setting_get --app=$app --key=domain)
+local_domain=$(ynh_app_setting_get --app=$app --key=local_domain)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 language=$(ynh_app_setting_get --app=$app --key=language)
 admin=$(ynh_app_setting_get --app=$app --key=admin)
@@ -149,6 +150,19 @@ if [[ -z "$redis_namespace" ]]; then
 	ynh_app_setting_set --app=$app --key=redis_namespace --value=$redis_namespace
 fi
 
+# Update settings when upgrading from a setup with no local_domain
+if [[ -z $local_domain ]]; then
+  local_domain=$domain
+  ynh_app_setting_set --app=$app --key=local_domain --value=$domain
+fi
+
+# Create .well-known redirection for access by federation, if Identity domain is different from Serving domain
+if [[ "$domain" != "$local_domain" ]] && yunohost --output-as plain domain list | grep -q "^$local_domain$" && ! ynh_permission_exists --permission="well_known"; then
+  ynh_permission_create --permission=well_known --url=$local_domain/.well-known/webfinger \
+                        --additional_urls $local_domain/.well-known/host-meta $local_domain/.well-known/nodeinfo \
+                        --label="Well known path redirects" --show_tile=false --allowed=visitors --auth_header=false
+fi
+
 #Remove previous added repository
 ynh_remove_extra_repo
 
@@ -208,6 +222,11 @@ ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="deb https://dl.yar
 # NGINX CONFIGURATION
 #=================================================
 ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=1
+
+# Create .well-known redirection for access by federation, if Identity domain is different from Serving domain
+if [[ "$domain" != "$local_domain" ]] && yunohost --output-as plain domain list | grep -q "^$local_domain$"; then
+  ynh_add_config --template="well_known.conf" --destination="/etc/nginx/conf.d/${local_domain}.d/${app}_well_known.conf"
+fi
 
 # Create a dedicated NGINX config
 ynh_add_nginx_config

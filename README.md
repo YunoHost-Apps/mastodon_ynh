@@ -51,6 +51,25 @@ $ screen -d
 $ screen -r
 ```
 
+#### Using separate domains for Serving and Identity
+
+It is possible to use one domain for serving (like social.example.com) and another for the user identities (like @user@example.com).
+In this installation simple set the Local Domain field with the relevant domain.
+If the Identity domain is locally managed and properly entered, appropriate redirects will be set up, otherwise you will need to set them up manually.
+
+Example of setting up the required redirect in nginx:
+```
+{
+  server example.com;
+  # Other example.com settings...
+  ### This is the relevant part:
+  location ~ ^/.well-known/(host-meta|nodeinfo|webfinger)/ {
+    return 301 https://__DOMAIN__$request_uri;
+  }
+  ### Until here is the relevant part
+}
+```
+
 ### Update
 
 #### Using *screen* highly recommended
