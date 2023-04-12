@@ -60,9 +60,12 @@ $ screen -r
 Upgrading from 3.5.3 to 4.1.2 directly has not been integration-tested. It is recommended to do a two-step upgrade:
 
 Mastodon can grow huge. You could consider cleaning up your local cache first as otherwise your backup will be very big:
-'sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl media remove --days=0 --dry-run'
+
+`$ sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl media remove --days=0 --dry-run`
+
 If all looks good commit the cleanup:
-'sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl media remove --days=0'
+
+`$ sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl media remove --days=0 `
 
 First upgrade to 4.0.2~ynh2:
 
