@@ -57,6 +57,22 @@ $ screen -r
 
 `$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh --debug `
 
+Upgrading from 3.5.3 to 4.1.2 directly has not been integration-tested. It is recommended to do a two-step upgrade:
+
+Mastodon can grow huge. You could consider cleaning up your local cache first as otherwise your backup will be very big:
+'sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl media remove --days=0 --dry-run'
+If all looks good commit the cleanup:
+'sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl media remove --days=0'
+
+First upgrade to 4.0.2~ynh2:
+
+`$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh/tree/94381183ca2d14da72234b53c9a83972ffb16e54 --debug `
+ 
+Check your installation. If all looks well, upgrade to 4.1.2~ynh1:
+
+`$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh --debug `
+
+
 ### Administrate with tooctl
 
 `$ (cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl --help)`
