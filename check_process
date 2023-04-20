@@ -12,16 +12,8 @@
 		setup_private=1
 		setup_public=1
 		upgrade=1
-		# 3.4.1~ynh1
-		#upgrade=1	from_commit=efbdbb05350b820c6e59a7bbbf70f57cf679fff8
-		# 3.4.1~ynh4
-		#upgrade=1	from_commit=adec07db890dec787416e1b7c4493d24391d3500
-		# 3.4.4~ynh1
-		#upgrade=1	from_commit=4d413848bf444586e28f3658de0ebe36d6ebf059
-		# 3.5.3~ynh1
-		upgrade=1	from_commit=acdc124f76fb9724cb22acb18c45cf0c3c2e62b5
-		# 3.5.3~ynh3
-		upgrade=1	from_commit=efa2d628920edce255ff406b28a97b1dd20e3d74
+		# 4.02~ynh2
+		upgrade=1	from_commit=94381183ca2d14da72234b53c9a83972ffb16e54		
 		backup_restore=1
 		multi_instance=0
 		change_url=0
