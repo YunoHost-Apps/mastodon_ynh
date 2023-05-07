@@ -44,7 +44,11 @@ Mastodon est un réseau social de microblog auto-hébergé et open source. C'est
 
 ### Installation
 
-#### Utilisation de *screen* en cas de déconnection
+### Utilisation de *screen* en cas de déconnection
+
+`screen` (ou `tmux`) peut être utilisé pour vous assurer que votre session n'est pas interrompue en cas de problème de connection.
+Consultez ce [tutoriel](https://www.howtogeek.com/662422/how-to-use-linuxs-screen-command/) pour plus de détails.
+
 ```
 $ sudo apt-get install screen
 $ screen
@@ -59,7 +63,39 @@ L'utilisateur admin est créé automatiquement comme : user@domain.tld
 
 ### Mise à jour
 
-#### Utilisation de *screen* fortement recommandée
+**Utilisation de *screen* fortement recommandée**
+
+### Note à propos des sauvegardes
+
+Tout d'abord : Mastodon utilise un cache local pour sauvegarder les médias (comme les images, vidéos, etc). Ce cache peut devenir énorme.
+Vous devriez réfléchir à vider votre cache local avant de faire une sauvegarde, qui pourrait être énorme et vous pourriez manquer d'espace de stockage.
+
+Pour vérifier l'utilisation du stockage, en ligne de commande utilisez :
+
+`$ sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl media usage`
+
+Si le cache est trop gros pour être sauvegardé, vous pouvez lancer la commande suivante pour en supprimer les médias attachés. Changez `X` par le nombre de cache à conserver, par ex. 1 jour. Tous les médias plus anciens seront supprimés, mais ils pourront être rechargé du serveur d'origine si nécessaire.
+
+En premier faite un essai à blanc pour voir combien de place sera libérée (sans rien supprimer):
+`$ sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl media remove --days=X --dry-run`
+
+Si cela semble bon, effectuez le nettoyage :
+`$ sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl media remove --days=X `
+
+#### Upgrade
+
+La mise à niveau proprement dite peut être effectuée à l'aide de la commande suivante :
+
+`$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh --debug `
+
+
+Mettre à niveau de 3.5.3 en 4.1.2 directement n'a pas été testé automatiquement. Il est donc recommandé de la réaliser en 2 étapes :
+
+Mettez d'abord à niveau en 4.0.2~ynh2:
+
+`$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh/tree/94381183ca2d14da72234b53c9a83972ffb16e54 --debug `
+
+Vérifiez votre installation. Si cela semble bon, mettez à niveau en 4.1.2~ynh1:
 
 `$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh --debug `
 
