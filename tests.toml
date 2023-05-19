@@ -20,7 +20,7 @@ test_format = 1.0
     # -------------------------------
 
     test_upgrade_from.94381183.name = "Upgrade from 4.02~ynh2"
-	test_upgrade_from.00a1a6e7.args.domain="domain.tld"
-	test_upgrade_from.00a1a6e7.args.is_public=1
-	test_upgrade_from.00a1a6e7.args.admin="john"
-	test_upgrade_from.00a1a6e7.args.language="fr_FR"
+	test_upgrade_from.94381183.args.domain="domain.tld"
+	test_upgrade_from.94381183.args.is_public=1
+	test_upgrade_from.94381183.args.admin="john"
+	test_upgrade_from.94381183.args.language="fr_FR"
