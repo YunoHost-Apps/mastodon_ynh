@@ -10,7 +10,8 @@ nodejs_version=16
 
 # Workaround for Mastodon on Bullseye
 # See https://github.com/mastodon/mastodon/issues/15751#issuecomment-873594463
-if [ "$(lsb_release --codename --short)" = "bullseye" ]; then
+if [ "$(lsb_release --codename --short)" = "bullseye" ];
+then
 	case $YNH_ARCH in
 		amd64)
 			ld_preload="LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so"
