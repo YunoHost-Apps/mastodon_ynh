@@ -1,6 +1,7 @@
 ## Important points to read before installing
 
 1. **Mastodon** require a dedicated **root domain**, eg. mastodon.domain.tld
+1. You can't change the domain once installed.
 1. The user choosen during the installation is automatically created in Mastodon with admin rights
 1. At the end of the installation a mail is sent to the user with the automatically generated password
 1. It seems important to close the inscriptions for your Mastodon, so that it remains a private body. We invite you to block remote malicious instances from the administration interface. You can also add text on your home page.
