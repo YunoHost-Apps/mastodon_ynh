@@ -12,18 +12,6 @@ source ynh_add_swap
 source /usr/share/yunohost/helpers
 
 #=================================================
-# LOAD SETTINGS
-#=================================================
-#REMOVEME? ynh_script_progression --message="Loading installation settings..." --weight=1
-
-#REMOVEME? app=$YNH_APP_INSTANCE_NAME
-
-#REMOVEME? domain=$(ynh_app_setting_get --app=$app --key=domain)
-#REMOVEME? db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-#REMOVEME? db_user=$(ynh_app_setting_get --app=$app --key=db_user)
-#REMOVEME? #REMOVEME? install_dir=$(ynh_app_setting_get --app=$app --key=install_dir)
-
-#=================================================
 # STANDARD REMOVE
 #=================================================
 # REMOVE SERVICE INTEGRATION IN YUNOHOST
@@ -59,22 +47,6 @@ ynh_remove_systemd_config --service="$app-sidekiq"
 ynh_remove_systemd_config --service="$app-streaming"
 
 #=================================================
-# REMOVE THE POSTGRESQL DATABASE
-#=================================================
-#REMOVEME? ynh_script_progression --message="Removing the PostgreSQL database..." --weight=1
-
-# Remove a database if it exists, along with the associated user
-#REMOVEME? ynh_psql_remove_db --db_user=$db_user --db_name=$db_name
-
-#=================================================
-# REMOVE APP MAIN DIR
-#=================================================
-#REMOVEME? ynh_script_progression --message="Removing app main directory..." --weight=1
-
-# Remove the app directory securely
-#REMOVEME? ynh_secure_remove --file="$install_dir"
-
-#=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
 ynh_script_progression --message="Removing NGINX web server configuration..." --weight=1
@@ -85,12 +57,11 @@ ynh_remove_nginx_config
 #=================================================
 # REMOVE DEPENDENCIES
 #=================================================
-#REMOVEME? ynh_script_progression --message="Removing dependencies..." --weight=1
+ynh_script_progression --message="Removing Ruby and NodeJS..." --weight=1
 
 # Remove metapackage and its dependencies
 ynh_remove_ruby
 ynh_remove_nodejs
-#REMOVEME? ynh_remove_app_dependencies
 
 #=================================================
 # SPECIFIC REMOVE
@@ -108,12 +79,9 @@ ynh_del_swap
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
-# REMOVE DEDICATED USER
+# ...
 #=================================================
-#REMOVEME? ynh_script_progression --message="Removing the dedicated system user..." --weight=1
 
-# Delete a system user
-#REMOVEME? ynh_system_user_delete --username=$app
 
 #=================================================
 # END OF SCRIPT

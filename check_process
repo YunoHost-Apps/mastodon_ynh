@@ -1,0 +1,22 @@
+;; Test complet
+	; Manifest
+		domain="domain.tld"
+		is_public=1
+		admin="john"
+		language="fr_FR"
+	; Checks
+		pkg_linter=1
+		setup_sub_dir=0
+		setup_root=1
+		setup_nourl=0
+		setup_private=1
+		setup_public=1
+		upgrade=1
+		# 4.02~ynh2
+		upgrade=1	from_commit=94381183ca2d14da72234b53c9a83972ffb16e54		
+		backup_restore=1
+		multi_instance=0
+		change_url=0
+;;; Options
+Email=yalh@yahoo.com
+Notification=all
