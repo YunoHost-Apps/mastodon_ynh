@@ -89,27 +89,12 @@ then
 	ynh_script_progression --message="Upgrading source files..." --weight=1
 
 	# Download Mastodon
-	tmpdir="$(mktemp -d)"
+	ynh_setup_source --dest_dir="$install_dir/live" --keep="public/system/"
 
-	mkdir $tmpdir/system
-	if [ -d "$install_dir/live/public/system" ]; then
-		mv --verbose --no-target-directory --backup=numbered "$install_dir/live/public/system" "$install_dir/system.tmp"
-	fi
-	rsync -a "$config" "$tmpdir/."
-	ynh_secure_remove --file="$install_dir/live"
-	
-	ynh_setup_source --dest_dir="$install_dir/live"
-
-	if [ -d "$install_dir/system.tmp" ]; then
-		mv --verbose --no-target-directory "$install_dir/system.tmp" "$install_dir/live/public/system"
-	fi
-	rsync -a "$tmpdir/.env.production" "$install_dir/live/."
-	ynh_secure_remove --file="$tmpdir"
+	chmod 750 "$install_dir"
+	chmod -R o-rwx "$install_dir"
+	chown -R $app:www-data "$install_dir"
 fi
-
-chmod 750 "$install_dir"
-chmod -R o-rwx "$install_dir"
-chown -R $app:www-data "$install_dir"
 
 #=================================================
 # UPGRADE DEPENDENCIES
