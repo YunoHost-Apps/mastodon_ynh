@@ -5,7 +5,7 @@ name = "Mastodon"
 description.en = "Libre and federated social network"
 description.fr = "Réseau social libre et fédéré"
 
-version = "4.1.2~ynh1"
+version = "4.1.2~ynh2"
 
 maintainers = ["yalh76"]
 
@@ -19,7 +19,7 @@ cpe = " cpe:2.3:a:joinmastodon:mastodon"
 fund = "https://joinmastodon.org/sponsors" 
 
 [integration]
-yunohost = ">= 4.3.0"
+yunohost = ">= 11.1"
 architectures = "all"
 multi_instance = true
 ldap = true 
