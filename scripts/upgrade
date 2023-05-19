@@ -14,29 +14,29 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --weight=1
+#REMOVEME? ynh_script_progression --message="Loading installation settings..." --weight=1
 
-app=$YNH_APP_INSTANCE_NAME
+#REMOVEME? app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-path_url=$(ynh_app_setting_get --app=$app --key=path)
-language=$(ynh_app_setting_get --app=$app --key=language)
-admin=$(ynh_app_setting_get --app=$app --key=admin)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-redis_namespace=$(ynh_app_setting_get --app=$app --key=db_name)
-db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$(ynh_app_setting_get --app=$app --key=db_user)
-db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
+#REMOVEME? domain=$(ynh_app_setting_get --app=$app --key=domain)
+#REMOVEME? path=$(ynh_app_setting_get --app=$app --key=path)
+#REMOVEME? language=$(ynh_app_setting_get --app=$app --key=language)
+#REMOVEME? admin=$(ynh_app_setting_get --app=$app --key=admin)
+#REMOVEME? #REMOVEME? install_dir=$(ynh_app_setting_get --app=$app --key=install_dir)
+#REMOVEME? redis_namespace=$(ynh_app_setting_get --app=$app --key=db_name)
+#REMOVEME? db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+#REMOVEME? db_user=$(ynh_app_setting_get --app=$app --key=db_user)
+#REMOVEME? db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
 admin_mail=$(ynh_user_get_info --username=$admin --key='mail')
-port_web=$(ynh_app_setting_get --app=$app --key=port_web)
-port_stream=$(ynh_app_setting_get --app=$app --key=port_stream)
+#REMOVEME? port_web=$(ynh_app_setting_get --app=$app --key=port_web)
+#REMOVEME? port_stream=$(ynh_app_setting_get --app=$app --key=port_stream)
 
-secret_key_base=$(ynh_app_setting_get --app=$app --key=secret_key_base)
-otp_secret=$(ynh_app_setting_get --app=$app --key=otp_secret)
-vapid_private_key=$(ynh_app_setting_get --app=$app --key=vapid_private_key)
-vapid_public_key=$(ynh_app_setting_get --app=$app --key=vapid_public_key)
+#REMOVEME? secret_key_base=$(ynh_app_setting_get --app=$app --key=secret_key_base)
+#REMOVEME? otp_secret=$(ynh_app_setting_get --app=$app --key=otp_secret)
+#REMOVEME? vapid_private_key=$(ynh_app_setting_get --app=$app --key=vapid_private_key)
+#REMOVEME? vapid_public_key=$(ynh_app_setting_get --app=$app --key=vapid_public_key)
 
-config="$final_path/live/.env.production"
+config="$install_dir/live/.env.production"
 
 #=================================================
 # CHECK VERSION
@@ -48,16 +48,16 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=1
+#REMOVEME? ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=1
 
 # Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
+#REMOVEME? ynh_backup_before_upgrade
+#REMOVEME? ynh_clean_setup () {
 	# Restore it if the upgrade fails
-	ynh_restore_upgradebackup
+#REMOVEME? 	ynh_restore_upgradebackup
 }
 # Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
+#REMOVEME? ynh_abort_if_errors
 
 #=================================================
 # STANDARD UPGRADE STEPS
@@ -76,40 +76,40 @@ ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=sy
 ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
 
 # Cleaning legacy permissions
-if ynh_legacy_permissions_exists; then
-	ynh_legacy_permissions_delete_all
+#REMOVEME? if ynh_legacy_permissions_exists; then
+#REMOVEME? 	ynh_legacy_permissions_delete_all
 
 	ynh_app_setting_delete --app=$app --key=is_public
 fi
 
 # Create a permission if needed
-if ! ynh_permission_exists --permission="api"; then
-	ynh_permission_create --permission="api" --url="/api" --allowed="visitors" --auth_header="false" --show_tile="false" --protected="true"
+#REMOVEME? if ! ynh_permission_exists --permission="api"; then
+#REMOVEME? 	ynh_permission_create --permission="api" --url="/api" --allowed="visitors" --auth_header="false" --show_tile="false" --protected="true"
 fi
 
 # If port_web doesn't exist, create it, needed for old install
 if [[ -z "$port_web" ]]; then
 	port_web=3000
-	ynh_app_setting_set --app=$app --key=port_web --value=$port_web
+#REMOVEME? 	ynh_app_setting_set --app=$app --key=port_web --value=$port_web
 fi
 
 # If port_web doesn't exist, create it, needed for old install
 if [[ -z "$port_stream" ]]; then
 	port_stream=4000
-	ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
+#REMOVEME? 	ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
 fi
 
 # If db_user doesn't exist, create it, needed for old install
 if [[ -z "$db_user" ]]; then
 	db_user=$(ynh_sanitize_dbid --db_name=$app)
-	ynh_app_setting_set --app=$app --key=db_user --value=$db_user
+#REMOVEME? 	ynh_app_setting_set --app=$app --key=db_user --value=$db_user
 fi
 
 # If db_pwd doesn't exist, create it, needed for old install
 if [[ -z "$db_pwd" ]]; then
 	db_pwd=$(ynh_string_random)
-	ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
-	ynh_psql_test_if_first_run
+#REMOVEME? 	ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
+#REMOVEME? 	ynh_psql_test_if_first_run
 	sudo --login --user=postgres psql -c"ALTER user $app WITH PASSWORD '$db_pwd'" postgres
 	ynh_replace_string --match_string="DB_PASS=" --replace_string="DB_PASS=${db_pwd}" --target_file="$config"
 fi
@@ -155,10 +155,10 @@ ynh_remove_extra_repo
 #=================================================
 # CREATE DEDICATED USER
 #=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
+#REMOVEME? ynh_script_progression --message="Making sure dedicated system user exists..." --weight=1
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir="$final_path"
+#REMOVEME? ynh_system_user_create --username=$app --home_dir="$install_dir"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -172,37 +172,37 @@ then
 	tmpdir="$(mktemp -d)"
 
 	mkdir $tmpdir/system
-	if [ -d "$final_path/live/public/system" ]; then
-		mv --verbose --no-target-directory --backup=numbered "$final_path/live/public/system" "$final_path/system.tmp"
+	if [ -d "$install_dir/live/public/system" ]; then
+		mv --verbose --no-target-directory --backup=numbered "$install_dir/live/public/system" "$install_dir/system.tmp"
 	fi
 	rsync -a "$config" "$tmpdir/."
-	ynh_secure_remove --file="$final_path/live"
+#REMOVEME? 	ynh_secure_remove --file="$install_dir/live"
 	
-	ynh_setup_source --dest_dir="$final_path/live"
+	ynh_setup_source --dest_dir="$install_dir/live"
 
-	if [ -d "$final_path/system.tmp" ]; then
-		mv --verbose --no-target-directory "$final_path/system.tmp" "$final_path/live/public/system"
+	if [ -d "$install_dir/system.tmp" ]; then
+		mv --verbose --no-target-directory "$install_dir/system.tmp" "$install_dir/live/public/system"
 	fi
-	rsync -a "$tmpdir/.env.production" "$final_path/live/."
+	rsync -a "$tmpdir/.env.production" "$install_dir/live/."
 	ynh_secure_remove --file="$tmpdir"
 
 	# Clean files which are not needed anymore
-	ynh_secure_remove --file="$final_path/live/config/initializers/timeout.rb"
+#REMOVEME? 	ynh_secure_remove --file="$install_dir/live/config/initializers/timeout.rb"
 fi
 
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+chmod 750 "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
 
 #=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Upgrading dependencies..." --weight=1
+#REMOVEME? ynh_script_progression --message="Upgrading dependencies..." --weight=1
 
-ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies $build_pkg_dependencies
+#REMOVEME? ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies $build_pkg_dependencies
 ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
 ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
-ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
+#REMOVEME? ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -235,7 +235,7 @@ ynh_add_swap --size=$swap_needed
 #=================================================
 ynh_script_progression --message="Building app..." --weight=1
 
-pushd "$final_path/live"
+pushd "$install_dir/live"
 	ynh_use_ruby
 	ynh_gem update --system
 	ynh_gem install bundler --no-document
@@ -251,7 +251,7 @@ pushd "$final_path/live"
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl cache clear
 popd
 
-ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
+#REMOVEME? ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
 ynh_package_autoremove
 
 #=================================================
@@ -306,9 +306,9 @@ ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=s
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=1
+#REMOVEME? ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
-ynh_systemd_action --service_name=nginx --action=reload
+#REMOVEME? ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT
