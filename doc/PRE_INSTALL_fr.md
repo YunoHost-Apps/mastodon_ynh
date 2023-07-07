@@ -1,6 +1,6 @@
 ## Points importants à lire avant l'installation
 
-1. **Mastodon** nécessite un **nom de domaine** dédié, par exemple : mastodon.domain.tld
+1. **Mastodon** nécessite un **nom de domaine** dédié, par exemple : `domaine.tld` ou `mastodon.domaine.tld` sans apps installées sur ce domaine
 1. Il est impossible de changer le nom de domaine après l'installation.
 1. L'utilisateur sélectionné pendant l'installation sera créé automatiquement dans Mastodon avec des droits d'administration.
 1. À la fin de l'installation, un mail est envoyé à cet utilisateur avec un mot de passe généré automatiquement.
