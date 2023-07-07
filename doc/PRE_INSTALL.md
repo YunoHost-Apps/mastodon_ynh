@@ -9,7 +9,7 @@
 ## Using *screen* in case of disconnect
 
 ```
-$ sudo apt-get install screen
+$ sudo apt install screen
 $ screen
 $ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git
 ```
