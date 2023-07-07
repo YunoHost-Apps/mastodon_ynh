@@ -20,7 +20,7 @@ test_format = 1.0
     # -------------------------------
 
     test_upgrade_from.bda899e.name = "Upgrade from 4.1.2~ynh1"
-	test_upgrade_from.bda899e.args.domain="domain.tld"
-	test_upgrade_from.bda899e.args.is_public=1
-	test_upgrade_from.bda899e.args.admin="john"
-	test_upgrade_from.bda899e.args.language="fr_FR"
+    test_upgrade_from.bda899e.args.domain="domain.tld"
+    test_upgrade_from.bda899e.args.is_public=1
+    test_upgrade_from.bda899e.args.admin="john"
+    test_upgrade_from.bda899e.args.language="fr_FR"
