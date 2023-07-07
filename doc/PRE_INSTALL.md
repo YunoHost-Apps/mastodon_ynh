@@ -1,6 +1,6 @@
 ## Important points to read before installing
 
-1. **Mastodon** require a dedicated **root domain**, eg. mastodon.domain.tld
+1. **Mastodon** require a dedicated **root domain**, eg. `domaine.tld` or `mastodon.domain.tld`, with no other apps installed on that domain
 1. You can't change the domain once installed.
 1. The user choosen during the installation is automatically created in Mastodon with admin rights
 1. At the end of the installation a mail is sent to the user with the automatically generated password
