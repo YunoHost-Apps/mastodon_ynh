@@ -11,32 +11,13 @@ source ynh_install_ruby__2
 source ynh_add_swap
 source /usr/share/yunohost/helpers
 
-#=================================================
-# LOAD SETTINGS
-#=================================================
-ynh_script_progression --message="Loading settings..." --weight=1
+upgrade_type=$(ynh_check_app_version_changed)
 
 admin_mail=$(ynh_user_get_info --username=$admin --key='mail')
 config="$install_dir/live/.env.production"
 
 #=================================================
-# CHECK VERSION
-#=================================================
-ynh_script_progression --message="Checking version..." --weight=1
-
-upgrade_type=$(ynh_check_app_version_changed)
-
-#=================================================
 # STANDARD UPGRADE STEPS
-#=================================================
-# STOP SYSTEMD SERVICE
-#=================================================
-ynh_script_progression --message="Stopping a systemd service..." --weight=1
-
-ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
-ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
-ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=systemd --line_match="Stopped"
-
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
@@ -81,39 +62,14 @@ fi
 ynh_remove_extra_repo
 
 #=================================================
-# DOWNLOAD, CHECK AND UNPACK SOURCE
+# STOP SYSTEMD SERVICE
 #=================================================
+ynh_script_progression --message="Stopping a systemd service..." --weight=1
 
-if [ "$upgrade_type" == "UPGRADE_APP" ]
-then
-	ynh_script_progression --message="Upgrading source files..." --weight=1
+ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=systemd --line_match="Stopped"
 
-	# Download Mastodon
-	ynh_setup_source --dest_dir="$install_dir/live" --keep="public/system/"
-
-	chmod 750 "$install_dir"
-	chmod -R o-rwx "$install_dir"
-	chown -R $app:www-data "$install_dir"
-fi
-
-#=================================================
-# UPGRADE DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Upgrading Ruby and NodeJS..." --weight=1
-
-ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
-ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
-
-#=================================================
-# NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Upgrading NGINX web server configuration..." --weight=1
-
-# Create a dedicated NGINX config
-ynh_add_nginx_config
-
-#=================================================
-# SPECIFIC UPGRADE
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
@@ -131,9 +87,35 @@ ynh_script_progression --message="Adding $swap_needed Mo to swap..."
 ynh_add_swap --size=$swap_needed
 
 #=================================================
-# BUILD APP
+# UPGRADE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Building app..." --weight=1
+ynh_script_progression --message="Upgrading Ruby and NodeJS..." --weight=1
+
+ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
+ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
+
+#=================================================
+# "REBUILD" THE APP (DEPLOY NEW SOURCES, RERUN NPM BUILD...)
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+
+if [ "$upgrade_type" == "UPGRADE_APP" ]
+then
+	ynh_script_progression --message="Upgrading source files..." --weight=1
+
+	# Download Mastodon
+	ynh_setup_source --dest_dir="$install_dir/live" --keep="public/system/"
+
+	chmod 750 "$install_dir"
+	chmod -R o-rwx "$install_dir"
+	chown -R $app:www-data "$install_dir"
+fi
+
+#=================================================
+# BUILD ASSETS
+#=================================================
+ynh_script_progression --message="Building assets..." --weight=1
 
 pushd "$install_dir/live"
 	ynh_use_ruby
@@ -147,10 +129,29 @@ pushd "$install_dir/live"
 	ynh_exec_as $app $ynh_node_load_PATH yarn install --pure-lockfile
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:clean
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl cache clear
 popd
 
+#=================================================
+# REAPPLY SYSTEM CONFIGURATIONS
+#=================================================
+ynh_script_progression --message="Upgrading system configurations related to $app..." --weight=1
+
+ynh_add_nginx_config
+
+# Create a dedicated systemd config
+ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service"
+yunohost service add "$app-web" --description="$app web service"
+
+ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service"
+yunohost service add "$app-sidekiq" --description="$app sidekiq service"
+
+ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service"
+yunohost service add "$app-streaming" --description="$app streaming service"
+
+ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
+
+#=================================================
+# RECONFIGURE THE APP (UPDATE CONF, APPLY MIGRATIONS...)
 #=================================================
 # UPDATE A CONFIG FILE
 #=================================================
@@ -164,32 +165,15 @@ chmod 400 "$config"
 chown $app:$app "$config"
 
 #=================================================
-# SETUP SYSTEMD
+# APPLY MIGRATIONS
 #=================================================
-ynh_script_progression --message="Upgrading systemd configuration..." --weight=1
+ynh_script_progression --message="Applying migrations..." --weight=1
 
-# Create a dedicated systemd config
-ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service"
-ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service"
-ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service"
-
-#=================================================
-# SETUP THE CRON FILE
-#=================================================
-ynh_script_progression --message="Setuping the cron file..." --weight=1
-
-ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
-
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
-
-yunohost service add "$app-web" --description="$app web service"
-yunohost service add "$app-sidekiq" --description="$app sidekiq service"
-yunohost service add "$app-streaming" --description="$app streaming service"
+pushd "$install_dir/live"
+	ynh_use_ruby
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl cache clear
+popd
 
 #=================================================
 # START SYSTEMD SERVICE

@@ -12,10 +12,11 @@ source ynh_add_swap
 source /usr/share/yunohost/helpers
 
 #=================================================
-# STANDARD REMOVE
+# REMOVE SYSTEM CONFIGURATIONS
 #=================================================
-# REMOVE SERVICE INTEGRATION IN YUNOHOST
+# REMOVE SYSTEMD SERVICE 
 #=================================================
+ynh_script_progression --message="Removing system configurations related to $app..." --weight=1
 
 # Remove the service from the list of services known by YunoHost (added from `yunohost service add`)
 if ynh_exec_warn_less yunohost service status "$app-web" >/dev/null
@@ -36,52 +37,23 @@ then
 	yunohost service remove "$app-streaming"
 fi
 
-#=================================================
-# STOP AND REMOVE SERVICE
-#=================================================
-ynh_script_progression --message="Stopping and removing the systemd service..." --weight=1
-
 # Remove the dedicated systemd config
 ynh_remove_systemd_config --service="$app-web"
 ynh_remove_systemd_config --service="$app-sidekiq"
 ynh_remove_systemd_config --service="$app-streaming"
 
-#=================================================
-# REMOVE NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Removing NGINX web server configuration..." --weight=1
-
 # Remove the dedicated NGINX config
 ynh_remove_nginx_config
 
-#=================================================
-# REMOVE DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Removing Ruby and NodeJS..." --weight=1
+# Remove a cron file
+ynh_secure_remove --file="/etc/cron.d/$app"
 
 # Remove metapackage and its dependencies
 ynh_remove_ruby
 ynh_remove_nodejs
 
-#=================================================
-# SPECIFIC REMOVE
-#=================================================
-# REMOVE VARIOUS FILES
-#=================================================
-ynh_script_progression --message="Removing various files..." --weight=1
-
-# Remove a cron file
-ynh_secure_remove --file="/etc/cron.d/$app"
-
 # Remove swap
 ynh_del_swap
-
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# ...
-#=================================================
-
 
 #=================================================
 # END OF SCRIPT
