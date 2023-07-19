@@ -49,6 +49,16 @@ ram.runtime = "500M"
     [install.admin]
     type = "user"
 
+    [install.enable_ldap]
+    ask.en = "Enable LDAP integration"
+    ask.fr = "Activer l'intégration LDAP"
+    help.en = "If enabled, YunoHost users will be able to log in"
+    help.fr = "Une fois activé, les utilisateurs YunoHost pourront s'authentifier dans Mastodon"
+    type = "boolean"
+    default = true
+    yes = "true"
+    no = "false"
+
 [resources]
     [resources.sources]
         [resources.sources.main]

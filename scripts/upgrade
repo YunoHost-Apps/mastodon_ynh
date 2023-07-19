@@ -40,6 +40,12 @@ if [[ -z "${service:-}" ]]; then
 	ynh_app_setting_set --app="$app" --key=service --value="$service"
 fi
 
+# If enable_ldap doesn't exist, create it
+if [[ -z "$enable_ldap" ]]; then
+	enable_ldap="true"
+	ynh_app_settings_set --app=$app --key=enable_ldap --value=$enable_ldap
+fi
+
 # Remove previous added repository
 ynh_remove_extra_repo
 

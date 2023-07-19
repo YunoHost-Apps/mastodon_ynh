@@ -1,0 +1,17 @@
+version = "1.0"
+
+[main]
+services = ["__APP__-web","__APP__-sidekiq","__APP__-streaming"]
+
+    [main.misc]
+    optional = false
+    
+        [main.misc.enable_ldap]
+        ask.en = "Enable LDAP integration"
+        ask.fr = "Activer l'intégration LDAP"
+        help.en = "If enabled, YunoHost users will be able to log in"
+        help.fr = "Une fois activé, les utilisateurs YunoHost pourront s'authentifier dans Mastodon"
+        type = "boolean"
+        bind = "LDAP_ENABLED:__INSTALL_DIR__/.env.production"
+        yes = "true" 
+        no = "false" 
