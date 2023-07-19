@@ -57,6 +57,7 @@ ram.runtime = "500M"
         autoupdate.strategy = "latest_github_release"
 
     [resources.system_user]
+    allow_email = true
 
     [resources.install_dir]
 
