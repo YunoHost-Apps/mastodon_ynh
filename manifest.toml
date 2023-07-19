@@ -19,7 +19,7 @@ cpe = " cpe:2.3:a:joinmastodon:mastodon"
 fund = "https://joinmastodon.org/sponsors" 
 
 [integration]
-yunohost = ">= 11.1"
+yunohost = ">= 11.2"
 architectures = "all"
 multi_instance = true
 ldap = true 
