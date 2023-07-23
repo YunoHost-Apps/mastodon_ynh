@@ -13,85 +13,23 @@ source ../settings/scripts/ynh_add_swap
 source /usr/share/yunohost/helpers
 
 #=================================================
-# MANAGE SCRIPT FAILURE
-#=================================================
-
-ynh_clean_setup () {
-	true
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# LOAD SETTINGS
-#=================================================
-ynh_script_progression --message="Loading installation settings..." --weight=1
-
-app=$YNH_APP_INSTANCE_NAME
-
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-path_url=$(ynh_app_setting_get --app=$app --key=path)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$(ynh_app_setting_get --app=$app --key=db_user)
-
-#=================================================
-# CHECK IF THE APP CAN BE RESTORED
-#=================================================
-ynh_script_progression --message="Validating restoration parameters..." --weight=1
-
-test ! -d $final_path \
-	|| ynh_die --message="There is already a directory: $final_path "
-
-#=================================================
 # STANDARD RESTORATION STEPS
-#=================================================
-# RECREATE THE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Recreating the dedicated system user..." --weight=1
-
-# Create the dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir="$final_path"
-
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
 ynh_script_progression --message="Restoring the app main directory..." --weight=1
 
-ynh_restore_file --origin_path="$final_path"
+ynh_restore_file --origin_path="$install_dir"
 
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
-
-#=================================================
-# SPECIFIC RESTORATION
-#=================================================
-# REINSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Reinstalling dependencies..." --weight=1
-
-# Define and install dependencies
-ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies $build_pkg_dependencies
-ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
-ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
-ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
-
-#=================================================
-# RESTORE THE NGINX CONFIGURATION
-#=================================================
-ynh_script_progression --message="Restoring the NGINX web server configuration..." --weight=1
-
-ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
+chmod 750 "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
 #=================================================
 ynh_script_progression --message="Restoring the PostgreSQL database..." --weight=1
 
-ynh_psql_test_if_first_run
-db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
-ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
 ynh_psql_execute_as_root --sql="ALTER USER $db_user CREATEDB;"
 ynh_psql_execute_file_as_root --file="./db.sql" --database="$db_name"
 
@@ -112,61 +50,55 @@ ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
 ynh_add_swap --size=$swap_needed
 
 #=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+ynh_script_progression --message="Reinstalling Ruby and NodeJS..." --weight=1
+
+ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
+ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
+
+#=================================================
 # BUILD APP
 #=================================================
 ynh_script_progression --message="Building app..." --weight=1
 
-pushd "$final_path/live"
+pushd "$install_dir/live"
 	ynh_use_ruby
 	ynh_gem update --system
 	ynh_gem install bundler --no-document
 	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle install --redownload -j$(getconf _NPROCESSORS_ONLN)
 popd
 
-ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-ynh_package_autoremove
+#=================================================
+# RESTORE SYSTEM CONFIGURATIONS
+#=================================================
+# RESTORE THE PHP-FPM CONFIGURATION
+#=================================================
+ynh_script_progression --message="Restoring system configurations related to $app..." --weight=1
 
-#=================================================
-# RESTORE VARIOUS FILES
-#=================================================
-ynh_script_progression --message="Restoring various files..." --weight=1
-
-ynh_restore_file --origin_path="/etc/cron.d/$app"
-
-#=================================================
-# RESTORE SYSTEMD
-#=================================================
-ynh_script_progression --message="Restoring the systemd configuration..." --weight=1
+ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 ynh_restore_file --origin_path="/etc/systemd/system/$app-web.service"
 ynh_restore_file --origin_path="/etc/systemd/system/$app-sidekiq.service"
 ynh_restore_file --origin_path="/etc/systemd/system/$app-streaming.service"
 systemctl enable "$app-web" "$app-sidekiq" "$app-streaming" --quiet
 
-#=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
-
 yunohost service add "$app-web" --description="$app web service"
 yunohost service add "$app-sidekiq" --description="$app sidekiq service"
 yunohost service add "$app-streaming" --description="$app streaming service"
 
-#=================================================
-# START SYSTEMD SERVICE
-#=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=1
-
-ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on"
-ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
-ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=systemd --line_match="Worker 1 now listening"
+ynh_restore_file --origin_path="/etc/cron.d/$app"
 
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
-# RELOAD NGINX
+# RELOAD NGINX AND PHP-FPM OR THE APP SERVICE
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=1
+ynh_script_progression --message="Reloading NGINX web server and $app's service..." --weight=1
+
+ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on"
+ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
+ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=systemd --line_match="Worker 1 now listening"
 
 ynh_systemd_action --service_name=nginx --action=reload
 

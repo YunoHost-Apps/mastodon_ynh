@@ -11,120 +11,28 @@ source ynh_install_ruby__2
 source ynh_add_swap
 source /usr/share/yunohost/helpers
 
-#=================================================
-# MANAGE SCRIPT FAILURE
-#=================================================
-
-ynh_clean_setup () {
-	true
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# RETRIEVE ARGUMENTS FROM THE MANIFEST
-#=================================================
-
-domain=$YNH_APP_ARG_DOMAIN
-path_url="/"
-is_public=$YNH_APP_ARG_IS_PUBLIC
-language=$YNH_APP_ARG_LANGUAGE
-admin=$YNH_APP_ARG_ADMIN
-
-app=$YNH_APP_INSTANCE_NAME
-
 admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 
 #=================================================
-# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
-#=================================================
-ynh_script_progression --message="Validating installation parameters..." --weight=1
-
-final_path=/var/www/$app
-test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
-
-# Register (book) web path
-ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
-
-#=================================================
-# STORE SETTINGS FROM MANIFEST
-#=================================================
-ynh_script_progression --message="Storing installation settings..." --weight=1
-
-ynh_app_setting_set --app=$app --key=domain --value=$domain
-ynh_app_setting_set --app=$app --key=path --value=$path_url
-ynh_app_setting_set --app=$app --key=language --value=$language
-ynh_app_setting_set --app=$app --key=admin --value=$admin
-
-#=================================================
-# STANDARD MODIFICATIONS
-#=================================================
-# FIND AND OPEN A PORT
-#=================================================
-ynh_script_progression --message="Finding an available port..." --weight=1
-
-# Find an available port
-port_web=$(ynh_find_port --port=3000)
-ynh_app_setting_set --app=$app --key=port_web --value=$port_web
-
-port_stream=$(ynh_find_port --port=4000)
-ynh_app_setting_set --app=$app --key=port_stream --value=$port_stream
-
-#=================================================
-# INSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Installing dependencies..." --weight=1
-
-ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies $build_pkg_dependencies
-ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
-ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
-ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Configuring system user..." --weight=1
-
-# Create a system user
-ynh_system_user_create --username=$app --home_dir="$final_path"
-
-#=================================================
-# CREATE A POSTGRESQL DATABASE
-#=================================================
-ynh_script_progression --message="Creating a PostgreSQL database..." --weight=1
-
-db_name=$(ynh_sanitize_dbid --db_name="${app}_production")
-db_user=$(ynh_sanitize_dbid --db_name=$app)
-ynh_app_setting_set --app=$app --key=db_name --value=$db_name
-ynh_app_setting_set --app=$app --key=db_user --value=$db_user
-ynh_psql_test_if_first_run
-ynh_psql_setup_db --db_user=$db_user --db_name=$db_name
-ynh_psql_execute_as_root --sql="ALTER USER $db_user CREATEDB;"
-db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
-
+# APP "BUILD" (DEPLOYING SOURCES, VENV, COMPILING ETC)
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression --message="Setting up source files..." --weight=1
 
-ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$final_path/live"
+ynh_setup_source --dest_dir="$install_dir/live"
 
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+chown -R $app:www-data "$install_dir"
 
 #=================================================
-# NGINX CONFIGURATION
+# INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Configuring NGINX web server..." --weight=1
+ynh_script_progression --message="Installing Ruby and NodeJS..." --weight=1
 
-# Create a dedicated NGINX config
-ynh_add_nginx_config
+ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
+ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
 
-#=================================================
-# SPECIFIC SETUP
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
@@ -146,7 +54,7 @@ ynh_add_swap --size=$swap_needed
 #=================================================
 ynh_script_progression --message="Adding a configuration file..." --weight=1
 
-config="$final_path/live/.env.production"
+config="$install_dir/live/.env.production"
 
 language="$(echo $language | head -c 2)"
 
@@ -159,28 +67,29 @@ ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base
 otp_secret=$(ynh_string_random --length=128)
 ynh_app_setting_set --app="$app" --key=otp_secret --value="$otp_secret"
 
+# We need rake to build vapid keys, we generate them later once the app is installed
 vapid_private_key=""
 vapid_public_key=""
 
 ynh_add_config --template="../conf/.env.production.sample" --destination="$config"
-
 chmod 400 "$config"
 chown $app:$app "$config"
 
-ynh_replace_string --match_string="registrations_mode: 'open'" --replace_string="registrations_mode: 'none'" --target_file="$final_path/live/config/settings.yml"
-ynh_replace_string --match_string="min_invite_role: 'admin'" --replace_string="min_invite_role: 'none'" --target_file="$final_path/live/config/settings.yml"
+ynh_replace_string --match_string="registrations_mode: 'open'" --replace_string="registrations_mode: 'none'" --target_file="$install_dir/live/config/settings.yml"
+ynh_replace_string --match_string="min_invite_role: 'admin'" --replace_string="min_invite_role: 'none'" --target_file="$install_dir/live/config/settings.yml"
 
-ynh_store_file_checksum --file="$final_path/live/config/settings.yml"
+ynh_store_file_checksum --file="$install_dir/live/config/settings.yml"
 
-chmod 400 "$final_path/live/config/settings.yml"
-chown $app:$app "$final_path/live/config/settings.yml"
+chmod 400 "$install_dir/live/config/settings.yml"
+chown $app:$app "$install_dir/live/config/settings.yml"
 
 #=================================================
 # BUILD APP
 #=================================================
 ynh_script_progression --message="Building app..." --weight=1
 
-pushd "$final_path/live"
+pushd "$install_dir/live"
+	# Building ruby packages
 	ynh_use_ruby
 	ynh_gem update --system
 	ynh_gem install bundler --no-document
@@ -188,92 +97,60 @@ pushd "$final_path/live"
 	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config without 'development test'
 	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config set force_ruby_platform true
 	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
+	# Building assets
 	ynh_use_nodejs
 	ynh_exec_warn_less ynh_exec_as $app $ynh_node_load_PATH yarn install --pure-lockfile
 	echo "SAFETY_ASSURED=1">> $config
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:setup --quiet
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate --quiet
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile --quiet
+	# Generate vapid keys
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rake mastodon:webpush:generate_vapid_key > key.txt
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=Admin > /dev/null
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts modify "$admin" --approve
+	# Create the first admin user
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=Owner > /dev/null
 popd
 
-vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$final_path/live/key.txt")
+# Re-generate config with vapid keys
+vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$install_dir/live/key.txt")
 ynh_app_setting_set --app="$app" --key=vapid_private_key --value="$vapid_private_key"
-
-vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$final_path/live/key.txt")
+vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$install_dir/live/key.txt")
 ynh_app_setting_set --app="$app" --key=vapid_public_key --value="$vapid_public_key"
-
-ynh_secure_remove --file="$final_path/live/key.txt"
-
+ynh_secure_remove --file="$install_dir/live/key.txt"
 ynh_delete_file_checksum --file="$config"
-
 ynh_add_config --template="../conf/.env.production.sample" --destination="$config"
-
 chmod 400 "$config"
 chown $app:$app "$config"
 
-ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-ynh_package_autoremove
+#=================================================
+# SYSTEM CONFIGURATION
+#=================================================
+ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
 
-#=================================================
-# SETUP SYSTEMD
-#=================================================
-ynh_script_progression --message="Configuring a systemd service..." --weight=1
+# Create a dedicated NGINX config using the conf/nginx.conf template
+ynh_add_nginx_config
 
 # Create a dedicated systemd config
 ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service"
+yunohost service add "$app-web" --description="$app web service"
+
 ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service"
+yunohost service add "$app-sidekiq" --description="$app sidekiq service"
+
 ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service"
+yunohost service add "$app-streaming" --description="$app streaming service"
 
-#=================================================
-# SETUP THE CRON FILE
-#=================================================
-ynh_script_progression --message="Setuping the cron file..." --weight=1
-
+# Create a cron file
 ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
 
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
-# INTEGRATE SERVICE IN YUNOHOST
-#=================================================
-ynh_script_progression --message="Integrating service in YunoHost..." --weight=1
-
-yunohost service add "$app-web" --description="$app web service"
-yunohost service add "$app-sidekiq" --description="$app sidekiq service"
-yunohost service add "$app-streaming" --description="$app streaming service"
-
-#=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=1
+ynh_script_progression --message="Starting all systemd services..." --weight=1
 
 ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on"
 ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
 ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=systemd --line_match="Worker 1 now listening"
-
-#=================================================
-# SETUP SSOWAT
-#=================================================
-ynh_script_progression --message="Configuring permissions..." --weight=1
-
-# Make app public if necessary
-if [ $is_public -eq 1 ]
-then
-	# Everyone can access the app.
-	# The "main" permission is automatically created before the install script.
-	ynh_permission_update --permission="main" --add="visitors"
-fi
-
-ynh_permission_create --permission="api" --url="/api" --allowed="visitors" --auth_header="false" --show_tile="false" --protected="true"
-
-#=================================================
-# RELOAD NGINX
-#=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=1
-
-ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
 # END OF SCRIPT
