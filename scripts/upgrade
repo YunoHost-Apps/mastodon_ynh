@@ -12,8 +12,6 @@ source ynh_add_swap
 source /usr/share/yunohost/helpers
 
 upgrade_type=$(ynh_check_app_version_changed)
-
-admin_mail=$(ynh_user_get_info --username=$admin --key='mail')
 config="$install_dir/live/.env.production"
 
 #=================================================
