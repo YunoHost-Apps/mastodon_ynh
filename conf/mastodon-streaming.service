@@ -13,7 +13,8 @@ Environment="__YNH_NODE_LOAD_PATH__"
 ExecStart=__YNH_NODE__ ./streaming
 TimeoutSec=15
 Restart=always
-StandardError=syslog
+StandardOutput=append:/var/log/__APP__/__APP__-streaming.log
+StandardError=inherit
 
 # Sandboxing options to harden security
 # Depending on specificities of your service/app, you may need to tweak these 

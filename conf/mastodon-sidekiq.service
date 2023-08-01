@@ -14,7 +14,8 @@ Environment="__YNH_RUBY_LOAD_PATH__"
 ExecStart=__INSTALL_DIR__/live/bin/bundle exec sidekiq -c 25
 TimeoutSec=15
 Restart=always
-StandardError=syslog
+StandardOutput=append:/var/log/__APP__/__APP__-sidekiq.log
+StandardError=inherit
 
 # Sandboxing options to harden security
 # Depending on specificities of your service/app, you may need to tweak these 

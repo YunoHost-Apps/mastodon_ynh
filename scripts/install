@@ -143,6 +143,11 @@ yunohost service add "$app-streaming" --description="$app streaming service"
 # Create a cron file
 ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
 
+# Use logrotate to manage application logfile(s)
+mkdir /var/log/$app
+chown $app:$app /var/log/$app
+ynh_use_logrotate
+
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
@@ -150,9 +155,9 @@ ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
 #=================================================
 ynh_script_progression --message="Starting all systemd services..." --weight=1
 
-ynh_systemd_action --service_name=${app}-web --action="start" --log_path=systemd --line_match="Listening on"
-ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=systemd --line_match="Schedules Loaded"
-ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=systemd --line_match="Worker 1 now listening"
+ynh_systemd_action --service_name=${app}-web --action="start" --log_path=/var/log/$app/$app-web.log --line_match="Listening on"
+ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=/var/log/$app/$app-sidekiq.log --line_match="Schedules Loaded"
+ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=/var/log/$app/$app-streaming.log --line_match="Worker 1 now listening"
 
 #=================================================
 # END OF SCRIPT
