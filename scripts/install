@@ -144,7 +144,7 @@ yunohost service add "$app-streaming" --description="$app streaming service"
 ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
 
 # Use logrotate to manage application logfile(s)
-mkdir /var/log/$app
+mkdir -p /var/log/$app
 chown $app:$app /var/log/$app
 ynh_use_logrotate
 
