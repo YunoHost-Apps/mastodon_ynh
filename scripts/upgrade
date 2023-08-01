@@ -74,6 +74,13 @@ ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=/var/log
 ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --line_match="Stopped"
 ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log --line_match="Stopped"
 
+# Rename the database to match packaging v2 defaults db_name (`$app_production` to `$app`)
+if [[ $db_name = *'_production' ]]; then
+	ynh_psql_execute_as_root --sql="ALTER DATABASE $db_name RENAME TO $app;"
+	db_name=$app
+	ynh_app_setting_set --app=$app --key=db_name --value=$db_name
+fi
+
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
