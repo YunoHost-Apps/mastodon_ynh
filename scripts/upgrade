@@ -58,6 +58,12 @@ if [[ -z "$redis_namespace" ]]; then
 	ynh_app_setting_set --app=$app --key=redis_namespace --value=$redis_namespace
 fi
 
+# If service doesn't exist, create it
+if [[ -z "$service" ]]; then
+	# Set `service` settings to support `yunohost app shell` command
+	ynh_app_setting_set --app="$app" --key=service --value="$app-web.service"
+fi
+
 #Remove previous added repository
 ynh_remove_extra_repo
 

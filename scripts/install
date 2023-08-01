@@ -12,6 +12,8 @@ source ynh_add_swap
 source /usr/share/yunohost/helpers
 
 admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
+# Set `service` settings to support `yunohost app shell` command
+ynh_app_setting_set --app="$app" --key=service --value="$app-web.service"
 
 #=================================================
 # APP "BUILD" (DEPLOYING SOURCES, VENV, COMPILING ETC)
