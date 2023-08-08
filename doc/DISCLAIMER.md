@@ -27,7 +27,7 @@ $ screen -r
 
 `$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh --debug `
 
-### Administrate with tooctl
+### Administrate with tootctl
 
 `$ (cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl --help)`
 
