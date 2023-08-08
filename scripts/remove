@@ -28,7 +28,7 @@ fi
 if ynh_exec_warn_less yunohost service status "$app-sidekiq" >/dev/null
 then
 	ynh_script_progression --message="Removing $app-sidekiq service integration..." --weight=1
-	yunohost service remove "$app-sidekiq"
+	yuhoservice remove "$app-sidekiq"
 fi
 
 if ynh_exec_warn_less yunohost service status "$app-streaming" >/dev/null
@@ -57,7 +57,7 @@ ynh_remove_nodejs
 
 # Remove swap
 ynh_del_swap
-if [ -n "$(grep 'kthreadd' /proc/2/status 2>/dev/null)" ]; then
+if [ "$(systemd-detect-virt)" != "lxc" ]; then
 
 	ynh_del_swap
 	
