@@ -92,12 +92,13 @@ swap_needed=0
 
 if [ $total_memory -lt $memory_needed ]; then
 	# Need a minimum of memory
-	if [ -n "$(grep 'kthreadd' /proc/2/status 2>/dev/null)" ]; then
+	if [ "$(systemd-detect-virt)" != "lxc" ]; then
 		swap_needed=$(($memory_needed - $total_memory))
 		ynh_script_progression --message="Adding $swap_needed Mo to swap..."
 		ynh_add_swap --size=$swap_needed
 	else
-    		ynh_script_progression --message="No swap will be added as you are inside a container. Please take care of having more than 2,5G memory available..."
+    		ynh_del_swap
+                ynh_script_progression --message="No swap will be added as you are inside a container. Please take care of having more than 2,5G memory available... remove existing swap too"
 	fi
 fi
 
