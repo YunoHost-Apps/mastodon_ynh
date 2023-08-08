@@ -9,12 +9,13 @@ pkg_dependencies="imagemagick ffmpeg libpq-dev libxml2-dev libxslt1-dev file git
 build_pkg_dependencies=""
 
 memory_needed="2560" # maybe requirement depends on arch, armhf need less and is setted inside lsb_release switch
-ruby_version=3.0.3
+ruby_version=3.0.6
 nodejs_version=16
 
 # Workaround for Mastodon on Bullseye
 # See https://github.com/mastodon/mastodon/issues/15751#issuecomment-873594463
-if [ "$(lsb_release --codename --short)" = "bullseye" ]; then
+if [ "$(lsb_release --codename --short)" = "bullseye" ];
+then
 	case $YNH_ARCH in
 		amd64)
 			ld_preload="LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so"
