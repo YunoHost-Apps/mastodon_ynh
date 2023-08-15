@@ -19,7 +19,7 @@ Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) po
 Mastodon est un réseau social de microblog auto-hébergé et open source. C'est une alternative décentralisée aux plates-formes commerciales comme Twitter. Mastodon évite ainsi les risques qu'une seule société monopolise votre communication à des fins commerciales.
 
 
-**Version incluse :** 4.1.4~ynh1
+**Version incluse :** 4.1.6~ynh1
 
 **Démo :** https://joinmastodon.org/
 
@@ -63,7 +63,7 @@ L'utilisateur admin est créé automatiquement comme : user@domain.tld
 
 `$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh --debug `
 
-### Administration avec tooctl
+### Administration avec tootctl
 
 `$ (cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl --help)`
 

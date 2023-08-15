@@ -32,7 +32,7 @@ L'utilisateur admin est créé automatiquement comme : user@domain.tld
 
 `$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh --debug `
 
-### Administration avec tooctl
+### Administration avec tootctl
 
 `$ (cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl --help)`
 
