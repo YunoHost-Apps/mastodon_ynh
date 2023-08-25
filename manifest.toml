@@ -16,23 +16,21 @@ demo = "https://joinmastodon.org/"
 admindoc = "https://docs.joinmastodon.org/"
 code = "https://github.com/mastodon/mastodon"
 cpe = " cpe:2.3:a:joinmastodon:mastodon"
-fund = "https://joinmastodon.org/sponsors" 
+fund = "https://joinmastodon.org/sponsors"
 
 [integration]
 yunohost = ">= 11.2"
 architectures = "all"
 multi_instance = true
-ldap = true 
+ldap = true
 sso = false
 disk = "2G"
-ram.build = "1G" 
+ram.build = "1G"
 ram.runtime = "500M"
 
 [install]
     [install.domain]
-    # this is a generic question - ask strings are automatically handled by Yunohost's core
     type = "domain"
-    full_domain = true
 
     [install.init_main_permission]
     type = "group"
@@ -46,7 +44,6 @@ ram.runtime = "500M"
     default = "fr_FR"
 
     [install.admin]
-    # this is a generic question - ask strings are automatically handled by Yunohost's core
     type = "user"
 
 [resources]
