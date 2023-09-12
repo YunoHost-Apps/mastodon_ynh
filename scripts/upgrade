@@ -21,45 +21,10 @@ config="$install_dir/live/.env.production"
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
 
-# Remove paperclip_secret
-ynh_app_setting_delete --app=$app --key=paperclip_secret
-
-# If secret_key_base doesn't exist, retrieve it or create it
-if [[ -z "$secret_key_base" ]]; then
-	secret_key_base=$(grep -oP "SECRET_KEY_BASE=\K\w+" $config)
-	if [[ -z "$secret_key_base" ]]; then
-		secret_key_base=$(ynh_string_random --length=128)
-	fi
-	ynh_app_setting_set --app=$app --key=secret_key_base --value="$secret_key_base"
-fi
-
-# If otp_secret doesn't exist, retrieve it or create it
-if [[ -z "$otp_secret" ]]; then
-	otp_secret=$(grep -oP "OTP_SECRET=\K\w+" $config)
-	if [[ -z "$otp_secret" ]]; then
-		otp_secret=$(ynh_string_random --length=128)
-	fi
-	ynh_app_setting_set --app=$app --key=otp_secret --value="$otp_secret"
-fi
-
-# If vapid_private_key doesn't exist, retrieve it or create it
-if [[ -z "$vapid_private_key" ]]; then
-	vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" $config)
-	vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" $config)
-	ynh_app_setting_set "$app" vapid_private_key "$vapid_private_key"
-	ynh_app_setting_set "$app" vapid_public_key "$vapid_public_key"
-fi
-
-# If redis_namespace doesn't exist, create it
-if [[ -z "$redis_namespace" ]]; then
-	redis_namespace=${app}_production
-	ynh_app_setting_set --app=$app --key=redis_namespace --value=$redis_namespace
-fi
-
-# If service doesn't exist, create it
-if [[ -z "$service" ]]; then
-	# Set `service` settings to support `yunohost app shell` command
-	ynh_app_setting_set --app="$app" --key=service --value="$app-web.service"
+# Set `service` settings to support `yunohost app shell` command
+if [[ -z "${service:-}" ]]; then
+	service="$app-web.service"
+	ynh_app_setting_set --app="$app" --key=service --value="$service"
 fi
 
 #Remove previous added repository
@@ -73,13 +38,6 @@ ynh_script_progression --message="Stopping a systemd service..." --weight=1
 ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log --line_match="Stopped"
 ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --line_match="Stopped"
 ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log --line_match="Stopped"
-
-# Rename the database to match packaging v2 defaults db_name (`$app_production` to `$app`)
-if [[ $db_name = *'_production' ]]; then
-	ynh_psql_execute_as_root --sql="ALTER DATABASE $db_name RENAME TO $app;"
-	db_name=$app
-	ynh_app_setting_set --app=$app --key=db_name --value=$db_name
-fi
 
 #=================================================
 # ADD SWAP IF NEEDED
