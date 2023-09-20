@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/tootsuite/mastodon/archive/refs/tags/v4.1.7.tar.gz
-SOURCE_SUM=5eb42a1a7aa79b44edc33011c8a1cbbec52b9ee480f22d3121924cffdfab2a28
+SOURCE_URL=https://github.com/tootsuite/mastodon/archive/refs/tags/v4.1.8.tar.gz
+SOURCE_SUM=8b000fea3c5d2cdecfdbd3ed7640da3d3f63d012a9adb0cc30b2139d8182b5c7
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
