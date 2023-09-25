@@ -22,7 +22,7 @@ ynh_add_swap () {
 	# Can't swap inside an LXD
 	if [ "$(systemd-detect-virt)" == "lxc" ]
 	then
-		ynh_print_warn --message="You are inside a LXC container, swap will not be added, but that can cause troubles for the app $app. Please make sure you have more than $size M available RAM."
+		ynh_print_warn --message="You are inside a LXC container, swap will not be added, but that can cause troubles for the app $app. Please make sure you have more than 2.5G available RAM."
 		return
 	fi
 
