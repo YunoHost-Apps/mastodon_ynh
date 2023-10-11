@@ -19,7 +19,7 @@ Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) po
 Mastodon est un réseau social de microblog auto-hébergé et open source. C'est une alternative décentralisée aux plates-formes commerciales comme Twitter. Mastodon évite ainsi les risques qu'une seule société monopolise votre communication à des fins commerciales.
 
 
-**Version incluse :** 4.2.0~ynh1
+**Version incluse :** 4.2.1~ynh1
 
 **Démo :** https://joinmastodon.org/
 
@@ -32,7 +32,6 @@ Mastodon est un réseau social de microblog auto-hébergé et open source. C'est
 * Site officiel de l’app : <https://joinmastodon.org/>
 * Documentation officielle de l’admin : <https://docs.joinmastodon.org/>
 * Dépôt de code officiel de l’app : <https://github.com/mastodon/mastodon>
-* Documentation YunoHost pour cette app : <https://yunohost.org/app_mastodon>
 * Signaler un bug : <https://github.com/YunoHost-Apps/mastodon_ynh/issues>
 
 ## Informations pour les développeurs
