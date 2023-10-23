@@ -14,7 +14,6 @@ Environment="__YNH_RUBY_LOAD_PATH__"
 ExecStart=__FINALPATH__/live/bin/bundle exec sidekiq -c 25
 TimeoutSec=15
 Restart=always
-StandardError=syslog
 
 # Sandboxing options to harden security
 # Depending on specificities of your service/app, you may need to tweak these 
