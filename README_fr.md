@@ -80,6 +80,7 @@ Se déconnecter depuis le portail YunoHost ne vous déconnecte pas de Mastodon. 
 * Site officiel de l’app : <https://joinmastodon.org/>
 * Documentation officielle de l’admin : <https://docs.joinmastodon.org/>
 * Dépôt de code officiel de l’app : <https://github.com/mastodon/mastodon>
+* YunoHost Store: <https://apps.yunohost.org/app/mastodon>
 * Signaler un bug : <https://github.com/YunoHost-Apps/mastodon_ynh/issues>
 
 ## Informations pour les développeurs
