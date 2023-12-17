@@ -48,7 +48,8 @@ if [ $total_memory -lt $memory_needed ]; then
 	swap_needed=$(($memory_needed - $total_memory))
 fi
 
-ynh_script_progression --message="Adding $swap_needed Mo to swap..."
+ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
+
 ynh_add_swap --size=$swap_needed
 
 #=================================================
@@ -73,7 +74,7 @@ ynh_app_setting_set --app="$app" --key=otp_secret --value="$otp_secret"
 vapid_private_key=""
 vapid_public_key=""
 
-ynh_add_config --template="../conf/.env.production.sample" --destination="$config"
+ynh_add_config --template=".env.production.sample" --destination="$config"
 chmod 400 "$config"
 chown $app:$app "$config"
 
