@@ -101,7 +101,7 @@ pushd "$install_dir/live"
 	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
 	# Building assets
 	ynh_use_nodejs
-	ynh_exec_warn_less ynh_exec_as $app $ynh_node_load_PATH yarn install --pure-lockfile
+	ynh_exec_warn_less ynh_exec_as $app $ynh_node_load_PATH yarn install --pure-lockfile --production --network-timeout 600000
 	echo "SAFETY_ASSURED=1">> $config
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate --quiet
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile --quiet
@@ -118,7 +118,7 @@ vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$install_dir/live/key.txt")
 ynh_app_setting_set --app="$app" --key=vapid_public_key --value="$vapid_public_key"
 ynh_secure_remove --file="$install_dir/live/key.txt"
 ynh_delete_file_checksum --file="$config"
-ynh_add_config --template="../conf/.env.production.sample" --destination="$config"
+ynh_add_config --template=".env.production.sample" --destination="$config"
 chmod 400 "$config"
 chown $app:$app "$config"
 
@@ -141,7 +141,7 @@ ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming
 yunohost service add "$app-streaming" --description="$app streaming service"
 
 # Create a cron file
-ynh_add_config --template="../conf/cron" --destination="/etc/cron.d/$app"
+ynh_add_config --template="cron" --destination="/etc/cron.d/$app"
 
 # Use logrotate to manage application logfile(s)
 mkdir -p /var/log/$app
