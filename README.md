@@ -31,6 +31,7 @@ Mastodon is a free, open-source microblogging social network. It is a decentrali
 * Official app website: <https://joinmastodon.org/>
 * Official admin documentation: <https://docs.joinmastodon.org/>
 * Upstream app code repository: <https://github.com/mastodon/mastodon>
+* YunoHost Store: <https://apps.yunohost.org/app/mastodon>
 * Report a bug: <https://github.com/YunoHost-Apps/mastodon_ynh/issues>
 
 ## Developer info

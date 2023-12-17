@@ -32,6 +32,7 @@ Mastodon est un réseau social de microblog auto-hébergé et open source. C'est
 * Site officiel de l’app : <https://joinmastodon.org/>
 * Documentation officielle de l’admin : <https://docs.joinmastodon.org/>
 * Dépôt de code officiel de l’app : <https://github.com/mastodon/mastodon>
+* YunoHost Store: <https://apps.yunohost.org/app/mastodon>
 * Signaler un bug : <https://github.com/YunoHost-Apps/mastodon_ynh/issues>
 
 ## Informations pour les développeurs
