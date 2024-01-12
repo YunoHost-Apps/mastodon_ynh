@@ -66,9 +66,9 @@ ynh_abort_if_errors
 #=================================================
 ynh_script_progression --message="Stopping a systemd service..." --weight=1
 
-ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd --line_match="Stopped"
-ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd --line_match="Stopped"
-ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=systemd --line_match="Stopped"
+ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=systemd
+ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=systemd
+ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=systemd
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
