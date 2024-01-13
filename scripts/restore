@@ -47,6 +47,7 @@ if [ $total_memory -lt $memory_needed ]; then
 fi
 
 ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
+
 ynh_add_swap --size=$swap_needed
 
 #=================================================
