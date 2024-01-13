@@ -15,8 +15,6 @@ upgrade_type=$(ynh_check_app_version_changed)
 config="$install_dir/live/.env.production"
 
 #=================================================
-# STANDARD UPGRADE STEPS
-#=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
