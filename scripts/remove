@@ -48,6 +48,9 @@ ynh_remove_nginx_config
 # Remove a cron file
 ynh_secure_remove --file="/etc/cron.d/$app"
 
+# Remote logrotate config
+ynh_remove_logrotate
+
 # Remove metapackage and its dependencies
 ynh_remove_ruby
 ynh_remove_nodejs
