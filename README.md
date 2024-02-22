@@ -21,6 +21,7 @@ Mastodon is a free, open-source microblogging social network. It is a decentrali
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Shipped version:** 4.2.7~ynh1
 =======
 **Shipped version:** 4.1.4~ynh2
@@ -31,6 +32,9 @@ Mastodon is a free, open-source microblogging social network. It is a decentrali
 =======
 **Shipped version:** 4.1.7~ynh2
 >>>>>>> 06fb3bc (4.1.7 (#403))
+=======
+**Shipped version:** 4.2.1~ynh1
+>>>>>>> 2a48dd2 (Auto-update README)
 
 **Demo:** https://joinmastodon.org/
 
@@ -89,7 +93,10 @@ Log-out from YunoHost's portal doesn't log out from Mastodon. See https://github
 * Official app website: <https://joinmastodon.org/>
 * Official admin documentation: <https://docs.joinmastodon.org/>
 * Upstream app code repository: <https://github.com/mastodon/mastodon>
+<<<<<<< HEAD
 * YunoHost Store: <https://apps.yunohost.org/app/mastodon>
+=======
+>>>>>>> 2a48dd2 (Auto-update README)
 * Report a bug: <https://github.com/YunoHost-Apps/mastodon_ynh/issues>
 
 ## Developer info

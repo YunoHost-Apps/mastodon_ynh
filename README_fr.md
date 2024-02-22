@@ -22,6 +22,7 @@ Mastodon est un réseau social de microblog auto-hébergé et open source. C'est
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Version incluse :** 4.2.7~ynh1
 =======
 **Version incluse :** 4.1.4~ynh2
@@ -32,6 +33,9 @@ Mastodon est un réseau social de microblog auto-hébergé et open source. C'est
 =======
 **Version incluse :** 4.1.7~ynh2
 >>>>>>> 06fb3bc (4.1.7 (#403))
+=======
+**Version incluse :** 4.2.1~ynh1
+>>>>>>> 2a48dd2 (Auto-update README)
 
 **Démo :** https://joinmastodon.org/
 
@@ -95,7 +99,10 @@ Se déconnecter depuis le portail YunoHost ne vous déconnecte pas de Mastodon. 
 * Site officiel de l’app : <https://joinmastodon.org/>
 * Documentation officielle de l’admin : <https://docs.joinmastodon.org/>
 * Dépôt de code officiel de l’app : <https://github.com/mastodon/mastodon>
+<<<<<<< HEAD
 * YunoHost Store: <https://apps.yunohost.org/app/mastodon>
+=======
+>>>>>>> 2a48dd2 (Auto-update README)
 * Signaler un bug : <https://github.com/YunoHost-Apps/mastodon_ynh/issues>
 
 ## Informations pour les développeurs
