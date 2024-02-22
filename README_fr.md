@@ -19,35 +19,7 @@ Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) po
 Mastodon est un réseau social de microblog auto-hébergé et open source. C'est une alternative décentralisée aux plates-formes commerciales comme Twitter. Mastodon évite ainsi les risques qu'une seule société monopolise votre communication à des fins commerciales.
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-**Version incluse :** 4.2.7~ynh1
-=======
-**Version incluse :** 4.1.4~ynh2
->>>>>>> 160a548 (Auto-update README)
-=======
-**Version incluse :** 4.1.6~ynh2
->>>>>>> f4ae2c7 (Auto-update README)
-=======
-**Version incluse :** 4.1.7~ynh2
->>>>>>> 06fb3bc (4.1.7 (#403))
-=======
-**Version incluse :** 4.2.1~ynh1
->>>>>>> 2a48dd2 (Auto-update README)
-=======
-**Version incluse :** 4.2.1~ynh1
->>>>>>> bce29b7 (Auto-update README)
-=======
 **Version incluse :** 4.2.3~ynh1
->>>>>>> 2c74089 (Auto-update README)
-=======
-**Version incluse :** 4.2.3~ynh1
->>>>>>> 9c51271 (Auto-update README)
 
 **Démo :** https://joinmastodon.org/
 
@@ -55,70 +27,12 @@ Mastodon est un réseau social de microblog auto-hébergé et open source. C'est
 
 ![Capture d’écran de Mastodon](./doc/screenshots/mastodon.png)
 
-<<<<<<< HEAD
-## Avertissements / informations importantes
-
-## Points importants à lire avant l'installation
-
-1. **Mastodon** nécessite un **nom de domaine** dédié, par exemple : mastodon.domain.tld
-1. L'utilisateur sélectionné pendant l'installation sera créé automatiquement dans Mastodon avec des droits d'administration.
-1. À la fin de l'installation, un mail est envoyé à cet utilisateur avec un mot de passe généré automatiquement.
-1. Pour que votre instance Mastodon reste privée, il est important de fermer les inscriptions. Nous vous invitons à bloquer les instances distantes indésirables depuis l'interface d'administration. Vous pouvez également ajouter un texte sur votre page d'accueil dans l'administration.
-
-## Captures d'écran
-
-![](https://framalibre.org/sites/default/files/mastodon.png)
-
-## Configuration
-
-### Installation
-
-#### Utilisation de *screen* en cas de déconnection
-```
-$ sudo apt-get install screen
-$ screen
-$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git
-```
-Récupérer l'installation après une deconnection :
-```
-$ screen -d
-$ screen -r
-```
-L'utilisateur admin est créé automatiquement comme : user@domain.tld
-
-### Mise à jour
-
-#### Utilisation de *screen* fortement recommandée
-
-`$ sudo yunohost app upgrade mastodon -u https://github.com/YunoHost-Apps/mastodon_ynh --debug `
-
-### Administration avec tootctl
-
-`$ (cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl --help)`
-
-## Caractéristiques spécifiques YunoHost
-
-#### Support multi-utilisateur
-
-L'authentification LDAP est activée. Tous les utilisateurs YunoHost peuvent s'authentifier.
-
-Se déconnecter depuis le portail YunoHost ne vous déconnecte pas de Mastodon. Voir https://github.com/YunoHost/issues/issues/501
-
-=======
->>>>>>> 8d58702 (Convert to v2 (#383))
 ## Documentations et ressources
 
 * Site officiel de l’app : <https://joinmastodon.org/>
 * Documentation officielle de l’admin : <https://docs.joinmastodon.org/>
 * Dépôt de code officiel de l’app : <https://github.com/mastodon/mastodon>
-<<<<<<< HEAD
-<<<<<<< HEAD
 * YunoHost Store: <https://apps.yunohost.org/app/mastodon>
-=======
->>>>>>> 2a48dd2 (Auto-update README)
-=======
-* YunoHost Store: <https://apps.yunohost.org/app/mastodon>
->>>>>>> 5d3e90f (Auto-update README)
 * Signaler un bug : <https://github.com/YunoHost-Apps/mastodon_ynh/issues>
 
 ## Informations pour les développeurs
