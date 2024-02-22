@@ -26,6 +26,7 @@ Mastodon is a free, open-source microblogging social network. It is a decentrali
 
 ![Screenshot of Mastodon](./doc/screenshots/mastodon.png)
 
+<<<<<<< HEAD
 ## Disclaimers / important information
 
 ## Important points to read before installing
@@ -69,6 +70,8 @@ LDAP authentication is activated. All YunoHost users can authenticate.
 
 Log-out from YunoHost's portal doesn't log out from Mastodon. See https://github.com/YunoHost/issues/issues/501
 
+=======
+>>>>>>> 8d58702 (Convert to v2 (#383))
 ## Documentation and resources
 
 * Official app website: <https://joinmastodon.org/>

@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=__APP__
-WorkingDirectory=__FINALPATH__/live
+WorkingDirectory=__INSTALL_DIR__/live
 Environment="NODE_ENV=production"
 Environment="PORT=__PORT_STREAM__"
 Environment="STREAMING_CLUSTER_NUM=1"

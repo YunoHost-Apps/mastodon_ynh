@@ -1,0 +1,26 @@
+test_format = 1.0
+
+[default]
+
+    # ------------
+    # Tests to run
+    # ------------
+
+    exclude = ["install.multi", "change_url"]
+    # The test IDs to be used in only/exclude statements are: install.root, install.subdir, install.nourl, install.multi, backup_restore, upgrade, upgrade.someCommitId change_url
+
+    # -------------------------------
+    # Default args to use for install
+    # -------------------------------
+
+    # Nothing to do here...yet
+
+    # -------------------------------
+    # Commits to test upgrade from
+    # -------------------------------
+
+    test_upgrade_from.bda899e.name = "Upgrade from 4.1.2~ynh1"
+    test_upgrade_from.bda899e.args.domain="domain.tld"
+    test_upgrade_from.bda899e.args.is_public=1
+    test_upgrade_from.bda899e.args.admin="john"
+    test_upgrade_from.bda899e.args.language="fr_FR"

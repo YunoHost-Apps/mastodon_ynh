@@ -27,6 +27,7 @@ Mastodon est un réseau social de microblog auto-hébergé et open source. C'est
 
 ![Capture d’écran de Mastodon](./doc/screenshots/mastodon.png)
 
+<<<<<<< HEAD
 ## Avertissements / informations importantes
 
 ## Points importants à lire avant l'installation
@@ -75,6 +76,8 @@ L'authentification LDAP est activée. Tous les utilisateurs YunoHost peuvent s'a
 
 Se déconnecter depuis le portail YunoHost ne vous déconnecte pas de Mastodon. Voir https://github.com/YunoHost/issues/issues/501
 
+=======
+>>>>>>> 8d58702 (Convert to v2 (#383))
 ## Documentations et ressources
 
 * Site officiel de l’app : <https://joinmastodon.org/>
