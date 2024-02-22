@@ -98,9 +98,13 @@ Log-out from YunoHost's portal doesn't log out from Mastodon. See https://github
 * Official admin documentation: <https://docs.joinmastodon.org/>
 * Upstream app code repository: <https://github.com/mastodon/mastodon>
 <<<<<<< HEAD
+<<<<<<< HEAD
 * YunoHost Store: <https://apps.yunohost.org/app/mastodon>
 =======
 >>>>>>> 2a48dd2 (Auto-update README)
+=======
+* YunoHost Store: <https://apps.yunohost.org/app/mastodon>
+>>>>>>> 5d3e90f (Auto-update README)
 * Report a bug: <https://github.com/YunoHost-Apps/mastodon_ynh/issues>
 
 ## Developer info
