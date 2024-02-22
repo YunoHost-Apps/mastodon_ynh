@@ -20,6 +20,7 @@ Mastodon is a free, open-source microblogging social network. It is a decentrali
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Shipped version:** 4.2.7~ynh1
 =======
 **Shipped version:** 4.1.4~ynh2
@@ -27,6 +28,9 @@ Mastodon is a free, open-source microblogging social network. It is a decentrali
 =======
 **Shipped version:** 4.1.6~ynh2
 >>>>>>> f4ae2c7 (Auto-update README)
+=======
+**Shipped version:** 4.1.7~ynh2
+>>>>>>> 06fb3bc (4.1.7 (#403))
 
 **Demo:** https://joinmastodon.org/
 

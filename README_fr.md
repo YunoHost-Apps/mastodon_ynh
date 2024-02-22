@@ -21,6 +21,7 @@ Mastodon est un réseau social de microblog auto-hébergé et open source. C'est
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Version incluse :** 4.2.7~ynh1
 =======
 **Version incluse :** 4.1.4~ynh2
@@ -28,6 +29,9 @@ Mastodon est un réseau social de microblog auto-hébergé et open source. C'est
 =======
 **Version incluse :** 4.1.6~ynh2
 >>>>>>> f4ae2c7 (Auto-update README)
+=======
+**Version incluse :** 4.1.7~ynh2
+>>>>>>> 06fb3bc (4.1.7 (#403))
 
 **Démo :** https://joinmastodon.org/
 
