@@ -19,10 +19,14 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 Mastodon is a free, open-source microblogging social network. It is a decentralized alternative to commercial platforms like Twitter and avoids the risks of a single company monopolizing your communication for commercial purposes. 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 **Shipped version:** 4.2.7~ynh1
 =======
 **Shipped version:** 4.1.4~ynh2
 >>>>>>> 160a548 (Auto-update README)
+=======
+**Shipped version:** 4.1.6~ynh2
+>>>>>>> f4ae2c7 (Auto-update README)
 
 **Demo:** https://joinmastodon.org/
 
