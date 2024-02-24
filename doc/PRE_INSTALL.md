@@ -6,13 +6,15 @@
 
 ## Using *screen* in case of disconnect
 
+```bash
+sudo apt install screen
+screen
+sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git
 ```
-$ sudo apt install screen
-$ screen
-$ sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh.git
-```
+
 Recover after disconnect:
-```
-$ screen -d
-$ screen -r
+
+```bash
+screen -d
+screen -r
 ```

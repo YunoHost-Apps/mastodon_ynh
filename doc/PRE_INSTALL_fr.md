@@ -8,13 +8,15 @@
 
 L'installation de Mastodon peut être longue, selon les performances du serveur. Pour éviter que le processus soit interrompu par une déconnexion, on peut utiliser `screen`.
 
+```bash
+sudo apt install screen
+screen
+sudo yunohost app install mastodon
 ```
-$ sudo apt install screen
-$ screen
-$ sudo yunohost app install mastodon
-```
+
 Récupérer l'installation après une deconnection :
-```
-$ screen -d
-$ screen -r
+
+```bash
+screen -d
+screen -r
 ```
