@@ -6,6 +6,9 @@
 
 ## Using *screen* in case of disconnect
 
+Mastodon can take a long time to install, depending on server performance.  
+To avoid the process being interrupted by a disconnection, you can use `screen`.
+
 ```bash
 sudo apt install screen
 screen
