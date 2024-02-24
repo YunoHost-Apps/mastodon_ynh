@@ -12,6 +12,13 @@ screen
 sudo yunohost app upgrade mastodon
 ```
 
+Récupérer la session screen après une déconnexion :
+
+```bash
+screen -d
+screen -r
+```
+
 ## Sauvegardes
 
 Tout d'abord : Mastodon utilise un cache local pour sauvegarder les médias (comme les images, vidéos, etc). Ce cache peut devenir énorme.  
@@ -39,7 +46,7 @@ Si cela semble bon, effectuez le nettoyage :
 sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl media remove --days=X
 ```
 
-Consulter [la documentation officielle](<https://docs.joinmastodon.org/admin/tootctl/#media-remove>) pour plus de détails.
+Consulter [la documentation officielle](https://docs.joinmastodon.org/admin/tootctl/#media-remove) pour plus de détails.
 
 ## Avant la suppression de votre instance Mastodon
 
@@ -47,16 +54,16 @@ Avant de désinstaller définitivement Mastodon, vous devez lancer `tootctl self
 Sinon, vos données resteront dans le cache de la fédération pour toujours.
 
 ⚠️ Assurez-vous de savoir exactement ce que vous faites avant d'exécuter cette commande.  
-⚠️ Cette opération n'est PAS réversible et peut prendre beaucoup de temps.  
+⚠️ **Cette opération n'est PAS réversible et peut prendre beaucoup de temps.**  
 ⚠️ Le serveur sera dans un ÉTAT BRISÉ après la fin de cette commande.  
-⚠️Un processus Sidekiq en cours d'exécution est nécessaire, donc n'arrêtez pas le serveur avant que les files d'attente ne soient complètement vidées.
+⚠️Un processus Sidekiq en cours d'exécution est nécessaire, **donc ne stoppez pas le serveur avant que les files d'attente ne soient complètement vidées**.
 
 ```bash
 screen
 sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl self-destruct
 ```
 
-Consulter [la documentation officielle](<https://docs.joinmastodon.org/admin/tootctl/#self-destruct>) pour plus de détails.
+Consulter [la documentation officielle](https://docs.joinmastodon.org/admin/tootctl/#self-destruct) pour plus de détails.
 
 ## Bugs connus
 
