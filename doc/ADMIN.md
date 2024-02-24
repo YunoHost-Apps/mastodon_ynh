@@ -46,7 +46,8 @@ Otherwise your data will remain in federation cache for ever.
 
 ⚠️ Make sure you know exactly what you are doing before running this command.
 ⚠️ This operation is NOT reversible, and it can take a long time.
-⚠️ The server will be in a BROKEN STATE after this command finishes. A running Sidekiq process is required, so do not shut down the server until the queues are fully cleared.
+⚠️ The server will be in a BROKEN STATE after this command finishes.
+⚠️ A running Sidekiq process is required, so do not shut down the server until the queues are fully cleared.
 
 ```bash
 screen

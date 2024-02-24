@@ -46,7 +46,8 @@ Sinon, vos données resteront dans le cache de la fédération pour toujours.
 
 ⚠️ Assurez-vous de savoir exactement ce que vous faites avant d'exécuter cette commande.
 ⚠️ Cette opération n'est PAS réversible et peut prendre beaucoup de temps.
-⚠️ Le serveur sera dans un ÉTAT BRISÉ après la fin de cette commande. Un processus Sidekiq en cours d'exécution est nécessaire, donc n'arrêtez pas le serveur avant que les files d'attente ne soient complètement vidées.
+⚠️ Le serveur sera dans un ÉTAT BRISÉ après la fin de cette commande.
+⚠️Un processus Sidekiq en cours d'exécution est nécessaire, donc n'arrêtez pas le serveur avant que les files d'attente ne soient complètement vidées.
 
 ```bash
 screen
