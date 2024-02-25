@@ -21,7 +21,7 @@ C'est une alternative décentralisée aux plates-formes commerciales comme Twitt
 Mastodon évite ainsi les risques qu'une seule société monopolise votre communication à des fins commerciales.
 
 
-**Version incluse :** 4.2.8~ynh1
+**Version incluse :** 4.2.8~ynh2
 
 **Démo :** https://joinmastodon.org/
 
