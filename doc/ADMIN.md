@@ -60,8 +60,10 @@ Otherwise your data will remain in federation cache for ever.
 
 ```bash
 screen
-sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl self-destruct
+sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl self-destruct --dry-run
 ```
+
+Remove the `--dry-run` part only when you're absolutely certain that you really want to delete your Mastodon instance.
 
 Check [the official documentation](https://docs.joinmastodon.org/admin/tootctl/#self-destruct) for more details.
 
