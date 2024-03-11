@@ -178,7 +178,7 @@ then
 	rsync -a "$config" "$tmpdir/."
 	ynh_secure_remove --file="$final_path/live"
 	
-	ynh_setup_source --dest_dir="$final_path/live"
+	ynh_setup_source --dest_dir="$final_path/live" --full_replace=1
 
 	if [ -d "$final_path/system.tmp" ]; then
 		mv --verbose --no-target-directory "$final_path/system.tmp" "$final_path/live/public/system"
