@@ -98,7 +98,7 @@ then
 	ynh_script_progression --message="Upgrading source files..." --weight=1
 
 	# Download Mastodon
-	ynh_setup_source --dest_dir="$install_dir/live" --keep="public/system/"
+	ynh_setup_source --dest_dir="$install_dir/live" --keep="public/system/" --full_replace=1
 
 	chmod 750 "$install_dir"
 	chmod -R o-rwx "$install_dir"
