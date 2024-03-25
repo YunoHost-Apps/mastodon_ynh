@@ -5,15 +5,17 @@ After=network.target
 [Service]
 Type=simple
 User=__APP__
-WorkingDirectory=__FINALPATH__/live
+WorkingDirectory=__INSTALL_DIR__/live
 Environment="__LD_PRELOAD__"
 Environment="RAILS_ENV=production"
 Environment="DB_POOL=25"
 Environment="MALLOC_ARENA_MAX=2"
 Environment="__YNH_RUBY_LOAD_PATH__"
-ExecStart=__FINALPATH__/live/bin/bundle exec sidekiq -c 25
+ExecStart=__INSTALL_DIR__/live/bin/bundle exec sidekiq -c 25
 TimeoutSec=15
 Restart=always
+StandardOutput=append:/var/log/__APP__/__APP__-sidekiq.log
+StandardError=inherit
 
 # Sandboxing options to harden security
 # Depending on specificities of your service/app, you may need to tweak these 
@@ -21,17 +23,17 @@ Restart=always
 # Details for these options: https://www.freedesktop.org/software/systemd/man/systemd.exec.html
 NoNewPrivileges=no
 PrivateTmp=yes
-#PrivateDevices=yes
-#RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
-#RestrictNamespaces=yes
-#RestrictRealtime=yes
+PrivateDevices=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+RestrictNamespaces=yes
+RestrictRealtime=yes
 DevicePolicy=closed
 ProtectSystem=full
 ProtectControlGroups=yes
-#ProtectKernelModules=yes
-#ProtectKernelTunables=yes
-#LockPersonality=yes
-#SystemCallFilter=~@clock @debug @module @mount @obsolete @reboot @setuid @swap
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+LockPersonality=yes
+SystemCallFilter=~@clock @debug @module @mount @obsolete @reboot @setuid @swap
 
 # Denying access to capabilities that should not be relevant for webapps
 # Doc: https://man7.org/linux/man-pages/man7/capabilities.7.html
