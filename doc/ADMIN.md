@@ -48,6 +48,20 @@ sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/op
 
 Check [the official documentation](https://docs.joinmastodon.org/admin/tootctl/#media-remove) for more details.
 
+## Release disk space
+
+To liberate disk space, you can use the following commands:
+
+- [tootctl media remove](https://docs.joinmastodon.org/admin/tootctl/#media-remove): removes locally cached copies of media from other servers
+- [tootctl media remove-orphans](https://docs.joinmastodon.org/admin/tootctl/#media-remove-orphans): scans for files that do not belong to existing media attachments, and remove them
+- [tootctl accounts cull](https://docs.joinmastodon.org/admin/tootctl/#accounts-cull): remove remote accounts that no longer exist
+
+As seen above, each of these commands must be structured as such:
+
+```bash
+sudo cd /var/www/mastodon/live && sudo -u mastodon RAILS_ENV=production PATH=/opt/rbenv/versions/mastodon/bin bin/tootctl command
+```
+
 ## Before your Mastodon instance deletion
 
 Before definitively uninstalling Mastodon, you have to run `tootctl self-destruct` to broadcast your users and instance deletion to the federation.  
