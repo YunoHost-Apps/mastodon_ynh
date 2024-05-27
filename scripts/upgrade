@@ -58,11 +58,11 @@ if ynh_compare_current_package_version --comparison lt --version "4.2.8~ynh2"; t
 	# Workaround for pre-packagingv2 versions
 	ynh_systemd_action --service_name=${app}-web --action="stop" --log_path="systemd" --line_match="Goodbye"
 	ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path="systemd" --line_match="Bye"
-	ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path="systemd" --line_match="exiting"
+	ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path="systemd"
 else
 	ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log --line_match="Goodbye"
 	ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --line_match="Bye"
-	ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log --line_match="exiting"
+	ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log
 fi
 
 #=================================================
