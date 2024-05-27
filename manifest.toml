@@ -1,0 +1,86 @@
+packaging_format = 2
+
+id = "mastodon"
+name = "Mastodon"
+description.en = "Libre and federated social network"
+description.fr = "Réseau social libre et fédéré"
+
+version = "4.2.8~ynh2"
+
+maintainers = ["Tagada"]
+
+[upstream]
+license = "AGPL-3.0-or-later"
+website = "https://joinmastodon.org/"
+demo = "https://joinmastodon.org/"
+admindoc = "https://docs.joinmastodon.org/"
+code = "https://github.com/mastodon/mastodon"
+cpe = "cpe:2.3:a:joinmastodon:mastodon"
+fund = "https://joinmastodon.org/sponsors"
+
+[integration]
+yunohost = ">= 11.2.12"
+architectures = "all"
+multi_instance = true
+
+ldap = true
+
+sso = false
+
+disk = "2G"
+ram.build = "1G"
+ram.runtime = "500M"
+
+[install]
+    [install.domain]
+    type = "domain"
+
+    [install.init_main_permission]
+    type = "group"
+    default = "visitors"
+
+    [install.language]
+    ask.en = "Choose the application language"
+    ask.fr = "Choisissez la langue de l'application"
+    type = "select"
+    choices = ["en_EN", "fr_FR"]
+    default = "fr_FR"
+
+    [install.admin]
+    type = "user"
+
+[resources]
+    [resources.sources]
+        [resources.sources.main]
+        url = "https://github.com/tootsuite/mastodon/archive/refs/tags/v4.2.8.tar.gz"
+        sha256 = "ccecdfaab5f84cfaeb193eff2b7b795f7bdd08aa872e265dcb2625310f2c9478"
+        autoupdate.strategy = "latest_github_release"
+
+    [resources.system_user]
+    allow_email = true
+
+    [resources.install_dir]
+
+    [resources.permissions]
+    main.url = "/"
+
+    api.url = "/api"
+    api.allowed = "visitors"
+    api.auth_header = false
+    api.show_tile = false
+    api.protected = true
+
+    [resources.ports]
+    web.default = 3000
+    stream.default = 4000
+
+    [resources.apt]
+    packages = "imagemagick, ffmpeg, libpq-dev, libxml2-dev, libxslt1-dev, file, git, git-core, g++, libprotobuf-dev, protobuf-compiler, pkg-config, gcc, autoconf, bison, build-essential, libssl-dev, libyaml-dev, libreadline6-dev, zlib1g-dev, libncurses5-dev, libffi-dev, libgdbm6, libgdbm-dev, redis-tools, redis-server, rsync, postgresql, postgresql-contrib, libidn11-dev, libicu-dev, libjemalloc-dev, curl, apt-transport-https"
+
+        [resources.apt.extras.yarn]
+        repo = "deb https://dl.yarnpkg.com/debian/ stable main"
+        key = "https://dl.yarnpkg.com/debian/pubkey.gpg"
+        packages = "yarn"
+
+    [resources.database]
+    type = "postgresql"

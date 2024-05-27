@@ -19,6 +19,13 @@ ynh_add_swap () {
 
  	SD_CARD_CAN_SWAP=${SD_CARD_CAN_SWAP:-0}
 
+	# Can't swap inside an LXD
+	if [ "$(systemd-detect-virt)" == "lxc" ]
+	then
+		ynh_print_warn --message="You are inside a LXC container, swap will not be added, but that can cause troubles for the app $app. Please make sure you have more than 2.5G available RAM."
+		return
+	fi
+
 	# Swap on SD card only if it's is specified
 	if ynh_is_main_device_a_sd_card && [ "$SD_CARD_CAN_SWAP" == "0" ]
 	then
