@@ -99,6 +99,9 @@ pushd "$install_dir/live"
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile
 popd
 
+chown "$app:www-data" "$install_dir"
+chown -R "$app:www-data" "$install_dir/live/public"
+
 #=================================================
 # REAPPLY SYSTEM CONFIGURATIONS
 #=================================================
