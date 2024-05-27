@@ -7,14 +7,13 @@
 #=================================================
 
 source _common.sh
-source ynh_install_ruby__2
 source ynh_add_swap
 source /usr/share/yunohost/helpers
 
 #=================================================
 # REMOVE SYSTEM CONFIGURATIONS
 #=================================================
-# REMOVE SYSTEMD SERVICE 
+# REMOVE SYSTEMD SERVICE
 #=================================================
 ynh_script_progression --message="Removing system configurations related to $app..." --weight=1
 
