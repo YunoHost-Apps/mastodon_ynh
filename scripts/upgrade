@@ -14,7 +14,21 @@ upgrade_type=$(ynh_check_app_version_changed)
 config="$install_dir/live/.env.production"
 
 #=================================================
-# STANDARD UPGRADE STEPS
+# STOP SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Stopping a systemd service..." --weight=1
+
+if ynh_compare_current_package_version --comparison lt --version "4.2.8~ynh2"; then
+	# Workaround for pre-packagingv2 versions
+	ynh_systemd_action --service_name=${app}-web --action="stop" --log_path="systemd" --line_match="Goodbye"
+	ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path="systemd" --line_match="Bye"
+	ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path="systemd"
+else
+	ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log --line_match="Goodbye"
+	ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --line_match="Bye"
+	ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log
+fi
+
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
@@ -47,22 +61,6 @@ if ynh_compare_current_package_version --comparison lt --version "4.2.8~ynh2"; t
 		ynh_psql_execute_as_root --sql="DROP USER IF EXISTS ${app};"
 		ynh_psql_execute_as_root --sql="ALTER USER ${app}_production RENAME $db_name;"
 	fi
-fi
-
-#=================================================
-# STOP SYSTEMD SERVICE
-#=================================================
-ynh_script_progression --message="Stopping a systemd service..." --weight=1
-
-if ynh_compare_current_package_version --comparison lt --version "4.2.8~ynh2"; then
-	# Workaround for pre-packagingv2 versions
-	ynh_systemd_action --service_name=${app}-web --action="stop" --log_path="systemd" --line_match="Goodbye"
-	ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path="systemd" --line_match="Bye"
-	ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path="systemd"
-else
-	ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log --line_match="Goodbye"
-	ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --line_match="Bye"
-	ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log
 fi
 
 #=================================================
