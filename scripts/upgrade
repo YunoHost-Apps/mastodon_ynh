@@ -26,8 +26,28 @@ if [[ -z "${service:-}" ]]; then
 	ynh_app_setting_set --app="$app" --key=service --value="$service"
 fi
 
-#Remove previous added repository
+# Remove previous added repository
 ynh_remove_extra_repo
+
+if ynh_compare_current_package_version --comparison lt --version "4.2.8~ynh2"; then
+	# Rename legacy database
+	if ynh_psql_database_exists --database="${app}_production"; then
+		db_name=$(ynh_sanitize_dbid --db_name="$app")
+		ynh_app_setting_set --app="$app" --key="db_name" --value="$db_name"
+
+		# Remove the newly created db by resources, and rename legacy db
+		ynh_psql_execute_as_root --sql="DROP DATABASE IF EXISTS ${app};"
+		ynh_psql_execute_as_root --sql="ALTER DATABASE ${app}_production RENAME TO $db_name;"
+	fi
+	# Same with user
+	if ynh_psql_user_exists --user="${app}_production"; then
+		db_user="$db_name"
+		ynh_app_setting_set --app="$app" --key="db_user" --value="$db_user"
+
+		ynh_psql_execute_as_root --sql="DROP USER IF EXISTS ${app};"
+		ynh_psql_execute_as_root --sql="ALTER USER ${app}_production RENAME $db_name;"
+	fi
+fi
 
 #=================================================
 # STOP SYSTEMD SERVICE
