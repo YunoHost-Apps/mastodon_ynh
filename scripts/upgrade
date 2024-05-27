@@ -34,9 +34,16 @@ ynh_remove_extra_repo
 #=================================================
 ynh_script_progression --message="Stopping a systemd service..." --weight=1
 
-ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log --line_match="Goodbye"
-ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --line_match="Bye"
-ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log --line_match="exiting"
+if ynh_compare_current_package_version --comparison lt --version "4.2.8~ynh2"; then
+	# Workaround for pre-packagingv2 versions
+	ynh_systemd_action --service_name=${app}-web --action="stop" --log_path="systemd" --line_match="Goodbye"
+	ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path="systemd" --line_match="Bye"
+	ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path="systemd" --line_match="exiting"
+else
+	ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log --line_match="Goodbye"
+	ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --line_match="Bye"
+	ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log --line_match="exiting"
+fi
 
 #=================================================
 # ADD SWAP IF NEEDED
@@ -156,7 +163,7 @@ popd
 #=================================================
 ynh_script_progression --message="Starting a systemd service..." --weight=1
 
-ynh_systemd_action --service_name=${app}-web --action="start" --log_path=/var/log/$app/$app-web.log --line_match="Listening on"
+ynh_systemd_action --service_name=${app}-web --action="restart" --log_path=/var/log/$app/$app-web.log --line_match="Listening on"
 ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=/var/log/$app/$app-sidekiq.log --line_match="Schedules Loaded"
 ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=/var/log/$app/$app-streaming.log --line_match="Streaming API now listening"
 
