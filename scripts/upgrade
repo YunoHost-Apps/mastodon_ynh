@@ -40,6 +40,27 @@ if [[ -z "${service:-}" ]]; then
 	ynh_app_setting_set --app="$app" --key=service --value="$service"
 fi
 
+# If s3_enabled doesn't exist, create it
+if [[ -z "$s3_enabled" ]]; then
+	s3_enabled=$(ynh_read_var_in_file --file="$config" --key="S3_ENABLED")
+	ynh_app_setting_set --app=$app --key=s3_enabled --value=$s3_enabled
+
+	s3_endpoint=$(ynh_read_var_in_file --file="$config" --key="S3_ENDPOINT")
+	ynh_app_setting_set --app=$app --key=s3_endpoint --value=$s3_endpoint
+
+	s3_bucket=$(ynh_read_var_in_file --file="$config" --key="S3_BUCKET")
+	ynh_app_setting_set --app=$app --key=s3_bucket --value=$s3_bucket
+
+	s3_access_key_id=$(ynh_read_var_in_file --file="$config" --key="AWS_ACCESS_KEY_ID")
+	ynh_app_setting_set --app=$app --key=s3_access_key_id --value=$s3_access_key_id
+
+	s3_access_key_secret=$(ynh_read_var_in_file --file="$config" --key="AWS_SECRET_ACCESS_KEY")
+	ynh_app_setting_set --app=$app --key=s3_access_key_secret --value=$s3_access_key_secret
+
+	s3_alias_host=$(ynh_read_var_in_file --file="$config" --key="S3_ALIAS_HOST")
+	ynh_app_setting_set --app=$app --key=s3_alias_host --value=$s3_alias_host
+fi
+
 # Remove previous added repository
 ynh_remove_extra_repo
 
