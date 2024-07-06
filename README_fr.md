@@ -5,7 +5,7 @@ Il NE doit PAS être modifié à la main.
 
 # Mastodon pour YunoHost
 
-[![Niveau d’intégration](https://dash.yunohost.org/integration/mastodon.svg)](https://dash.yunohost.org/appci/app/mastodon) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)
+[![Niveau d’intégration](https://dash.yunohost.org/integration/mastodon.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)
 
 [![Installer Mastodon avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=mastodon)
 
@@ -21,7 +21,7 @@ C'est une alternative décentralisée aux plates-formes commerciales comme Twitt
 Mastodon évite ainsi les risques qu'une seule société monopolise votre communication à des fins commerciales.
 
 
-**Version incluse :** 4.2.8~ynh2
+**Version incluse :** 4.2.10~ynh1
 
 **Démo :** <https://joinmastodon.org/>
 
