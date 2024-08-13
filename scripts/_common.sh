@@ -5,7 +5,7 @@
 #=================================================
 
 memory_needed="2560"
-ruby_version=3.2.2
+ruby_version=3.2.3
 nodejs_version=20
 
 # Workaround for Mastodon on Bullseye
