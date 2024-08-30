@@ -10,7 +10,7 @@ Environment="__LD_PRELOAD__"
 Environment="RAILS_ENV=production"
 Environment="DB_POOL=25"
 Environment="MALLOC_ARENA_MAX=2"
-Environment="__YNH_RUBY_LOAD_PATH__"
+Environment="PATH=__PATH_WITH_RUBY__"
 ExecStart=__INSTALL_DIR__/live/bin/bundle exec sidekiq -c 25
 TimeoutSec=15
 Restart=always
