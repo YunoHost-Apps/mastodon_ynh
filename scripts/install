@@ -9,16 +9,14 @@ admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 ynh_app_setting_set --key=service --value="$app-web.service"
 
 #=================================================
-# APP "BUILD" (DEPLOYING SOURCES, VENV, COMPILING ETC)
-#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression "Setting up source files..."
 
-# Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir/live"
 
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "$install_dir"
+chown -R $app:www-data "$install_dir"
+
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
@@ -67,16 +65,11 @@ vapid_private_key=""
 vapid_public_key=""
 
 ynh_config_add --template=".env.production.sample" --destination="$config"
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 400 "$config"
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown $app:$app "$config"
 
 ynh_replace --match="registrations_mode: 'open'" --replace="registrations_mode: 'none'" --file="$install_dir/live/config/settings.yml"
 ynh_replace --match="min_invite_role: 'admin'" --replace="min_invite_role: 'none'" --file="$install_dir/live/config/settings.yml"
 
 ynh_store_file_checksum "$install_dir/live/config/settings.yml"
-
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 400 "$install_dir/live/config/settings.yml"
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown $app:$app "$install_dir/live/config/settings.yml"
 
 #=================================================
 # BUILD APP
@@ -85,7 +78,6 @@ ynh_script_progression "Building app..."
 
 pushd "$install_dir/live"
 	# Building ruby packages
-
 	gem update --system
 	gem install bundler --no-document
 	ynh_exec_as_app ruby_load_path $ld_preload bin/bundle config deployment 'true'
@@ -112,18 +104,14 @@ ynh_app_setting_set --key=vapid_public_key --value="$vapid_public_key"
 ynh_safe_rm "$install_dir/live/key.txt"
 ynh_delete_file_checksum "$config"
 ynh_config_add --template=".env.production.sample" --destination="$config"
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 400 "$config"
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown $app:$app "$config"
 
 #=================================================
 # SYSTEM CONFIGURATION
 #=================================================
 ynh_script_progression "Adding system configurations related to $app..."
 
-# Create a dedicated NGINX config using the conf/nginx.conf template
 ynh_config_add_nginx
 
-# Create a dedicated systemd config
 ynh_config_add_systemd --service="$app-web" --template="mastodon-web.service"
 yunohost service add "$app-web" --description="$app web service"
 
@@ -133,12 +121,11 @@ yunohost service add "$app-sidekiq" --description="$app sidekiq service"
 ynh_config_add_systemd --service="$app-streaming" --template="mastodon-streaming.service"
 yunohost service add "$app-streaming" --description="$app streaming service"
 
-# Create a cron file
 ynh_config_add --template="cron" --destination="/etc/cron.d/$app"
 
 # Use logrotate to manage application logfile(s)
 mkdir -p /var/log/$app
-#REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown $app:$app /var/log/$app
+chown $app:$app /var/log/$app
 ynh_config_add_logrotate
 
 #=================================================

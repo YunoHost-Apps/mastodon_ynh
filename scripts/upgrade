@@ -28,17 +28,10 @@ fi
 ynh_script_progression "Ensuring downward compatibility..."
 
 # Set `service` settings to support `yunohost app shell` command
-# FIXMEhelpers2.1: maybe replace with: ynh_app_setting_set_default --key=service --value="$app-web.service"
-if [[ -z "${service:-}" ]]; then
-	service="$app-web.service"
-	ynh_app_setting_set --key=service --value="$service"
-fi
+ynh_app_setting_set_default --key=service --value="$app-web.service"
+
 # Set `redis_namespace` settings
-# FIXMEhelpers2.1: maybe replace with: ynh_app_setting_set_default --key=redis_namespace --value=${app}_production
-if [[ -z "${redis_namespace:-}" ]]; then
-	redis_namespace=${app}_production
-	ynh_app_setting_set --key=redis_namespace --value="$redis_namespace"
-fi
+ynh_app_setting_set_default --key=redis_namespace --value=${app}_production
 
 # Remove previous added repository
 ynh_remove_extra_repo
@@ -88,23 +81,11 @@ ynh_ruby_install
 ynh_nodejs_install
 
 #=================================================
-# "REBUILD" THE APP (DEPLOY NEW SOURCES, RERUN NPM BUILD...)
-#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
+ynh_script_progression "Upgrading source files..."
 
-# FIXME: this is still supported but the recommendation is now to *always* re-setup the app sources wether or not the upstream sources changed
-if ynh_app_upstream_version_changed
-then
-	ynh_script_progression "Upgrading source files..."
-
-	# Download Mastodon
-	ynh_setup_source --dest_dir="$install_dir/live" --keep="public/system/"
-
-	#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 750 "$install_dir"
-	#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
-	#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "$install_dir"
-fi
+ynh_setup_source --dest_dir="$install_dir/live" --keep="public/system/"
 
 #=================================================
 # BUILD ASSETS
@@ -112,7 +93,6 @@ fi
 ynh_script_progression "Building assets..."
 
 pushd "$install_dir/live"
-
 	gem update --system
 	gem install bundler --no-document
 	ynh_exec_as_app ruby_load_path $ld_preload bin/bundle config deployment 'true'
@@ -125,7 +105,7 @@ pushd "$install_dir/live"
 	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production ruby_load_path $ld_preload bin/bundle exec rails assets:precompile
 popd
 
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown "$app:www-data" "$install_dir"
+chown "$app:www-data" "$install_dir"
 chown -R "$app:www-data" "$install_dir/live/public"
 
 #=================================================
@@ -135,7 +115,6 @@ ynh_script_progression "Upgrading system configurations related to $app..."
 
 ynh_config_add_nginx
 
-# Create a dedicated systemd config
 ynh_config_add_systemd --service="$app-web" --template="mastodon-web.service"
 yunohost service add "$app-web" --description="$app web service"
 
@@ -149,11 +128,9 @@ ynh_config_add --template="cron" --destination="/etc/cron.d/$app"
 
 # Use logrotate to manage app-specific logfile(s)
 mkdir -p /var/log/$app
-#REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown $app:$app /var/log/$app
+chown $app:$app /var/log/$app
 ynh_config_add_logrotate
 
-#=================================================
-# RECONFIGURE THE APP (UPDATE CONF, APPLY MIGRATIONS...)
 #=================================================
 # UPDATE A CONFIG FILE
 #=================================================
@@ -163,16 +140,12 @@ language="$(echo $language | head -c 2)"
 
 ynh_config_add --template=".env.production.sample" --destination="$config"
 
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 400 "$config"
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown $app:$app "$config"
-
 #=================================================
 # APPLY MIGRATIONS
 #=================================================
 ynh_script_progression "Applying migrations..."
 
 pushd "$install_dir/live"
-
 	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production ruby_load_path $ld_preload bin/bundle exec rails db:migrate
 	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production ruby_load_path $ld_preload bin/tootctl cache clear
 popd
