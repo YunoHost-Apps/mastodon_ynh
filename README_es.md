@@ -20,7 +20,7 @@ Mastodon is a free, open-source microblogging social network.
 It is a decentralized alternative to commercial platforms like Twitter and avoids the risks of a single company monopolizing your communication for commercial purposes.
 
 
-**Versión actual:** 4.2.12~ynh1
+**Versión actual:** 4.3.0~ynh1
 
 **Demo:** <https://joinmastodon.org/>
 
@@ -38,7 +38,7 @@ It is a decentralized alternative to commercial platforms like Twitter and avoid
 
 ## Información para desarrolladores
 
-Por favor enviar sus correcciones a la [`branch testing`](https://github.com/YunoHost-Apps/mastodon_ynh/tree/testing
+Por favor enviar sus correcciones a la [rama `testing`](https://github.com/YunoHost-Apps/mastodon_ynh/tree/testing).
 
 Para probar la rama `testing`, sigue asÍ:
 
