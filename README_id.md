@@ -5,7 +5,9 @@ Ini TIDAK boleh diedit dengan tangan.
 
 # Mastodon untuk YunoHost
 
-[![Tingkat integrasi](https://dash.yunohost.org/integration/mastodon.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/) ![Status kerja](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![Status pemeliharaan](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)
+[![Tingkat integrasi](https://apps.yunohost.org/badge/integration/mastodon)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
+![Status kerja](https://apps.yunohost.org/badge/state/mastodon)
+![Status pemeliharaan](https://apps.yunohost.org/badge/maintained/mastodon)
 
 [![Pasang Mastodon dengan YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=mastodon)
 
@@ -20,7 +22,7 @@ Mastodon is a free, open-source microblogging social network.
 It is a decentralized alternative to commercial platforms like Twitter and avoids the risks of a single company monopolizing your communication for commercial purposes.
 
 
-**Versi terkirim:** 4.2.13~ynh1
+**Versi terkirim:** 4.3.2~ynh1
 
 **Demo:** <https://joinmastodon.org/>
 

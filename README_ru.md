@@ -5,7 +5,9 @@
 
 # Mastodon для YunoHost
 
-[![Уровень интеграции](https://dash.yunohost.org/integration/mastodon.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/) ![Состояние работы](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![Состояние сопровождения](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)
+[![Уровень интеграции](https://apps.yunohost.org/badge/integration/mastodon)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
+![Состояние работы](https://apps.yunohost.org/badge/state/mastodon)
+![Состояние сопровождения](https://apps.yunohost.org/badge/maintained/mastodon)
 
 [![Установите Mastodon с YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=mastodon)
 
@@ -20,7 +22,7 @@ Mastodon is a free, open-source microblogging social network.
 It is a decentralized alternative to commercial platforms like Twitter and avoids the risks of a single company monopolizing your communication for commercial purposes.
 
 
-**Поставляемая версия:** 4.2.13~ynh1
+**Поставляемая версия:** 4.3.2~ynh1
 
 **Демо-версия:** <https://joinmastodon.org/>
 
