@@ -5,7 +5,9 @@ Hij mag NIET handmatig aangepast worden.
 
 # Mastodon voor Yunohost
 
-[![Integratieniveau](https://dash.yunohost.org/integration/mastodon.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/) ![Mate van functioneren](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![Onderhoudsstatus](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)
+[![Integratieniveau](https://apps.yunohost.org/badge/integration/mastodon)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
+![Mate van functioneren](https://apps.yunohost.org/badge/state/mastodon)
+![Onderhoudsstatus](https://apps.yunohost.org/badge/maintained/mastodon)
 
 [![Mastodon met Yunohost installeren](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=mastodon)
 
@@ -20,7 +22,7 @@ Mastodon is a free, open-source microblogging social network.
 It is a decentralized alternative to commercial platforms like Twitter and avoids the risks of a single company monopolizing your communication for commercial purposes.
 
 
-**Geleverde versie:** 4.2.13~ynh1
+**Geleverde versie:** 4.3.2~ynh1
 
 **Demo:** <https://joinmastodon.org/>
 
