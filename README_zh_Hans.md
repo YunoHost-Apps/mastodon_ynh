@@ -5,7 +5,9 @@
 
 # YunoHost 上的 Mastodon
 
-[![集成程度](https://dash.yunohost.org/integration/mastodon.svg)](https://ci-apps.yunohost.org/ci/apps/mastodon/) ![工作状态](https://ci-apps.yunohost.org/ci/badges/mastodon.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/mastodon.maintain.svg)
+[![集成程度](https://apps.yunohost.org/badge/integration/mastodon)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
+![工作状态](https://apps.yunohost.org/badge/state/mastodon)
+![维护状态](https://apps.yunohost.org/badge/maintained/mastodon)
 
 [![使用 YunoHost 安装 Mastodon](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=mastodon)
 
@@ -20,7 +22,7 @@ Mastodon is a free, open-source microblogging social network.
 It is a decentralized alternative to commercial platforms like Twitter and avoids the risks of a single company monopolizing your communication for commercial purposes.
 
 
-**分发版本：** 4.2.13~ynh1
+**分发版本：** 4.3.2~ynh1
 
 **演示：** <https://joinmastodon.org/>
 
