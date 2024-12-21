@@ -9,21 +9,15 @@ source /usr/share/yunohost/helpers
 #=================================================
 ynh_script_progression "Removing system configurations related to $app..."
 
-if ynh_hide_warnings yunohost service status "$app-web" >/dev/null
-then
-	ynh_script_progression "Removing $app-web service integration..."
+if ynh_hide_warnings yunohost service status "$app-web" >/dev/null; then
 	yunohost service remove "$app-web"
 fi
 
-if ynh_hide_warnings yunohost service status "$app-sidekiq" >/dev/null
-then
-	ynh_script_progression "Removing $app-sidekiq service integration..."
+if ynh_hide_warnings yunohost service status "$app-sidekiq" >/dev/null; then
 	yunohost service remove "$app-sidekiq"
 fi
 
-if ynh_hide_warnings yunohost service status "$app-streaming" >/dev/null
-then
-	ynh_script_progression "Removing $app-streaming service integration..."
+if ynh_hide_warnings yunohost service status "$app-streaming" >/dev/null; then
 	yunohost service remove "$app-streaming"
 fi
 
@@ -38,6 +32,7 @@ ynh_safe_rm "/etc/cron.d/$app"
 ynh_config_remove_logrotate
 
 ynh_ruby_remove
+
 ynh_nodejs_remove
 
 ynh_del_swap
