@@ -6,10 +6,10 @@ After=network.target
 Type=simple
 User=__APP__
 WorkingDirectory=__INSTALL_DIR__/live
-Environment="__LD_PRELOAD__"
 Environment="RAILS_ENV=production"
 Environment="DB_POOL=25"
 Environment="MALLOC_ARENA_MAX=2"
+Environment="__LD_PRELOAD__"
 Environment="__YNH_RUBY_LOAD_PATH__"
 ExecStart=__INSTALL_DIR__/live/bin/bundle exec sidekiq -c 25
 TimeoutSec=15
@@ -17,22 +17,26 @@ Restart=always
 StandardOutput=append:/var/log/__APP__/__APP__-sidekiq.log
 StandardError=inherit
 
-# Sandboxing options to harden security
-# Depending on specificities of your service/app, you may need to tweak these 
-# .. but this should be a good baseline
-# Details for these options: https://www.freedesktop.org/software/systemd/man/systemd.exec.html
-NoNewPrivileges=no
-PrivateTmp=yes
-PrivateDevices=yes
-RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
-RestrictNamespaces=yes
-RestrictRealtime=yes
-DevicePolicy=closed
+# Proc filesystem
+# Capabilities
+# Security
+NoNewPrivileges=true
+# Sandboxing
 ProtectSystem=full
-ProtectControlGroups=yes
-ProtectKernelModules=yes
-ProtectKernelTunables=yes
-LockPersonality=yes
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET
+RestrictAddressFamilies=AF_INET6
+RestrictAddressFamilies=AF_NETLINK
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=true
+LockPersonality=true
+RestrictRealtime=true
+DevicePolicy=closed
+# System Call Filtering
 SystemCallFilter=~@clock @debug @module @mount @obsolete @reboot @setuid @swap
 
 # Denying access to capabilities that should not be relevant for webapps
