@@ -1,5 +1,5 @@
 [Unit]
-Description=__APP__-streaming on port __PORT_STREAM_
+Description=__APP__-streaming on port __PORT_STREAM__
 After=network.target
 
 [Service]
