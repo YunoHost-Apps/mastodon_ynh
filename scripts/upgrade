@@ -102,8 +102,8 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Upgrading source files..." --weight=1
 
-	# Download Mastodon
-	ynh_setup_source --dest_dir="$install_dir/live" --keep="public/system/"
+	# Download, check integrity, uncompress and patch the source from manifest.toml
+	ynh_setup_source --dest_dir="$install_dir/live" --full_replace=1 --keep="public/system .env.production"
 
 	chmod 750 "$install_dir"
 	chmod -R o-rwx "$install_dir"
@@ -193,7 +193,6 @@ ynh_script_progression --message="Applying migrations..." --weight=1
 pushd "$install_dir/live"
 	ynh_use_ruby
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate --quiet
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:clean --quiet
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile --quiet
 popd
 
