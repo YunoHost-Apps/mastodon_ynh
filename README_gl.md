@@ -22,7 +22,7 @@ Mastodon is a free, open-source microblogging social network.
 It is a decentralized alternative to commercial platforms like Twitter and avoids the risks of a single company monopolizing your communication for commercial purposes.
 
 
-**Versión proporcionada:** 4.3.5~ynh1
+**Versión proporcionada:** 4.3.6~ynh1
 
 **Demo:** <https://joinmastodon.org/>
 
