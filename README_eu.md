@@ -42,7 +42,7 @@ It is a decentralized alternative to commercial platforms like Twitter and avoid
 
 Bidali `pull request`a [`testing` abarrera](https://github.com/YunoHost-Apps/mastodon_ynh/tree/testing).
 
-`testing` abarra probatzeko, ondorengoa egin:
+`testing` abarra probatzeko, honakoa egin:
 
 ```bash
 sudo yunohost app install https://github.com/YunoHost-Apps/mastodon_ynh/tree/testing --debug

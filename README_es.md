@@ -3,7 +3,7 @@ Este archivo README esta generado automaticamente<https://github.com/YunoHost/ap
 No se debe editar a mano.
 -->
 
-# Mastodon para Yunohost
+# Mastodon para YunoHost
 
 [![Nivel de integración](https://apps.yunohost.org/badge/integration/mastodon)](https://ci-apps.yunohost.org/ci/apps/mastodon/)
 ![Estado funcional](https://apps.yunohost.org/badge/state/mastodon)
