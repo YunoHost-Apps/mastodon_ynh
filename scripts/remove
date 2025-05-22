@@ -23,9 +23,9 @@ if ynh_hide_warnings yunohost service status "$app-streaming" >/dev/null; then
 fi
 
 # Remove the dedicated systemd config
-ynh_config_remove_systemd"$app-web"
-ynh_config_remove_systemd"$app-sidekiq"
-ynh_config_remove_systemd"$app-streaming"
+ynh_config_remove_systemd "$app-web"
+ynh_config_remove_systemd "$app-sidekiq"
+ynh_config_remove_systemd "$app-streaming"
 
 # Remove the dedicated NGINX config
 ynh_config_remove_nginx
