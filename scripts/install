@@ -9,20 +9,20 @@ admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 ynh_app_setting_set --key=service --value="$app-web.service"
 
 #=================================================
-# DOWNLOAD, CHECK AND UNPACK SOURCE
-#=================================================
-ynh_script_progression "Setting up source files..."
-
-# Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$install_dir/live"
-
-#=================================================
 # INSTALL DEPENDENCIES
 #=================================================
 ynh_script_progression "Installing Ruby and NodeJS..."
 
 ynh_ruby_install
 ynh_nodejs_install
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+ynh_script_progression "Setting up source files..."
+
+# Download, check integrity, uncompress and patch the source from app.src
+ynh_setup_source --dest_dir="$install_dir/live"
 
 #=================================================
 # ADD SWAP IF NEEDED
@@ -77,7 +77,6 @@ ynh_script_progression "Building app..."
 
 pushd "$install_dir/live"
 	# Building ruby packages
-
 	gem update --system
 	gem install bundler --no-document
 	ynh_exec_as_app $ld_preload bin/bundle config deployment 'true'
@@ -86,8 +85,8 @@ pushd "$install_dir/live"
 	ynh_exec_as_app $ld_preload bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
 
 	env node_load_PATH corepack enable
-	echo Y | ynh_hide_warnings ynh_exec_as_app node_load_PATH yarn workspaces focus --production
-	ynh_hide_warnings ynh_exec_as_app node_load_PATH yarn install --immutable
+	echo Y | ynh_hide_warnings ynh_exec_as_app yarn workspaces focus --production
+	ynh_hide_warnings ynh_exec_as_app yarn install --immutable
 	echo "SAFETY_ASSURED=1">> $config
 	# Generate vapid keys
 	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production $ld_preload bin/bundle exec rails mastodon:webpush:generate_vapid_key > vapid_key.txt
@@ -110,8 +109,8 @@ ynh_app_setting_set --key=active_record_encryption_primary_key --value="$active_
 ynh_safe_rm "$install_dir/live/active_record_encryption.txt"
 ynh_delete_file_checksum "$config"
 ynh_config_add --template=".env.production.sample" --destination="$config"
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 400 "$config"
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown $app:$app "$config"
+#chmod 400 "$config"
+#chown $app:$app "$config"
 
 pushd "$install_dir/live"
 	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production $ld_preload bin/bundle exec rails db:migrate --quiet
@@ -144,7 +143,7 @@ ynh_config_add --template="cron" --destination="/etc/cron.d/$app"
 
 # Use logrotate to manage application logfile(s)
 mkdir -p /var/log/$app
-#REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown $app:$app /var/log/$app
+#chown $app:$app /var/log/$app
 ynh_config_add_logrotate
 
 #=================================================
