@@ -106,7 +106,7 @@ pushd "$install_dir/live"
 	ynh_hide_warnings ynh_exec_as_app yarn install --immutable
 popd
 
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown "$app:www-data" "$install_dir"
+#chown "$app:www-data" "$install_dir"
 chown -R "$app:www-data" "$install_dir/live/public"
 
 #=================================================
@@ -130,11 +130,9 @@ ynh_config_add --template="cron" --destination="/etc/cron.d/$app"
 
 # Use logrotate to manage app-specific logfile(s)
 mkdir -p /var/log/$app
-#REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown $app:$app /var/log/$app
+
 ynh_config_add_logrotate
 
-#=================================================
-# RECONFIGURE THE APP (UPDATE CONF, APPLY MIGRATIONS...)
 #=================================================
 # UPDATE A CONFIG FILE
 #=================================================
@@ -142,7 +140,6 @@ ynh_script_progression "Updating a config file..."
 
 if ynh_app_upgrading_from_version_before 4.3.2~ynh1; then
 	pushd "$install_dir/live"
-
 		# Generate active record encryption
 		ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production ruby_load_path $ld_preload bin/bundle exec rails db:encryption:init > active_record_encryption.txt
 		active_record_encryption_deterministic_key=$(grep -oP "ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=\K.+" "$install_dir/live/active_record_encryption.txt")
@@ -165,7 +162,6 @@ ynh_config_add --template=".env.production.sample" --destination="$config"
 ynh_script_progression "Applying migrations..."
 
 pushd "$install_dir/live"
-
 	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production $ld_preload bin/bundle exec rails db:migrate --quiet
 	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production $ld_preload bin/bundle exec rails assets:precompile --quiet
 popd

@@ -6,6 +6,14 @@ source ../settings/scripts/ynh_add_swap
 source /usr/share/yunohost/helpers
 
 #=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+ynh_script_progression "Reinstalling Ruby and NodeJS..."
+
+ynh_ruby_install
+ynh_nodejs_install
+
+#=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
 ynh_script_progression "Restoring the app main directory..."
@@ -18,7 +26,7 @@ ynh_restore "$install_dir"
 ynh_script_progression "Restoring the PostgreSQL database..."
 
 ynh_psql_db_shell <<< "ALTER USER $db_user CREATEDB;"
-ynh_psql_db_shell " < "./db.sql""
+ynh_psql_db_shell < ./db.sql
 
 #=================================================
 # ADD SWAP IF NEEDED
@@ -38,20 +46,11 @@ ynh_script_progression "Adding $swap_needed Mo to swap..."
 ynh_add_swap --size=$swap_needed
 
 #=================================================
-# REINSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression "Reinstalling Ruby and NodeJS..."
-
-ynh_ruby_install
-ynh_nodejs_install
-
-#=================================================
 # BUILD APP
 #=================================================
 ynh_script_progression "Building app..."
 
 pushd "$install_dir/live"
-
 	gem update --system
 	gem install bundler --no-document
 	ynh_exec_as_app ruby_load_path $ld_preload bin/bundle install --redownload -j$(getconf _NPROCESSORS_ONLN)
@@ -76,7 +75,7 @@ yunohost service add "$app-streaming" --description="$app streaming service"
 ynh_restore "/etc/cron.d/$app"
 
 mkdir -p /var/log/$app
-#REMOVEME? Assuming ynh_config_add_logrotate is called, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:$app /var/log/$app
+
 ynh_restore "/etc/logrotate.d/$app"
 
 #=================================================
