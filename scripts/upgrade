@@ -28,17 +28,10 @@ fi
 ynh_script_progression "Ensuring downward compatibility..."
 
 # Set `service` settings to support `yunohost app shell` command
-# FIXMEhelpers2.1: maybe replace with: ynh_app_setting_set_default --key=service --value="$app-web.service"
-if [[ -z "${service:-}" ]]; then
-	service="$app-web.service"
-	ynh_app_setting_set --key=service --value="$service"
-fi
+ynh_app_setting_set_default --key=service --value="$app-web.service"
+
 # Set `redis_namespace` settings
-# FIXMEhelpers2.1: maybe replace with: ynh_app_setting_set_default --key=redis_namespace --value=${app}_production
-if [[ -z "${redis_namespace:-}" ]]; then
-	redis_namespace=${app}_production
-	ynh_app_setting_set --key=redis_namespace --value="$redis_namespace"
-fi
+ynh_app_setting_set_default --key=redis_namespace --value=${app}_production
 
 # Remove previous added repository
 ynh_remove_extra_repo
@@ -88,23 +81,12 @@ ynh_ruby_install
 ynh_nodejs_install
 
 #=================================================
-# "REBUILD" THE APP (DEPLOY NEW SOURCES, RERUN NPM BUILD...)
-#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
+ynh_script_progression "Upgrading source files..."
 
-# FIXME: this is still supported but the recommendation is now to *always* re-setup the app sources wether or not the upstream sources changed
-if ynh_app_upstream_version_changed
-then
-	ynh_script_progression "Upgrading source files..."
-
-	# Download, check integrity, uncompress and patch the source from manifest.toml
-	ynh_setup_source --dest_dir="$install_dir/live" --full_replace --keep="public/system .env.production"
-
-	#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 750 "$install_dir"
-	#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
-	#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "$install_dir"
-fi
+# Download, check integrity, uncompress and patch the source from manifest.toml
+ynh_setup_source --dest_dir="$install_dir/live" --full_replace --keep="public/system .env.production"
 
 #=================================================
 # BUILD ASSETS
