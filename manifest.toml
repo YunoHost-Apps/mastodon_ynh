@@ -7,7 +7,7 @@ description.fr = "Réseau social libre et fédéré"
 
 version = "4.3.8~ynh1"
 
-maintainers = ["Tagada"]
+maintainers = []
 
 [upstream]
 license = "AGPL-3.0-or-later"
