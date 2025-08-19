@@ -7,7 +7,6 @@
 #=================================================
 
 source _common.sh
-source ynh_add_swap
 source /usr/share/yunohost/helpers
 
 upgrade_type=$(ynh_check_app_version_changed)
