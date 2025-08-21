@@ -83,14 +83,14 @@ ynh_nodejs_install
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
-# FIXME: this is still supported but the recommendation is now to *always* re-setup the app sources wether or not the upstream sources changed
-if ynh_app_upstream_version_changed
-then
-	ynh_script_progression "Upgrading source files..."
+ynh_script_progression "Upgrading source files..."
 
-	# Download, check integrity, uncompress and patch the source from manifest.toml
-	ynh_setup_source --dest_dir="$install_dir/live" --full_replace --keep="public/system .env.production"
-fi
+# Download, check integrity, uncompress and patch the source from manifest.toml
+ynh_setup_source --dest_dir="$install_dir/live" --full_replace --keep="public/system .env.production"
+
+chmod -R 775 "$install_dir"
+chmod o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
 
 #=================================================
 # BUILD ASSETS
