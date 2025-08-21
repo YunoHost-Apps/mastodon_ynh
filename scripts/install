@@ -9,7 +9,13 @@ admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 ynh_app_setting_set --key=service --value="$app-web.service"
 
 #=================================================
-# APP "BUILD" (DEPLOYING SOURCES, VENV, COMPILING ETC)
+# INSTALL DEPENDENCIES
+#=================================================
+ynh_script_progression "Installing Ruby and NodeJS..."
+
+ynh_ruby_install
+ynh_nodejs_install
+
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
@@ -20,14 +26,6 @@ ynh_setup_source --dest_dir="$install_dir/live"
 chmod -R 775 "$install_dir"
 chmod o-rwx "$install_dir"
 chown -R $app:www-data "$install_dir"
-
-#=================================================
-# INSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression "Installing Ruby and NodeJS..."
-
-ynh_ruby_install
-ynh_nodejs_install
 
 #=================================================
 # ADD SWAP IF NEEDED
@@ -79,7 +77,6 @@ ynh_script_progression "Building app..."
 
 pushd "$install_dir/live"
 	# Building ruby packages
-
 	gem update --system
 	gem install bundler --no-document
 	ynh_hide_warnings ynh_exec_as_app $ld_preload bin/bundle config deployment 'true'
