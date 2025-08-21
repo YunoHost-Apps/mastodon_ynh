@@ -19,7 +19,8 @@ cpe = "cpe:2.3:a:joinmastodon:mastodon"
 fund = "https://joinmastodon.org/sponsors"
 
 [integration]
-yunohost = ">= 11.2.12"
+yunohost = ">= 12.0.10"
+helpers_version = "2.1"
 architectures = "all"
 multi_instance = true
 
@@ -60,6 +61,7 @@ ram.runtime = "500M"
     allow_email = true
 
     [resources.install_dir]
+    group = "www-data:r-x"
 
     [resources.permissions]
     main.url = "/"
