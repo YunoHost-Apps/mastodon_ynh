@@ -175,6 +175,8 @@ if ynh_compare_current_package_version --comparison lt --version "4.3.2~ynh1"; t
 		active_record_encryption_primary_key=$(grep -oP "ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=\K.+" "$install_dir/live/active_record_encryption.txt")
 		ynh_app_setting_set --app="$app" --key=active_record_encryption_primary_key --value="$active_record_encryption_primary_key"
 		ynh_secure_remove --file="$install_dir/live/active_record_encryption.txt"
+		# Migrate Away From Using Redis Namespaces
+		ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/rails runner rename.rb
 	popd
 fi
 
