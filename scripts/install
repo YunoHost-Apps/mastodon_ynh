@@ -23,6 +23,8 @@ ynh_script_progression --message="Setting up source files..." --weight=1
 
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir/live"
+# Download redis migration script
+ynh_setup_source --source_id=redis_migration --dest_dir="$install_dir/live"
 
 chown -R $app:www-data "$install_dir"
 
@@ -59,9 +61,6 @@ ynh_script_progression --message="Adding a configuration file..." --weight=1
 config="$install_dir/live/.env.production"
 
 language="$(echo $language | head -c 2)"
-
-redis_namespace=${app}_production
-ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
 
 secret_key_base=$(ynh_string_random --length=128)
 ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"

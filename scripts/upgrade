@@ -104,6 +104,8 @@ then
 
 	# Download, check integrity, uncompress and patch the source from manifest.toml
 	ynh_setup_source --dest_dir="$install_dir/live" --full_replace=1 --keep="public/system .env.production"
+    # Download redis migration script
+	ynh_setup_source --source_id=redis_migration --dest_dir="$install_dir/live"
 
 	chmod 750 "$install_dir"
 	chmod -R o-rwx "$install_dir"
@@ -194,6 +196,17 @@ pushd "$install_dir/live"
 	ynh_use_ruby
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate --quiet
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile --quiet
+
+	# Apply redis namespace migration (https://github.com/mastodon/redis_namespace_migration)
+	ynh_exec_warn_less ynh_exec_as "$app" RAILS_ENV=production COREPACK_ENABLE_DOWNLOAD_PROMPT=0 "$ynh_ruby_load_path" $ld_preload bin/rails runner rename.rb
+	redis_namespace="$(ynh_app_setting_get --app=$app --key=redis_namespace)"
+	if [ $redis_namespace ]; then
+		if [ ynh_app_setting_get --app=$app --key=es_enabled == "true" ] && [ ynh_app_setting_get --app=$app --key=es_prefix == "" ]; then
+			ynh_app_setting_set --app=$app --key=es_prefix --value=$redis_namespace
+		else
+			ynh_app_setting_delete --app=$app --key=redis_namespace
+		fi
+	fi
 popd
 
 #=================================================
