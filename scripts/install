@@ -125,11 +125,11 @@ chmod 400 "$config"
 chown $app:$app "$config"
 
 pushd "$install_dir/live"
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate --quiet
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile --quiet
+	ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate --quiet
+	ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile --quiet
 	# Create the first admin user
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=Owner > /dev/null
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts approve "$admin" > /dev/null
+	ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=Owner
+	ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts approve "$admin"
 popd
 
 #=================================================
