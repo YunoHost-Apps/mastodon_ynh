@@ -23,6 +23,8 @@ ynh_script_progression --message="Setting up source files..." --weight=1
 
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir/live"
+# Download redis migration script
+ynh_setup_source --source_id=redis_migration --dest_dir="$install_dir/live"
 
 chown -R $app:www-data "$install_dir"
 
@@ -60,9 +62,6 @@ config="$install_dir/live/.env.production"
 
 language="$(echo $language | head -c 2)"
 
-redis_namespace=${app}_production
-ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
-
 secret_key_base=$(ynh_string_random --length=128)
 ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
 
@@ -95,7 +94,7 @@ pushd "$install_dir/live"
 	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config deployment 'true'
 	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config without 'development test'
 	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config set force_ruby_platform true --quiet
-	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
+	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
 	ynh_use_nodejs
 	env $ynh_node_load_PATH corepack enable
 	echo Y | ynh_exec_warn_less ynh_exec_as $app env $ynh_node_load_PATH yarn workspaces focus --production
@@ -127,10 +126,11 @@ chown $app:$app "$config"
 
 pushd "$install_dir/live"
 	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate --quiet
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile --quiet
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:seed --quiet
+        ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile --quiet
 	# Create the first admin user
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=Owner > /dev/null
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts approve "$admin" > /dev/null
+	ynh_exec_quiet ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=Owner
+	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/tootctl accounts approve "$admin"
 popd
 
 #=================================================
