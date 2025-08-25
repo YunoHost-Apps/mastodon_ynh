@@ -170,13 +170,13 @@ pushd "$install_dir/live"
 	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production $ld_preload bin/bundle exec rails assets:precompile --quiet
 
 	# Apply redis namespace migration (https://github.com/mastodon/redis_namespace_migration)
-	ynh_hide_warings ynh_exec_as_app RAILS_ENV=production COREPACK_ENABLE_DOWNLOAD_PROMPT=0 $ld_preload bin/rails runner rename.rb
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production COREPACK_ENABLE_DOWNLOAD_PROMPT=0 $ld_preload bin/rails runner rename.rb
 	redis_namespace="$(ynh_app_setting_get --app=$app --key=redis_namespace)"
 	if [ $redis_namespace ]; then
-		if [ ynh_app_setting_get --app=$app --key=es_enabled == "true" ] && [ ynh_app_setting_get --app=$app --key=es_prefix == "" ]; then
-			ynh_app_setting_set --app=$app --key=es_prefix --value=$redis_namespace
+		if [ ynh_app_setting_get --key=es_enabled == "true" ] && [ ynh_app_setting_get --key=es_prefix == "" ]; then
+			ynh_app_setting_set --key=es_prefix --value=$redis_namespace
 		else
-			ynh_app_setting_delete --app=$app --key=redis_namespace
+			ynh_app_setting_delete --key=redis_namespace
 		fi
 	fi
 popd
