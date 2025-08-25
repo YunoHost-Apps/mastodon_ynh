@@ -30,9 +30,6 @@ ynh_script_progression "Ensuring downward compatibility..."
 # Set `service` settings to support `yunohost app shell` command
 ynh_app_setting_set_default --key=service --value="$app-web.service"
 
-# Remove previous added repository
-ynh_remove_extra_repo
-
 if ynh_app_upgrading_from_version_before 4.2.8~ynh2; then
 	# Rename legacy database
 	if ynh_psql_database_exists --database="${app}_production"; then
