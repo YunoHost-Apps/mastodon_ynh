@@ -6,21 +6,21 @@ source /usr/share/yunohost/helpers
 
 config="$install_dir/live/.env.production"
 
+if ynh_app_upgrading_from_version_before 4.2.8~ynh2; then
+    ynh_die "Your installation is to old to update to this version. \
+        \nPlease first manually update with 4.4.3~ynh1 with the following command: \
+        \n's\0u\0d\0o yunohost app upgrade $app -u https://github.com/YunoHost-Apps/mastodon_ynh/commit/8fb1c6c7818430e8ac49f3ae589c6575614f5e4b' \
+        \nOnce done you can upgrade to the latest version."
+fi
+
 #=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
-ynh_script_progression "Stopping $app's systemd service..."
 
-if ynh_app_upgrading_from_version_before 4.2.8~ynh2; then
-	# Workaround for pre-packagingv2 versions
-	ynh_systemctl --service=${app}-web --action="stop" --log_path="systemd" --wait_until="Goodbye"
-	ynh_systemctl --service=${app}-sidekiq --action="stop" --log_path="systemd" --wait_until="Bye"
-	ynh_systemctl --service=${app}-streaming --action="stop" --log_path="systemd"
-else
+ynh_script_progression "Stopping $app's systemd service..."
 	ynh_systemctl --service=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log --wait_until="Goodbye"
 	ynh_systemctl --service=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --wait_until="Bye"
 	ynh_systemctl --service=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log
-fi
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -29,26 +29,6 @@ ynh_script_progression "Ensuring downward compatibility..."
 
 # Set `service` settings to support `yunohost app shell` command
 ynh_app_setting_set_default --key=service --value="$app-web.service"
-
-if ynh_app_upgrading_from_version_before 4.2.8~ynh2; then
-	# Rename legacy database
-	if ynh_psql_database_exists --database="${app}_production"; then
-		db_name=$(ynh_sanitize_dbid --db_name="$app")
-		ynh_app_setting_set --key="db_name" --value="$db_name"
-
-		# Remove the newly created db by resources, and rename legacy db
-		ynh_psql_db_shell <<< "DROP DATABASE IF EXISTS $db_name;"
-		ynh_psql_db_shell <<< "ALTER DATABASE ${app}_production RENAME TO $db_name;"
-	fi
-	# Same with user
-	if ynh_psql_user_exists --user="${app}_production"; then
-		db_user="$db_name"
-		ynh_app_setting_set --key="db_user" --value="$db_user"
-
-		ynh_psql_db_shell <<< "DROP USER IF EXISTS $db_user;"
-		ynh_psql_db_shell <<< "ALTER USER ${app}_production RENAME $db_user;"
-	fi
-fi
 
 #=================================================
 # ADD SWAP IF NEEDED
@@ -171,7 +151,7 @@ pushd "$install_dir/live"
 
 	# Apply redis namespace migration (https://github.com/mastodon/redis_namespace_migration)
 	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production COREPACK_ENABLE_DOWNLOAD_PROMPT=0 $ld_preload bin/rails runner rename.rb
-	redis_namespace="$(ynh_app_setting_get --app=$app --key=redis_namespace)"
+	redis_namespace="$(ynh_app_setting_get --key=redis_namespace)"
 	if [ $redis_namespace ]; then
 		if [ ynh_app_setting_get --key=es_enabled == "true" ] && [ ynh_app_setting_get --key=es_prefix == "" ]; then
 			ynh_app_setting_set --key=es_prefix --value=$redis_namespace
