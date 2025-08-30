@@ -9,14 +9,6 @@ admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 ynh_app_setting_set --key=service --value="$app-web.service"
 
 #=================================================
-# INSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression "Installing Ruby and NodeJS..."
-
-ynh_ruby_install
-ynh_nodejs_install
-
-#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression "Setting up source files..."

@@ -44,10 +44,6 @@ ynh_safe_rm "/etc/cron.d/$app"
 # Remote logrotate config
 ynh_config_remove_logrotate
 
-# Remove metapackage and its dependencies
-ynh_ruby_remove
-ynh_nodejs_remove
-
 # Remove swap
 ynh_del_swap
 
