@@ -64,6 +64,10 @@ ynh_setup_source --dest_dir="$install_dir/live" --full_replace --keep="public/sy
 # Download redis migration script
 ynh_setup_source --source_id=redis_migration --dest_dir="$install_dir/live"
 
+chmod -R 775 "$install_dir"
+chmod o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
+
 #=================================================
 # BUILD ASSETS
 #=================================================
