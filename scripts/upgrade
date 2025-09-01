@@ -1,77 +1,39 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source ynh_add_swap
 source /usr/share/yunohost/helpers
 
-upgrade_type=$(ynh_check_app_version_changed)
 config="$install_dir/live/.env.production"
+
+if ynh_app_upgrading_from_version_before 4.2.8~ynh2; then
+    ynh_die "Your installation is to old to update to this version. \
+        \nPlease first manually update with 4.4.3~ynh1 with the following command: \
+        \n's\0u\0d\0o yunohost app upgrade $app -u https://github.com/YunoHost-Apps/mastodon_ynh/commit/8fb1c6c7818430e8ac49f3ae589c6575614f5e4b' \
+        \nOnce done you can upgrade to the latest version."
+fi
 
 #=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Stopping a systemd service..." --weight=1
+ynh_script_progression "Stopping $app's systemd service..."
 
-if ynh_compare_current_package_version --comparison lt --version "4.2.8~ynh2"; then
-	# Workaround for pre-packagingv2 versions
-	ynh_systemd_action --service_name=${app}-web --action="stop" --log_path="systemd" --line_match="Goodbye"
-	ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path="systemd" --line_match="Bye"
-	ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path="systemd"
-else
-	ynh_systemd_action --service_name=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log --line_match="Goodbye"
-	ynh_systemd_action --service_name=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --line_match="Bye"
-	ynh_systemd_action --service_name=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log
-fi
+ynh_systemctl --service=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log --wait_until="Goodbye"
+ynh_systemctl --service=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --wait_until="Bye"
+ynh_systemctl --service=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
-ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
+ynh_script_progression "Ensuring downward compatibility..."
 
 # Set `service` settings to support `yunohost app shell` command
-if [[ -z "${service:-}" ]]; then
-	service="$app-web.service"
-	ynh_app_setting_set --app="$app" --key=service --value="$service"
-fi
-# Set `redis_namespace` settings
-if [[ -z "${redis_namespace:-}" ]]; then
-	redis_namespace=${app}_production
-	ynh_app_setting_set --app="$app" --key=redis_namespace --value="$redis_namespace"
-fi
-
-# Remove previous added repository
-ynh_remove_extra_repo
-
-if ynh_compare_current_package_version --comparison lt --version "4.2.8~ynh2"; then
-	# Rename legacy database
-	if ynh_psql_database_exists --database="${app}_production"; then
-		db_name=$(ynh_sanitize_dbid --db_name="$app")
-		ynh_app_setting_set --app="$app" --key="db_name" --value="$db_name"
-
-		# Remove the newly created db by resources, and rename legacy db
-		ynh_psql_execute_as_root --sql="DROP DATABASE IF EXISTS $db_name;"
-		ynh_psql_execute_as_root --sql="ALTER DATABASE ${app}_production RENAME TO $db_name;"
-	fi
-	# Same with user
-	if ynh_psql_user_exists --user="${app}_production"; then
-		db_user="$db_name"
-		ynh_app_setting_set --app="$app" --key="db_user" --value="$db_user"
-
-		ynh_psql_execute_as_root --sql="DROP USER IF EXISTS $db_user;"
-		ynh_psql_execute_as_root --sql="ALTER USER ${app}_production RENAME $db_user;"
-	fi
-fi
+ynh_app_setting_set_default --key=service --value="$app-web.service"
 
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
-ynh_script_progression --message="Adding swap if needed..." --weight=1
+ynh_script_progression "Adding swap if needed..."
 
 total_memory=$(ynh_get_ram --total)
 swap_needed=0
@@ -81,130 +43,115 @@ if [ $total_memory -lt $memory_needed ]; then
 	swap_needed=$(($memory_needed - $total_memory))
 fi
 
-ynh_script_progression --message="Adding $swap_needed Mo to swap..."
+ynh_script_progression "Adding $swap_needed Mo to swap..."
 ynh_add_swap --size=$swap_needed
 
 #=================================================
 # UPGRADE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Upgrading Ruby and NodeJS..." --weight=1
+ynh_script_progression "Upgrading Ruby and NodeJS..."
 
-ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
-ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
+ynh_ruby_install
+ynh_nodejs_install
 
-#=================================================
-# "REBUILD" THE APP (DEPLOY NEW SOURCES, RERUN NPM BUILD...)
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
+ynh_script_progression "Upgrading source files..."
 
-if [ "$upgrade_type" == "UPGRADE_APP" ]
-then
-	ynh_script_progression --message="Upgrading source files..." --weight=1
+# Download, check integrity, uncompress and patch the source from manifest.toml
+ynh_setup_source --dest_dir="$install_dir/live" --full_replace --keep="public/system .env.production"
+# Download redis migration script
+ynh_setup_source --source_id=redis_migration --dest_dir="$install_dir/live"
 
-	# Download, check integrity, uncompress and patch the source from manifest.toml
-	ynh_setup_source --dest_dir="$install_dir/live" --full_replace=1 --keep="public/system .env.production"
-    # Download redis migration script
-	ynh_setup_source --source_id=redis_migration --dest_dir="$install_dir/live"
-
-	chmod 750 "$install_dir"
-	chmod -R o-rwx "$install_dir"
-	chown -R $app:www-data "$install_dir"
-fi
+chmod -R 775 "$install_dir"
+chmod o-rwx "$install_dir"
+chown -R $app:www-data "$install_dir"
 
 #=================================================
 # BUILD ASSETS
 #=================================================
-ynh_script_progression --message="Building assets..." --weight=1
+ynh_script_progression "Building assets..."
 
 pushd "$install_dir/live"
-	ynh_use_ruby
-	ynh_gem update --system
-	ynh_gem install bundler --no-document
-	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config deployment 'true'
-	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config without 'development test'
-	ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle config set force_ruby_platform true --quiet
-	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
-	ynh_use_nodejs
-	env $ynh_node_load_PATH corepack enable
-	echo Y | ynh_exec_warn_less ynh_exec_as $app env $ynh_node_load_PATH yarn workspaces focus --production
-	ynh_exec_warn_less ynh_exec_as $app env $ynh_node_load_PATH yarn install --immutable
+	gem update --system
+	gem install bundler --no-document
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle config deployment 'true'
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle config without 'development test'
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle config set force_ruby_platform true --quiet
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
+
+	env corepack enable
+	echo Y | ynh_exec_as_app yarn workspaces focus --production
+	ynh_exec_as_app yarn install --immutable
 popd
 
-chown "$app:www-data" "$install_dir"
 chown -R "$app:www-data" "$install_dir/live/public"
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATIONS
 #=================================================
-ynh_script_progression --message="Upgrading system configurations related to $app..." --weight=1
+ynh_script_progression "Upgrading system configurations related to $app..."
 
-ynh_add_nginx_config
+ynh_config_add_nginx
 
 # Create a dedicated systemd config
-ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service"
+ynh_config_add_systemd --service="$app-web" --template="mastodon-web.service"
 yunohost service add "$app-web" --description="$app web service"
 
-ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service"
+ynh_config_add_systemd --service="$app-sidekiq" --template="mastodon-sidekiq.service"
 yunohost service add "$app-sidekiq" --description="$app sidekiq service"
 
-ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service"
+ynh_config_add_systemd --service="$app-streaming" --template="mastodon-streaming.service"
 yunohost service add "$app-streaming" --description="$app streaming service"
 
-ynh_add_config --template="cron" --destination="/etc/cron.d/$app"
+ynh_config_add --template="cron" --destination="/etc/cron.d/$app"
 
 # Use logrotate to manage app-specific logfile(s)
 mkdir -p /var/log/$app
-chown $app:$app /var/log/$app
-ynh_use_logrotate --non-append
+ynh_config_add_logrotate
 
-#=================================================
-# RECONFIGURE THE APP (UPDATE CONF, APPLY MIGRATIONS...)
 #=================================================
 # UPDATE A CONFIG FILE
 #=================================================
-ynh_script_progression --message="Updating a config file..." --weight=1
+ynh_script_progression "Updating a config file..."
 
-if ynh_compare_current_package_version --comparison lt --version "4.3.2~ynh1"; then
+if ynh_app_upgrading_from_version_before 4.3.2~ynh1; then
 	pushd "$install_dir/live"
-		ynh_use_ruby
+
 		# Generate active record encryption
-		ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:encryption:init > active_record_encryption.txt
+		ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/bundle exec rails db:encryption:init > active_record_encryption.txt
 		active_record_encryption_deterministic_key=$(grep -oP "ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=\K.+" "$install_dir/live/active_record_encryption.txt")
-		ynh_app_setting_set --app="$app" --key=active_record_encryption_deterministic_key --value="$active_record_encryption_deterministic_key"
+		ynh_app_setting_set --key=active_record_encryption_deterministic_key --value="$active_record_encryption_deterministic_key"
 		active_record_encryption_key_derivation_salt=$(grep -oP "ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=\K.+" "$install_dir/live/active_record_encryption.txt")
-		ynh_app_setting_set --app="$app" --key=active_record_encryption_key_derivation_salt --value="$active_record_encryption_key_derivation_salt"
+		ynh_app_setting_set --key=active_record_encryption_key_derivation_salt --value="$active_record_encryption_key_derivation_salt"
 		active_record_encryption_primary_key=$(grep -oP "ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=\K.+" "$install_dir/live/active_record_encryption.txt")
-		ynh_app_setting_set --app="$app" --key=active_record_encryption_primary_key --value="$active_record_encryption_primary_key"
-		ynh_secure_remove --file="$install_dir/live/active_record_encryption.txt"
+		ynh_app_setting_set --key=active_record_encryption_primary_key --value="$active_record_encryption_primary_key"
+		ynh_safe_rm "$install_dir/live/active_record_encryption.txt"
 	popd
 fi
 
 language="$(echo $language | head -c 2)"
 
-ynh_add_config --template=".env.production.sample" --destination="$config"
-
-chmod 400 "$config"
-chown $app:$app "$config"
+ynh_config_add --template=".env.production.sample" --destination="$config"
 
 #=================================================
 # APPLY MIGRATIONS
 #=================================================
-ynh_script_progression --message="Applying migrations..." --weight=1
+ynh_script_progression "Applying migrations..."
 
 pushd "$install_dir/live"
-	ynh_use_ruby
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate --quiet
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile --quiet
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/bundle exec rails db:migrate --quiet
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/bundle exec rails assets:precompile --quiet
 
 	# Apply redis namespace migration (https://github.com/mastodon/redis_namespace_migration)
-	ynh_exec_warn_less ynh_exec_as "$app" RAILS_ENV=production COREPACK_ENABLE_DOWNLOAD_PROMPT=0 "$ynh_ruby_load_path" $ld_preload bin/rails runner rename.rb
-	redis_namespace="$(ynh_app_setting_get --app=$app --key=redis_namespace)"
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production COREPACK_ENABLE_DOWNLOAD_PROMPT=0 LD_PRELOAD=libjemalloc.so bin/rails runner rename.rb
+	redis_namespace="$(ynh_app_setting_get --key=redis_namespace)"
 	if [ $redis_namespace ]; then
-		if [ ynh_app_setting_get --app=$app --key=es_enabled == "true" ] && [ ynh_app_setting_get --app=$app --key=es_prefix == "" ]; then
-			ynh_app_setting_set --app=$app --key=es_prefix --value=$redis_namespace
+		if [ ynh_app_setting_get --key=es_enabled == "true" ] && [ ynh_app_setting_get --key=es_prefix == "" ]; then
+			ynh_app_setting_set --key=es_prefix --value=$redis_namespace
 		else
-			ynh_app_setting_delete --app=$app --key=redis_namespace
+			ynh_app_setting_delete --key=redis_namespace
 		fi
 	fi
 popd
@@ -212,14 +159,14 @@ popd
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..." --weight=1
+ynh_script_progression "Starting $app's systemd service..."
 
-ynh_systemd_action --service_name=${app}-web --action="restart" --log_path=/var/log/$app/$app-web.log --line_match="Listening on"
-ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=/var/log/$app/$app-sidekiq.log --line_match="Schedules Loaded"
-ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=/var/log/$app/$app-streaming.log --line_match="Streaming API now listening"
+ynh_systemctl --service=${app}-web --action="restart" --log_path=/var/log/$app/$app-web.log --wait_until="Listening on"
+ynh_systemctl --service=${app}-sidekiq --action="start" --log_path=/var/log/$app/$app-sidekiq.log --wait_until="Schedules Loaded"
+ynh_systemctl --service=${app}-streaming --action="start" --log_path=/var/log/$app/$app-streaming.log --wait_until="Streaming API now listening"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed" --last
+ynh_script_progression "Upgrade of $app completed"
