@@ -6,7 +6,7 @@
 
 memory_needed="2560"
 ruby_version="3.4.5"
-nodejs_version="20"
+nodejs_version="22"
 
 case $YNH_ARCH in
 	amd64)
