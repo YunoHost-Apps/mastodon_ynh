@@ -6,8 +6,6 @@ source ../settings/scripts/ynh_add_swap
 source /usr/share/yunohost/helpers
 
 #=================================================
-# STANDARD RESTORATION STEPS
-#=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
 ynh_script_progression "Restoring the app main directory..."
@@ -52,8 +50,6 @@ popd
 
 #=================================================
 # RESTORE SYSTEM CONFIGURATIONS
-#=================================================
-# RESTORE THE PHP-FPM CONFIGURATION
 #=================================================
 ynh_script_progression "Restoring system configurations related to $app..."
 

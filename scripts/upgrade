@@ -16,11 +16,11 @@ fi
 #=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
-
 ynh_script_progression "Stopping $app's systemd service..."
-	ynh_systemctl --service=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log --wait_until="Goodbye"
-	ynh_systemctl --service=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --wait_until="Bye"
-	ynh_systemctl --service=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log
+
+ynh_systemctl --service=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log --wait_until="Goodbye"
+ynh_systemctl --service=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --wait_until="Bye"
+ynh_systemctl --service=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -47,11 +47,8 @@ ynh_script_progression "Adding $swap_needed Mo to swap..."
 ynh_add_swap --size=$swap_needed
 
 #=================================================
-# "REBUILD" THE APP (DEPLOY NEW SOURCES, RERUN NPM BUILD...)
-#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-
 ynh_script_progression "Upgrading source files..."
 
 # Download, check integrity, uncompress and patch the source from manifest.toml
@@ -106,8 +103,6 @@ ynh_config_add --template="cron" --destination="/etc/cron.d/$app"
 mkdir -p /var/log/$app
 ynh_config_add_logrotate
 
-#=================================================
-# RECONFIGURE THE APP (UPDATE CONF, APPLY MIGRATIONS...)
 #=================================================
 # UPDATE A CONFIG FILE
 #=================================================
