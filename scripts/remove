@@ -51,8 +51,8 @@ ynh_secure_remove --file="/etc/cron.d/$app"
 ynh_remove_logrotate
 
 # Remove metapackage and its dependencies
-ynh_remove_ruby
-ynh_remove_nodejs
+#REMOVEME? ynh_remove_ruby
+#REMOVEME? ynh_remove_nodejs
 
 # Remove swap
 ynh_del_swap
