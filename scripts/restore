@@ -54,8 +54,8 @@ ynh_add_swap --size=$swap_needed
 #=================================================
 ynh_script_progression --message="Reinstalling Ruby and NodeJS..." --weight=1
 
-ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
-ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
+#REMOVEME? ynh_exec_warn_less #REMOVEME? ynh_install_ruby --#REMOVEME? ruby_version=$ruby_version
+#REMOVEME? ynh_exec_warn_less #REMOVEME? ynh_install_nodejs --#REMOVEME? nodejs_version=$nodejs_version
 
 #=================================================
 # BUILD APP
@@ -63,10 +63,10 @@ ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
 ynh_script_progression --message="Building app..." --weight=1
 
 pushd "$install_dir/live"
-	ynh_use_ruby
+	#REMOVEME? ynh_use_ruby
 	ynh_gem update --system
 	ynh_gem install bundler --no-document
-	ynh_exec_warn_less ynh_exec_as $app $ynh_ruby_load_path $ld_preload bin/bundle install --redownload -j$(getconf _NPROCESSORS_ONLN)
+	ynh_exec_warn_less ynh_exec_as $app $#REMOVEME? ynh_ruby_load_path $ld_preload bin/bundle install --redownload -j$(getconf _NPROCESSORS_ONLN)
 popd
 
 #=================================================
