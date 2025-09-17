@@ -87,3 +87,9 @@ ram.runtime = "500M"
 
     [resources.database]
     type = "postgresql"
+
+    [resources.nodejs]
+    version = "22"
+
+    [resources.ruby]
+    version = "3.4.5"
