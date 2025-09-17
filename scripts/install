@@ -1,45 +1,30 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source ynh_add_swap
 source /usr/share/yunohost/helpers
 
 admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 # Set `service` settings to support `yunohost app shell` command
-ynh_app_setting_set --app="$app" --key=service --value="$app-web.service"
+ynh_app_setting_set --key=service --value="$app-web.service"
 
-#=================================================
-# APP "BUILD" (DEPLOYING SOURCES, VENV, COMPILING ETC)
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --weight=1
+ynh_script_progression "Setting up source files..."
 
-# Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir/live"
 # Download redis migration script
 ynh_setup_source --source_id=redis_migration --dest_dir="$install_dir/live"
 
+chmod -R 775 "$install_dir"
+chmod o-rwx "$install_dir"
 chown -R $app:www-data "$install_dir"
-
-#=================================================
-# INSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Installing Ruby and NodeJS..." --weight=1
-
-#REMOVEME? ynh_exec_warn_less #REMOVEME? ynh_install_ruby --#REMOVEME? ruby_version=$ruby_version
-#REMOVEME? ynh_exec_warn_less #REMOVEME? ynh_install_nodejs --#REMOVEME? nodejs_version=$nodejs_version
 
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
-ynh_script_progression --message="Adding swap if needed..." --weight=1
+ynh_script_progression "Adding swap if needed..."
 
 total_memory=$(ynh_get_ram --total)
 swap_needed=0
@@ -49,24 +34,24 @@ if [ $total_memory -lt $memory_needed ]; then
 	swap_needed=$(($memory_needed - $total_memory))
 fi
 
-ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
+ynh_script_progression "Adding $swap_needed Mo to swap..."
 
 ynh_add_swap --size=$swap_needed
 
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding a configuration file..." --weight=1
+ynh_script_progression "Adding $app's configuration..."
 
 config="$install_dir/live/.env.production"
 
 language="$(echo $language | head -c 2)"
 
 secret_key_base=$(ynh_string_random --length=128)
-ynh_app_setting_set --app="$app" --key=secret_key_base --value="$secret_key_base"
+ynh_app_setting_set --key=secret_key_base --value="$secret_key_base"
 
 otp_secret=$(ynh_string_random --length=128)
-ynh_app_setting_set --app="$app" --key=otp_secret --value="$otp_secret"
+ynh_app_setting_set --key=otp_secret --value="$otp_secret"
 
 # We need bundle exec rails to build vapid keys, we generate them later once the app is installed
 vapid_private_key=""
@@ -77,101 +62,92 @@ active_record_encryption_deterministic_key=""
 active_record_encryption_key_derivation_salt=""
 active_record_encryption_primary_key=""
 
-ynh_add_config --template=".env.production.sample" --destination="$config"
-chmod 400 "$config"
-chown $app:$app "$config"
+ynh_config_add --template=".env.production.sample" --destination="$config"
 
 #=================================================
 # BUILD APP
 #=================================================
-ynh_script_progression --message="Building app..." --weight=1
+ynh_script_progression "Building app..."
 
 pushd "$install_dir/live"
-	# Building ruby packages
-	#REMOVEME? ynh_use_ruby
-	ynh_gem update --system
-	ynh_gem install bundler --no-document
-	ynh_exec_as $app $#REMOVEME? ynh_ruby_load_path $ld_preload bin/bundle config deployment 'true'
-	ynh_exec_as $app $#REMOVEME? ynh_ruby_load_path $ld_preload bin/bundle config without 'development test'
-	ynh_exec_as $app $#REMOVEME? ynh_ruby_load_path $ld_preload bin/bundle config set force_ruby_platform true --quiet
-	ynh_exec_warn_less ynh_exec_as $app $#REMOVEME? ynh_ruby_load_path $ld_preload bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
-	#REMOVEME? ynh_use_nodejs
-	env $ynh_node_load_PATH corepack enable
-	echo Y | ynh_exec_warn_less ynh_exec_as $app env $ynh_node_load_PATH yarn workspaces focus --production
-	ynh_exec_warn_less ynh_exec_as $app env $ynh_node_load_PATH yarn install --immutable
+	gem update --system
+	gem install bundler --no-document
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle config deployment 'true'
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle config without 'development test'
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle config set force_ruby_platform true --quiet
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
+
+	env corepack enable
+	echo Y | ynh_exec_as_app yarn workspaces focus --production
+	ynh_exec_as_app yarn install --immutable
 	echo "SAFETY_ASSURED=1">> $config
 	# Generate vapid keys
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $#REMOVEME? ynh_ruby_load_path $ld_preload bin/bundle exec rails mastodon:webpush:generate_vapid_key > vapid_key.txt
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/bundle exec rails mastodon:webpush:generate_vapid_key > vapid_key.txt
 	# Generate active record encryption
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $#REMOVEME? ynh_ruby_load_path $ld_preload bin/bundle exec rails db:encryption:init > active_record_encryption.txt
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/bundle exec rails db:encryption:init > active_record_encryption.txt
 popd
 
 # Re-generate config with vapid keys and active record encryption
 vapid_private_key=$(grep -oP "VAPID_PRIVATE_KEY=\K.+" "$install_dir/live/vapid_key.txt")
-ynh_app_setting_set --app="$app" --key=vapid_private_key --value="$vapid_private_key"
+ynh_app_setting_set --key=vapid_private_key --value="$vapid_private_key"
 vapid_public_key=$(grep -oP "VAPID_PUBLIC_KEY=\K.+" "$install_dir/live/vapid_key.txt")
-ynh_app_setting_set --app="$app" --key=vapid_public_key --value="$vapid_public_key"
-ynh_secure_remove --file="$install_dir/live/vapid_key.txt"
+ynh_app_setting_set --key=vapid_public_key --value="$vapid_public_key"
+ynh_safe_rm "$install_dir/live/vapid_key.txt"
 active_record_encryption_deterministic_key=$(grep -oP "ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=\K.+" "$install_dir/live/active_record_encryption.txt")
-ynh_app_setting_set --app="$app" --key=active_record_encryption_deterministic_key --value="$active_record_encryption_deterministic_key"
+ynh_app_setting_set --key=active_record_encryption_deterministic_key --value="$active_record_encryption_deterministic_key"
 active_record_encryption_key_derivation_salt=$(grep -oP "ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=\K.+" "$install_dir/live/active_record_encryption.txt")
-ynh_app_setting_set --app="$app" --key=active_record_encryption_key_derivation_salt --value="$active_record_encryption_key_derivation_salt"
+ynh_app_setting_set --key=active_record_encryption_key_derivation_salt --value="$active_record_encryption_key_derivation_salt"
 active_record_encryption_primary_key=$(grep -oP "ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=\K.+" "$install_dir/live/active_record_encryption.txt")
-ynh_app_setting_set --app="$app" --key=active_record_encryption_primary_key --value="$active_record_encryption_primary_key"
-ynh_secure_remove --file="$install_dir/live/active_record_encryption.txt"
-ynh_delete_file_checksum --file="$config"
-ynh_add_config --template=".env.production.sample" --destination="$config"
-chmod 400 "$config"
-chown $app:$app "$config"
+ynh_app_setting_set --key=active_record_encryption_primary_key --value="$active_record_encryption_primary_key"
+ynh_safe_rm "$install_dir/live/active_record_encryption.txt"
+ynh_delete_file_checksum "$config"
+ynh_config_add --template=".env.production.sample" --destination="$config"
 
 pushd "$install_dir/live"
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $#REMOVEME? ynh_ruby_load_path $ld_preload bin/bundle exec rails db:migrate --quiet
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $#REMOVEME? ynh_ruby_load_path $ld_preload bin/bundle exec rails db:seed --quiet
-        ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $#REMOVEME? ynh_ruby_load_path $ld_preload bin/bundle exec rails assets:precompile --quiet
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/bundle exec rails db:migrate --quiet
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/bundle exec rails db:seed --quiet
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/bundle exec rails assets:precompile --quiet
 	# Create the first admin user
-	ynh_exec_quiet ynh_exec_as $app RAILS_ENV=production $#REMOVEME? ynh_ruby_load_path $ld_preload bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=Owner
-	ynh_exec_warn_less ynh_exec_as $app RAILS_ENV=production $#REMOVEME? ynh_ruby_load_path $ld_preload bin/tootctl accounts approve "$admin"
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/tootctl accounts create "$admin" --email="$admin_mail" --confirmed --role=Owner
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/tootctl accounts approve "$admin"
 popd
 
 #=================================================
 # SYSTEM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
+ynh_script_progression "Adding system configurations related to $app..."
 
 # Create a dedicated NGINX config using the conf/nginx.conf template
-ynh_add_nginx_config
+ynh_config_add_nginx
 
 # Create a dedicated systemd config
-ynh_add_systemd_config --service="$app-web" --template="mastodon-web.service"
+ynh_config_add_systemd --service="$app-web" --template="mastodon-web.service"
 yunohost service add "$app-web" --description="$app web service"
 
-ynh_add_systemd_config --service="$app-sidekiq" --template="mastodon-sidekiq.service"
+ynh_config_add_systemd --service="$app-sidekiq" --template="mastodon-sidekiq.service"
 yunohost service add "$app-sidekiq" --description="$app sidekiq service"
 
-ynh_add_systemd_config --service="$app-streaming" --template="mastodon-streaming.service"
+ynh_config_add_systemd --service="$app-streaming" --template="mastodon-streaming.service"
 yunohost service add "$app-streaming" --description="$app streaming service"
 
 # Create a cron file
-ynh_add_config --template="cron" --destination="/etc/cron.d/$app"
+ynh_config_add --template="cron" --destination="/etc/cron.d/$app"
 
 # Use logrotate to manage application logfile(s)
 mkdir -p /var/log/$app
-chown $app:$app /var/log/$app
-ynh_use_logrotate
+ynh_config_add_logrotate
 
-#=================================================
-# GENERIC FINALIZATION
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting all systemd services..." --weight=1
+ynh_script_progression "Starting all systemd services..."
 
-ynh_systemd_action --service_name=${app}-web --action="start" --log_path=/var/log/$app/$app-web.log --line_match="Listening on"
-ynh_systemd_action --service_name=${app}-sidekiq --action="start" --log_path=/var/log/$app/$app-sidekiq.log --line_match="Schedules Loaded"
-ynh_systemd_action --service_name=${app}-streaming --action="start" --log_path=/var/log/$app/$app-streaming.log --line_match="Streaming API now listening"
+ynh_systemctl --service=${app}-web --action="start" --log_path=/var/log/$app/$app-web.log --wait_until="Listening on"
+ynh_systemctl --service=${app}-sidekiq --action="start" --log_path=/var/log/$app/$app-sidekiq.log --wait_until="Schedules Loaded"
+ynh_systemctl --service=${app}-streaming --action="start" --log_path=/var/log/$app/$app-streaming.log --wait_until="Streaming API now listening"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed" --last
+ynh_script_progression "Installation of $app completed"
