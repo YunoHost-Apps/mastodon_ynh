@@ -45,7 +45,7 @@ ynh_script_progression "Building app..."
 pushd "$install_dir/live"
 	gem update --system
 	gem install bundler --no-document
-	ynh_hide_warnings ynh_exec_as_app $ld_preload bin/bundle install --redownload -j$(getconf _NPROCESSORS_ONLN)
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle install --redownload -j$(getconf _NPROCESSORS_ONLN)
 popd
 
 #=================================================
