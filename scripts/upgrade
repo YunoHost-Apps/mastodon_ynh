@@ -46,14 +46,6 @@ ynh_script_progression "Adding $swap_needed Mo to swap..."
 ynh_add_swap --size=$swap_needed
 
 #=================================================
-# UPGRADE DEPENDENCIES
-#=================================================
-ynh_script_progression "Upgrading Ruby and NodeJS..."
-
-ynh_ruby_install
-ynh_nodejs_install
-
-#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression "Upgrading source files..."
@@ -75,14 +67,14 @@ ynh_script_progression "Building assets..."
 pushd "$install_dir/live"
 	gem update --system
 	gem install bundler --no-document
-	ynh_hide_warnings ynh_exec_as_app $ld_preload bin/bundle config deployment 'true'
-	ynh_hide_warnings ynh_exec_as_app $ld_preload bin/bundle config without 'development test'
-	ynh_hide_warnings ynh_exec_as_app $ld_preload bin/bundle config set force_ruby_platform true --quiet
-	ynh_hide_warnings ynh_exec_as_app $ld_preload bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle config deployment 'true'
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle config without 'development test'
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle config set force_ruby_platform true --quiet
+	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle install -j$(getconf _NPROCESSORS_ONLN)
 
 	env corepack enable
-	echo Y | ynh_hide_warnings ynh_exec_as_app yarn workspaces focus --production
-	ynh_hide_warnings ynh_exec_as_app yarn install --immutable
+	echo Y | ynh_exec_as_app yarn workspaces focus --production
+	ynh_exec_as_app yarn install --immutable
 popd
 
 chown -R "$app:www-data" "$install_dir/live/public"
@@ -119,7 +111,7 @@ if ynh_app_upgrading_from_version_before 4.3.2~ynh1; then
 	pushd "$install_dir/live"
 
 		# Generate active record encryption
-		ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production $ld_preload bin/bundle exec rails db:encryption:init > active_record_encryption.txt
+		ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/bundle exec rails db:encryption:init > active_record_encryption.txt
 		active_record_encryption_deterministic_key=$(grep -oP "ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=\K.+" "$install_dir/live/active_record_encryption.txt")
 		ynh_app_setting_set --key=active_record_encryption_deterministic_key --value="$active_record_encryption_deterministic_key"
 		active_record_encryption_key_derivation_salt=$(grep -oP "ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=\K.+" "$install_dir/live/active_record_encryption.txt")
@@ -140,11 +132,11 @@ ynh_config_add --template=".env.production.sample" --destination="$config"
 ynh_script_progression "Applying migrations..."
 
 pushd "$install_dir/live"
-	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production $ld_preload bin/bundle exec rails db:migrate --quiet
-	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production $ld_preload bin/bundle exec rails assets:precompile --quiet
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/bundle exec rails db:migrate --quiet
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production LD_PRELOAD=libjemalloc.so bin/bundle exec rails assets:precompile --quiet
 
 	# Apply redis namespace migration (https://github.com/mastodon/redis_namespace_migration)
-	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production COREPACK_ENABLE_DOWNLOAD_PROMPT=0 $ld_preload bin/rails runner rename.rb
+	ynh_hide_warnings ynh_exec_as_app RAILS_ENV=production COREPACK_ENABLE_DOWNLOAD_PROMPT=0 LD_PRELOAD=libjemalloc.so bin/rails runner rename.rb
 	redis_namespace="$(ynh_app_setting_get --key=redis_namespace)"
 	if [ $redis_namespace ]; then
 		if [ ynh_app_setting_get --key=es_enabled == "true" ] && [ ynh_app_setting_get --key=es_prefix == "" ]; then

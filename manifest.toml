@@ -5,7 +5,7 @@ name = "Mastodon"
 description.en = "Libre and federated social network"
 description.fr = "Réseau social libre et fédéré"
 
-version = "4.4.3~ynh1"
+version = "4.4.5~ynh1"
 
 maintainers = []
 
@@ -19,7 +19,7 @@ cpe = "cpe:2.3:a:joinmastodon:mastodon"
 fund = "https://joinmastodon.org/sponsors"
 
 [integration]
-yunohost = ">= 12.0.10"
+yunohost = ">= 12.1.17"
 helpers_version = "2.1"
 architectures = "all"
 multi_instance = true
@@ -52,8 +52,8 @@ ram.runtime = "500M"
 [resources]
     [resources.sources]
         [resources.sources.main]
-        url = "https://github.com/mastodon/mastodon/archive/refs/tags/v4.4.3.tar.gz"
-        sha256 = "ede116b80a525462f5ea68d046a4cdd787930fc6d2f9327c140756311ee07848"
+        url = "https://github.com/mastodon/mastodon/archive/refs/tags/v4.4.5.tar.gz"
+        sha256 = "add9ee5caae722549a2f7ed2129ecaed0945a1b2f942afbdbb7bd8ab73961fe6"
         autoupdate.strategy = "latest_github_release"
 
         [resources.sources.redis_migration]
@@ -67,7 +67,8 @@ ram.runtime = "500M"
     allow_email = true
 
     [resources.install_dir]
-
+    group = "www-data:r-x"
+    
     [resources.permissions]
     main.url = "/"
 
@@ -86,3 +87,9 @@ ram.runtime = "500M"
 
     [resources.database]
     type = "postgresql"
+
+    [resources.nodejs]
+    version = "22"
+
+    [resources.ruby]
+    version = "3.4.5"

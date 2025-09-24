@@ -1,7 +1,7 @@
 # This is a system cron file, see crontab(5)
 # m h dom mon dow user command
-@daily __APP__ cd __INSTALL_DIR__/live && PATH=__PATH_WITH_RUBY__ __LD_PRELOAD__ RAILS_ENV=production bin/tootctl media remove
-@monthly __APP__ cd __INSTALL_DIR__/live && PATH=__PATH_WITH_RUBY__ __LD_PRELOAD__ RAILS_ENV=production bin/tootctl media remove-orphans
-@monthly __APP__ cd __INSTALL_DIR__/live && PATH=__PATH_WITH_RUBY__ __LD_PRELOAD__ RAILS_ENV=production bin/tootctl accounts cull
-@monthly __APP__ cd __INSTALL_DIR__/live && PATH=__PATH_WITH_RUBY__ __LD_PRELOAD__ RAILS_ENV=production bin/tootctl statuses remove
-@monthly __APP__ cd __INSTALL_DIR__/live && PATH=__PATH_WITH_RUBY__ __LD_PRELOAD__ RAILS_ENV=production bin/tootctl preview_cards remove
+@daily __APP__ cd __INSTALL_DIR__/live && PATH=__PATH_WITH_RUBY__ LD_PRELOAD=libjemalloc.so RAILS_ENV=production bin/tootctl media remove
+@monthly __APP__ cd __INSTALL_DIR__/live && PATH=__PATH_WITH_RUBY__ LD_PRELOAD=libjemalloc.so RAILS_ENV=production bin/tootctl media remove-orphans
+@monthly __APP__ cd __INSTALL_DIR__/live && PATH=__PATH_WITH_RUBY__ LD_PRELOAD=libjemalloc.so RAILS_ENV=production bin/tootctl accounts cull
+@monthly __APP__ cd __INSTALL_DIR__/live && PATH=__PATH_WITH_RUBY__ LD_PRELOAD=libjemalloc.so RAILS_ENV=production bin/tootctl statuses remove
+@monthly __APP__ cd __INSTALL_DIR__/live && PATH=__PATH_WITH_RUBY__ LD_PRELOAD=libjemalloc.so RAILS_ENV=production bin/tootctl preview_cards remove
