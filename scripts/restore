@@ -2,7 +2,6 @@
 
 # Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
-source ../settings/scripts/ynh_add_swap
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -36,14 +35,6 @@ fi
 ynh_script_progression "Adding $swap_needed Mo to swap..."
 
 ynh_add_swap --size=$swap_needed
-
-#=================================================
-# REINSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression "Reinstalling Ruby and NodeJS..."
-
-ynh_ruby_install
-ynh_nodejs_install
 
 #=================================================
 # BUILD APP

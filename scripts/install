@@ -1,20 +1,11 @@
 #!/bin/bash
 
 source _common.sh
-source ynh_add_swap
 source /usr/share/yunohost/helpers
 
 admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 # Set `service` settings to support `yunohost app shell` command
 ynh_app_setting_set --key=service --value="$app-web.service"
-
-#=================================================
-# INSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression "Installing Ruby and NodeJS..."
-
-ynh_ruby_install
-ynh_nodejs_install
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE

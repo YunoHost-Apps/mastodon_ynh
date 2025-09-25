@@ -1,7 +1,6 @@
 #!/bin/bash
 
 source _common.sh
-source ynh_add_swap
 source /usr/share/yunohost/helpers
 
 #=================================================
@@ -35,10 +34,6 @@ ynh_safe_rm "/etc/cron.d/$app"
 
 # Remote logrotate config
 ynh_config_remove_logrotate
-
-# Remove metapackage and its dependencies
-ynh_ruby_remove
-ynh_nodejs_remove
 
 # Remove swap
 ynh_del_swap
