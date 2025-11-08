@@ -73,9 +73,9 @@ ynh_restore "/etc/logrotate.d/$app"
 #=================================================
 ynh_script_progression "Reloading NGINX web server and $app's service..."
 
-ynh_systemctl --service=${app}-web --action="start" --log_path=/var/log/$app/$app-web.log --wait_until="Listening on"
-ynh_systemctl --service=${app}-sidekiq --action="start" --log_path=/var/log/$app/$app-sidekiq.log --wait_until="Schedules Loaded"
-ynh_systemctl --service=${app}-streaming --action="start" --log_path=/var/log/$app/$app-streaming.log --wait_until="Streaming API now listening"
+ynh_systemctl --service=${app}-web --action="start" --log_path=/var/log/$app/$app-web.log #--wait_until="Listening on"
+ynh_systemctl --service=${app}-sidekiq --action="start" --log_path=/var/log/$app/$app-sidekiq.log #--wait_until="Schedules Loaded"
+ynh_systemctl --service=${app}-streaming --action="start" --log_path=/var/log/$app/$app-streaming.log #--wait_until="Streaming API now listening"
 
 ynh_systemctl --service=nginx --action=reload
 

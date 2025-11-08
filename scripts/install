@@ -141,9 +141,9 @@ ynh_config_add_logrotate
 #=================================================
 ynh_script_progression "Starting all systemd services..."
 
-ynh_systemctl --service=${app}-web --action="start" --log_path=/var/log/$app/$app-web.log --wait_until="Listening on"
-ynh_systemctl --service=${app}-sidekiq --action="start" --log_path=/var/log/$app/$app-sidekiq.log --wait_until="Schedules Loaded"
-ynh_systemctl --service=${app}-streaming --action="start" --log_path=/var/log/$app/$app-streaming.log --wait_until="Streaming API now listening"
+ynh_systemctl --service=${app}-web --action="start" --log_path=/var/log/$app/$app-web.log #--wait_until="Listening on"
+ynh_systemctl --service=${app}-sidekiq --action="start" --log_path=/var/log/$app/$app-sidekiq.log #--wait_until="Schedules Loaded"
+ynh_systemctl --service=${app}-streaming --action="start" --log_path=/var/log/$app/$app-streaming.log #--wait_until="Streaming API now listening"
 
 #=================================================
 # END OF SCRIPT
