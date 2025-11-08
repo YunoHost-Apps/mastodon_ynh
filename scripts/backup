@@ -13,24 +13,16 @@ ynh_print_info "Declaring files to be backed up..."
 ynh_backup "$install_dir"
 
 #=================================================
-# BACKUP THE NGINX CONFIGURATION
+# BACKUP SYSTEM CONFIGURATION
 #=================================================
 
 ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 
-#=================================================
-# BACKUP LOGROTATE
-#=================================================
-
-ynh_backup "/etc/logrotate.d/$app"
-
-#=================================================
-# BACKUP SYSTEMD
-#=================================================
-
 ynh_backup "/etc/systemd/system/$app-web.service"
 ynh_backup "/etc/systemd/system/$app-sidekiq.service"
 ynh_backup "/etc/systemd/system/$app-streaming.service"
+
+ynh_backup "/etc/logrotate.d/$app"
 
 #=================================================
 # BACKUP VARIOUS FILES

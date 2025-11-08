@@ -17,8 +17,8 @@ fi
 #=================================================
 ynh_script_progression "Stopping $app's systemd service..."
 
-ynh_systemctl --service=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log --wait_until="Goodbye"
-ynh_systemctl --service=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log --wait_until="Bye"
+ynh_systemctl --service=${app}-web --action="stop" --log_path=/var/log/$app/$app-web.log
+ynh_systemctl --service=${app}-sidekiq --action="stop" --log_path=/var/log/$app/$app-sidekiq.log
 ynh_systemctl --service=${app}-streaming --action="stop" --log_path=/var/log/$app/$app-streaming.log
 
 #=================================================
@@ -152,9 +152,9 @@ popd
 #=================================================
 ynh_script_progression "Starting $app's systemd service..."
 
-ynh_systemctl --service=${app}-web --action="restart" --log_path=/var/log/$app/$app-web.log --wait_until="Listening on"
-ynh_systemctl --service=${app}-sidekiq --action="start" --log_path=/var/log/$app/$app-sidekiq.log --wait_until="Schedules Loaded"
-ynh_systemctl --service=${app}-streaming --action="start" --log_path=/var/log/$app/$app-streaming.log --wait_until="Streaming API now listening"
+ynh_systemctl --service=${app}-web --action="restart" --log_path=/var/log/$app/$app-web.log #--wait_until="Listening on"
+ynh_systemctl --service=${app}-sidekiq --action="start" --log_path=/var/log/$app/$app-sidekiq.log #--wait_until="Schedules Loaded"
+ynh_systemctl --service=${app}-streaming --action="start" --log_path=/var/log/$app/$app-streaming.log #--wait_until="Streaming API now listening"
 
 #=================================================
 # END OF SCRIPT
