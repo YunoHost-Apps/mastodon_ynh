@@ -5,7 +5,7 @@ name = "Mastodon"
 description.en = "Libre and federated social network"
 description.fr = "Réseau social libre et fédéré"
 
-version = "4.5.1~ynh1"
+version = "4.5.2~ynh1"
 
 maintainers = []
 
@@ -52,8 +52,8 @@ ram.runtime = "500M"
 [resources]
     [resources.sources]
         [resources.sources.main]
-        url = "https://github.com/mastodon/mastodon/archive/refs/tags/v4.5.1.tar.gz"
-        sha256 = "1b63614ef4c7780495e68fec448292ad6e5127c0b8b9852fe327e8979132d7cb"
+        url = "https://github.com/mastodon/mastodon/archive/refs/tags/v4.5.2.tar.gz"
+        sha256 = "5fc1f2409f59ac4fdd07addb01ed1ab0dba57251cd1f44a39c3e4a57037795d7"
         autoupdate.strategy = "latest_github_release"
 
         [resources.sources.redis_migration]
