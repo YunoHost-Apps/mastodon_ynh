@@ -70,7 +70,7 @@ ynh_script_progression "Building app..."
 
 pushd "$install_dir/live"
 	gem update --system
-	gem install bundler --no-document
+	gem install bundler -v '~> 2.7' --no-document
 	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle config deployment 'true'
 	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle config without 'development test'
 	ynh_hide_warnings ynh_exec_as_app LD_PRELOAD=libjemalloc.so bin/bundle config set force_ruby_platform true --quiet
