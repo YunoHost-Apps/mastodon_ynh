@@ -1,0 +1,47 @@
+version = "1.0"
+
+[main]
+    [main.s3]
+    services = ["__APP__-web", "__APP__-sidekiq"]
+    name = "S3 Configuration"
+    optional = true
+        
+        [main.s3.s3_enabled]
+        ask.en = "Enable S3-compatible media storage"
+        type = "boolean"
+        yes = "true" 
+        no = "false"
+        bind = "S3_ENABLED:__INSTALL_DIR__/live/.env.production"
+
+        [main.s3.s3_endpoint]
+        ask = "S3 Endpoint"
+        example = "https://minio.domain.tld"
+        type = "url"
+        bind = "S3_ENDPOINT:__INSTALL_DIR__/live/.env.production"
+        visible = "s3_enabled"
+
+        [main.s3.s3_bucket]
+        ask = "S3 Bucket"
+        type = "string"
+        example = "mastodata"
+        bind = "S3_BUCKET:__INSTALL_DIR__/live/.env.production"
+        visible = "s3_enabled"
+
+        [main.s3.s3_access_key_id]
+        ask = "S3 Access Key ID"
+        type = "string"
+        bind = "AWS_ACCESS_KEY_ID:__INSTALL_DIR__/live/.env.production"
+        visible = "s3_enabled"
+
+        [main.s3.s3_access_key_secret]
+        ask = "S3 Access Key Secret"
+        type = "password"
+        bind = "AWS_SECRET_ACCESS_KEY:__INSTALL_DIR__/live/.env.production"
+        visible = "s3_enabled"
+
+        [main.s3.s3_alias_host]
+        ask = "S3 Alias Host"
+        help = "https://docs.joinmastodon.org/admin/optional/object-storage-proxy/"
+        type = "string"
+        bind = "S3_ALIAS_HOST:/var/www/__APP__/live/.env.production"
+        visible = "s3_enabled"
