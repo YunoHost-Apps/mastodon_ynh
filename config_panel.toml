@@ -58,7 +58,7 @@ version = "1.0"
     optional = true
 
         [main.oidc.oidc_enabled]
-        ask.en = "Enable OpenID Connect login (e.g. IServ, Keycloak, Authelia...)"
+        ask.en = "Enable OpenID Connect login (e.g. Keycloak, Authelia, Authentik, generic OIDC provider...)"
         type = "boolean"
         yes = "true"
         no = "false"
@@ -69,14 +69,14 @@ version = "1.0"
         ask = "Button label"
         help = "Shown on the 'Log in with ...' button"
         type = "string"
-        example = "IServ"
+        example = "Keycloak"
         default = ""
         bind = "OIDC_DISPLAY_NAME:__INSTALL_DIR__/live/.env.production"
         visible = "oidc_enabled"
 
         [main.oidc.oidc_issuer]
         ask = "OIDC Issuer URL"
-        help = "Root URL of your identity provider, e.g. https://your-iserv.de/iserv/oauth/v2"
+        help = "Root URL of your identity provider, e.g. https://auth.example.com or https://keycloak.example.com/realms/myrealm"
         type = "string"
         default = ""
         bind = "OIDC_ISSUER:__INSTALL_DIR__/live/.env.production"
