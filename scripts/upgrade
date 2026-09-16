@@ -29,6 +29,76 @@ ynh_script_progression "Ensuring downward compatibility..."
 # Set `service` settings to support `yunohost app shell` command
 ynh_app_setting_set_default --key=service --value="$app-web.service"
 
+# If s3_enabled doesn't exist, create it
+if [[ -z "${s3_enabled:-}" ]]; then
+	s3_enabled=$(ynh_read_var_in_file --file="$config" --key="S3_ENABLED")
+	[ "$s3_enabled" = "YNH_NULL" ] && s3_enabled="false"
+	ynh_app_setting_set --app=$app --key=s3_enabled --value=$s3_enabled
+
+	s3_endpoint=$(ynh_read_var_in_file --file="$config" --key="S3_ENDPOINT")
+	[ "$s3_endpoint" = "YNH_NULL" ] && s3_endpoint=""
+	ynh_app_setting_set --app=$app --key=s3_endpoint --value="$s3_endpoint"
+
+	s3_bucket=$(ynh_read_var_in_file --file="$config" --key="S3_BUCKET")
+	[ "$s3_bucket" = "YNH_NULL" ] && s3_bucket=""
+	ynh_app_setting_set --app=$app --key=s3_bucket --value="$s3_bucket"
+
+	s3_access_key_id=$(ynh_read_var_in_file --file="$config" --key="AWS_ACCESS_KEY_ID")
+	[ "$s3_access_key_id" = "YNH_NULL" ] && s3_access_key_id=""
+	ynh_app_setting_set --app=$app --key=s3_access_key_id --value="$s3_access_key_id"
+
+	s3_access_key_secret=$(ynh_read_var_in_file --file="$config" --key="AWS_SECRET_ACCESS_KEY")
+	[ "$s3_access_key_secret" = "YNH_NULL" ] && s3_access_key_secret=""
+	ynh_app_setting_set --app=$app --key=s3_access_key_secret --value="$s3_access_key_secret"
+
+	s3_alias_host=$(ynh_read_var_in_file --file="$config" --key="S3_ALIAS_HOST")
+	[ "$s3_alias_host" = "YNH_NULL" ] && s3_alias_host=""
+	ynh_app_setting_set --app=$app --key=s3_alias_host --value="$s3_alias_host"
+fi
+
+# If oidc_enabled doesn't exist, create it
+if [[ -z "${oidc_enabled:-}" ]]; then
+	oidc_enabled=$(ynh_read_var_in_file --file="$config" --key="OIDC_ENABLED")
+	[ "$oidc_enabled" = "YNH_NULL" ] && oidc_enabled="false"
+	ynh_app_setting_set --app=$app --key=oidc_enabled --value=$oidc_enabled
+
+	oidc_display_name=$(ynh_read_var_in_file --file="$config" --key="OIDC_DISPLAY_NAME")
+	[ "$oidc_display_name" = "YNH_NULL" ] && oidc_display_name=""
+	ynh_app_setting_set --app=$app --key=oidc_display_name --value="$oidc_display_name"
+
+	oidc_issuer=$(ynh_read_var_in_file --file="$config" --key="OIDC_ISSUER")
+	[ "$oidc_issuer" = "YNH_NULL" ] && oidc_issuer=""
+	ynh_app_setting_set --app=$app --key=oidc_issuer --value="$oidc_issuer"
+
+	oidc_discovery=$(ynh_read_var_in_file --file="$config" --key="OIDC_DISCOVERY")
+	[ "$oidc_discovery" = "YNH_NULL" ] && oidc_discovery="false"
+	ynh_app_setting_set --app=$app --key=oidc_discovery --value=$oidc_discovery
+
+	oidc_client_id=$(ynh_read_var_in_file --file="$config" --key="OIDC_CLIENT_ID")
+	[ "$oidc_client_id" = "YNH_NULL" ] && oidc_client_id=""
+	ynh_app_setting_set --app=$app --key=oidc_client_id --value="$oidc_client_id"
+
+	oidc_client_secret=$(ynh_read_var_in_file --file="$config" --key="OIDC_CLIENT_SECRET")
+	[ "$oidc_client_secret" = "YNH_NULL" ] && oidc_client_secret=""
+	ynh_app_setting_set --app=$app --key=oidc_client_secret --value="$oidc_client_secret"
+
+	oidc_redirect_uri=$(ynh_read_var_in_file --file="$config" --key="OIDC_REDIRECT_URI")
+	[ "$oidc_redirect_uri" = "YNH_NULL" ] && oidc_redirect_uri=""
+	ynh_app_setting_set --app=$app --key=oidc_redirect_uri --value="$oidc_redirect_uri"
+
+	oidc_scope=$(ynh_read_var_in_file --file="$config" --key="OIDC_SCOPE")
+	[ "$oidc_scope" = "YNH_NULL" ] && oidc_scope=""
+	ynh_app_setting_set --app=$app --key=oidc_scope --value="${oidc_scope:-openid,profile,email}"
+
+	oidc_uid_field=$(ynh_read_var_in_file --file="$config" --key="OIDC_UID_FIELD")
+	[ "$oidc_uid_field" = "YNH_NULL" ] && oidc_uid_field=""
+	ynh_app_setting_set --app=$app --key=oidc_uid_field --value="${oidc_uid_field:-preferred_username}"
+
+	oidc_security_assume_email_is_verified=$(ynh_read_var_in_file --file="$config" --key="OIDC_SECURITY_ASSUME_EMAIL_IS_VERIFIED")
+	[ "$oidc_security_assume_email_is_verified" = "YNH_NULL" ] && oidc_security_assume_email_is_verified="false"
+	ynh_app_setting_set --app=$app --key=oidc_security_assume_email_is_verified --value=$oidc_security_assume_email_is_verified
+fi
+
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
