@@ -1,0 +1,140 @@
+version = "1.0"
+
+[main]
+    [main.s3]
+    services = ["__APP__-web", "__APP__-sidekiq"]
+    name = "S3 Configuration"
+    optional = true
+        
+        [main.s3.s3_enabled]
+        ask.en = "Enable S3-compatible media storage"
+        type = "boolean"
+        yes = "true" 
+        no = "false"
+        default = "false"
+        bind = "S3_ENABLED:__INSTALL_DIR__/live/.env.production"
+
+        [main.s3.s3_endpoint]
+        ask = "S3 Endpoint"
+        example = "https://minio.domain.tld"
+        type = "string"
+        default = ""
+        bind = "S3_ENDPOINT:__INSTALL_DIR__/live/.env.production"
+        visible = "s3_enabled"
+
+        [main.s3.s3_bucket]
+        ask = "S3 Bucket"
+        type = "string"
+        example = "mastodata"
+        default = ""
+        bind = "S3_BUCKET:__INSTALL_DIR__/live/.env.production"
+        visible = "s3_enabled"
+
+        [main.s3.s3_access_key_id]
+        ask = "S3 Access Key ID"
+        type = "string"
+        default = ""
+        bind = "AWS_ACCESS_KEY_ID:__INSTALL_DIR__/live/.env.production"
+        visible = "s3_enabled"
+
+        [main.s3.s3_access_key_secret]
+        ask = "S3 Access Key Secret"
+        type = "password"
+        default = ""
+        bind = "AWS_SECRET_ACCESS_KEY:__INSTALL_DIR__/live/.env.production"
+        visible = "s3_enabled"
+
+        [main.s3.s3_alias_host]
+        ask = "S3 Alias Host"
+        help = "https://docs.joinmastodon.org/admin/optional/object-storage-proxy/"
+        type = "string"
+        default = ""
+        bind = "S3_ALIAS_HOST:/var/www/__APP__/live/.env.production"
+        visible = "s3_enabled"
+
+    [main.oidc]
+    services = ["__APP__-web", "__APP__-sidekiq"]
+    name = "OpenID Connect / SSO Configuration"
+    optional = true
+
+        [main.oidc.oidc_enabled]
+        ask.en = "Enable OpenID Connect login (e.g. IServ, Keycloak, Authelia...)"
+        type = "boolean"
+        yes = "true"
+        no = "false"
+        default = "false"
+        bind = "OIDC_ENABLED:__INSTALL_DIR__/live/.env.production"
+
+        [main.oidc.oidc_display_name]
+        ask = "Button label"
+        help = "Shown on the 'Log in with ...' button"
+        type = "string"
+        example = "IServ"
+        default = ""
+        bind = "OIDC_DISPLAY_NAME:__INSTALL_DIR__/live/.env.production"
+        visible = "oidc_enabled"
+
+        [main.oidc.oidc_issuer]
+        ask = "OIDC Issuer URL"
+        help = "Root URL of your identity provider, e.g. https://your-iserv.de/iserv/oauth/v2"
+        type = "string"
+        default = ""
+        bind = "OIDC_ISSUER:__INSTALL_DIR__/live/.env.production"
+        visible = "oidc_enabled"
+
+        [main.oidc.oidc_discovery]
+        ask = "Use OIDC discovery"
+        help = "Recommended if your provider exposes a /.well-known/openid-configuration endpoint"
+        type = "boolean"
+        yes = "true"
+        no = "false"
+        default = "false"
+        bind = "OIDC_DISCOVERY:__INSTALL_DIR__/live/.env.production"
+        visible = "oidc_enabled"
+
+        [main.oidc.oidc_client_id]
+        ask = "Client ID"
+        type = "string"
+        default = ""
+        bind = "OIDC_CLIENT_ID:__INSTALL_DIR__/live/.env.production"
+        visible = "oidc_enabled"
+
+        [main.oidc.oidc_client_secret]
+        ask = "Client Secret"
+        type = "password"
+        default = ""
+        bind = "OIDC_CLIENT_SECRET:__INSTALL_DIR__/live/.env.production"
+        visible = "oidc_enabled"
+
+        [main.oidc.oidc_redirect_uri]
+        ask = "Redirect URI"
+        help = "Must match exactly what is registered with your identity provider. Usually https://your-mastodon-domain/auth/auth/openid_connect/callback"
+        type = "string"
+        default = ""
+        bind = "OIDC_REDIRECT_URI:__INSTALL_DIR__/live/.env.production"
+        visible = "oidc_enabled"
+
+        [main.oidc.oidc_scope]
+        ask = "Scope"
+        type = "string"
+        default = "openid,profile,email"
+        bind = "OIDC_SCOPE:__INSTALL_DIR__/live/.env.production"
+        visible = "oidc_enabled"
+
+        [main.oidc.oidc_uid_field]
+        ask = "UID field"
+        help = "Which claim to match user accounts on, e.g. preferred_username or sub"
+        type = "string"
+        default = "preferred_username"
+        bind = "OIDC_UID_FIELD:__INSTALL_DIR__/live/.env.production"
+        visible = "oidc_enabled"
+
+        [main.oidc.oidc_security_assume_email_is_verified]
+        ask = "Assume email is verified"
+        help = "Enable if your provider does not send an explicit email_verified claim"
+        type = "boolean"
+        yes = "true"
+        no = "false"
+        default = "false"
+        bind = "OIDC_SECURITY_ASSUME_EMAIL_IS_VERIFIED:__INSTALL_DIR__/live/.env.production"
+        visible = "oidc_enabled"
