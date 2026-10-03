@@ -88,13 +88,13 @@ ynh_config_add_nginx
 
 # Create a dedicated systemd config
 ynh_config_add_systemd --service="$app-web" --template="mastodon-web.service"
-yunohost service add "$app-web" --description="$app web service"
+yunohost service add "$app-web" --description="$app web service" --log=/var/log/$app/$app-web.log
 
 ynh_config_add_systemd --service="$app-sidekiq" --template="mastodon-sidekiq.service"
-yunohost service add "$app-sidekiq" --description="$app sidekiq service"
+yunohost service add "$app-sidekiq" --description="$app sidekiq service" --log=/var/log/$app/$app-sidekiq.log
 
 ynh_config_add_systemd --service="$app-streaming" --template="mastodon-streaming.service"
-yunohost service add "$app-streaming" --description="$app streaming service"
+yunohost service add "$app-streaming" --description="$app streaming service" --log=/var/log/$app/$app-streaming.log
 
 ynh_config_add --template="cron" --destination="/etc/cron.d/$app"
 
