@@ -53,9 +53,6 @@ if [[ -z "$s3_enabled" ]]; then
 	ynh_app_setting_set --app=$app --key=s3_alias_host --value=$s3_alias_host
 fi
 
-# Remove previous added repository
-ynh_remove_extra_repo
-
 if ynh_compare_current_package_version --comparison lt --version "4.2.8~ynh2"; then
 	# Rename legacy database
 	if ynh_psql_database_exists --database="${app}_production"; then
