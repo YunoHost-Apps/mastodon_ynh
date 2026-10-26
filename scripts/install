@@ -9,38 +9,57 @@ ynh_app_setting_set --key=service --value="$app-web.service"
 
 # Define config_panel settings keys...
 s3_enabled=false
-ynh_app_setting_set --app=$app --key=s3_enabled --value=false
 s3_endpoint=""
-ynh_app_setting_set --app=$app --key=s3_endpoint --value=""
 s3_bucket=""
-ynh_app_setting_set --app=$app --key=s3_bucket --value=""
 s3_access_key_id=""
-ynh_app_setting_set --app=$app --key=s3_access_key_id --value=""
 s3_access_key_secret=""
-ynh_app_setting_set --app=$app --key=s3_access_key_secret --value=""
 s3_alias_host=""
-ynh_app_setting_set --app=$app --key=s3_alias_host --value=""
 
+ynh_app_setting_set --key=s3_enabled --value=false
+ynh_app_setting_set --key=s3_endpoint --value=""
+ynh_app_setting_set --key=s3_bucket --value=""
+ynh_app_setting_set --key=s3_access_key_id --value=""
+ynh_app_setting_set --key=s3_access_key_secret --value=""
+ynh_app_setting_set --key=s3_alias_host --value=""
+
+#-------
 oidc_enabled=false
-ynh_app_setting_set --app=$app --key=oidc_enabled --value=false
 oidc_display_name=""
-ynh_app_setting_set --app=$app --key=oidc_display_name --value=""
 oidc_issuer=""
-ynh_app_setting_set --app=$app --key=oidc_issuer --value=""
 oidc_discovery=false
-ynh_app_setting_set --app=$app --key=oidc_discovery --value=false
 oidc_client_id=""
-ynh_app_setting_set --app=$app --key=oidc_client_id --value=""
 oidc_client_secret=""
-ynh_app_setting_set --app=$app --key=oidc_client_secret --value=""
 oidc_redirect_uri=""
-ynh_app_setting_set --app=$app --key=oidc_redirect_uri --value=""
 oidc_scope="openid,profile,email"
-ynh_app_setting_set --app=$app --key=oidc_scope --value="openid,profile,email"
 oidc_uid_field="preferred_username"
-ynh_app_setting_set --app=$app --key=oidc_uid_field --value="preferred_username"
 oidc_security_assume_email_is_verified=false
-ynh_app_setting_set --app=$app --key=oidc_security_assume_email_is_verified --value=false
+
+ynh_app_setting_set --key=oidc_enabled --value=false
+ynh_app_setting_set --key=oidc_display_name --value=""
+ynh_app_setting_set --key=oidc_issuer --value=""
+ynh_app_setting_set --key=oidc_discovery --value=false
+ynh_app_setting_set --key=oidc_client_id --value=""
+ynh_app_setting_set --key=oidc_client_secret --value=""
+ynh_app_setting_set --key=oidc_redirect_uri --value=""
+ynh_app_setting_set --key=oidc_scope --value="openid,profile,email"
+ynh_app_setting_set --key=oidc_uid_field --value="preferred_username"
+ynh_app_setting_set --key=oidc_security_assume_email_is_verified --value=false
+
+#-------
+deepl_api_key=""
+deepl_plan="free"
+libre_translate_enpdoint=""
+libre_translate_api_key=""
+
+ynh_app_setting_set --key=deepl_api_key --value=""
+ynh_app_setting_set --key=deepl_plan --value="free"
+ynh_app_setting_set --key=libre_translate_endpoint --value=""
+ynh_app_setting_set --key=libre_translate_api_key --value=""
+
+#---------
+ldap_enabled=true
+ynh_app_setting_set --key=ldap_enabled --value=true
+
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
