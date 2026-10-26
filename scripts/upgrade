@@ -120,8 +120,8 @@ if [[ -z "${oidc_enabled:-}" ]]; then
 	ynh_app_setting_set --key=oidc_security_assume_email_is_verified --value=$oidc_security_assume_email_is_verified
 fi
 
-ynh_app_setting_set_default --key=ldap_api_key --value=""
-ynh_app_setting_set_default --key=ldap_plan --value="free"
+ynh_app_setting_set_default --key=deepl_api_key --value=""
+ynh_app_setting_set_default --key=deepl_plan --value="free"
 ynh_app_setting_set_default --key=libre_translate_endpoint --value=""
 ynh_app_setting_set_default --key=libre_translate_api_key --value=""
 ynh_app_setting_set_default --key=ldap_enabled --value="true"
