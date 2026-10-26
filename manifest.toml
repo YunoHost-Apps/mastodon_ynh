@@ -5,7 +5,7 @@ name = "Mastodon"
 description.en = "Libre and federated social network"
 description.fr = "Réseau social libre et fédéré"
 
-version = "4.5.3~ynh2"
+version = "4.7.3~ynh1"
 
 maintainers = []
 
@@ -19,7 +19,7 @@ cpe = "cpe:2.3:a:joinmastodon:mastodon"
 fund = "https://joinmastodon.org/sponsors"
 
 [integration]
-yunohost = ">= 12.1.17"
+yunohost = ">= 12.1.40"
 helpers_version = "2.1"
 architectures = "all"
 multi_instance = true
@@ -52,8 +52,8 @@ ram.runtime = "500M"
 [resources]
     [resources.sources]
         [resources.sources.main]
-        url = "https://github.com/mastodon/mastodon/archive/refs/tags/v4.5.3.tar.gz"
-        sha256 = "3b13b32e6ea85cfe3be6deb0feafa736d9cd1a2ecaffc5f79130a1e45436d992"
+        url = "https://github.com/mastodon/mastodon/archive/refs/tags/v4.7.3.tar.gz"
+        sha256 = "b9fca0d53c9005c2e84f23f55b2e32b045909afeb1931ae6de350a63497b85b2"
         autoupdate.strategy = "latest_github_release"
 
         [resources.sources.redis_migration]
@@ -83,7 +83,7 @@ ram.runtime = "500M"
     stream.default = 4000
 
     [resources.apt]
-    packages = "imagemagick, ffmpeg, libvips-tools, libpq-dev, libxml2-dev, libxslt1-dev, file, git, git-core, g++, libprotobuf-dev, protobuf-compiler, pkg-config, gcc, autoconf, bison, build-essential, libssl-dev, libyaml-dev, libreadline6-dev, zlib1g-dev, libncurses5-dev, libffi-dev, libgdbm6, libgdbm-dev, redis-tools, redis-server, rsync, postgresql, postgresql-contrib, libidn11-dev, libicu-dev, libjemalloc-dev, curl, apt-transport-https"
+    packages = "ffmpeg, libvips-tools, libpq-dev, libxml2-dev, libxslt1-dev, file, git, git-core, g++, libprotobuf-dev, protobuf-compiler, pkg-config, gcc, autoconf, bison, build-essential, libssl-dev, libyaml-dev, libreadline6-dev, zlib1g-dev, libncurses5-dev, libffi-dev, libgdbm6, libgdbm-dev, redis-tools, redis-server, rsync, postgresql, postgresql-contrib, libidn11-dev, libicu-dev, libjemalloc-dev, curl, apt-transport-https"
 
     [resources.database]
     type = "postgresql"
