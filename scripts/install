@@ -48,7 +48,7 @@ ynh_app_setting_set --key=oidc_security_assume_email_is_verified --value=false
 #-------
 deepl_api_key=""
 deepl_plan="free"
-libre_translate_enpdoint=""
+libre_translate_endpoint=""
 libre_translate_api_key=""
 
 ynh_app_setting_set --key=deepl_api_key --value=""
