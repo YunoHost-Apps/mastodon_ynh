@@ -51,7 +51,7 @@ name.fr = "Configuration S3"
         help = "https://docs.joinmastodon.org/admin/optional/object-storage-proxy/"
         type = "string"
         default = ""
-        bind = "S3_ALIAS_HOST:/var/www/__APP__/live/.env.production"
+        bind = "S3_ALIAS_HOST:__INSTALL_DIR__/live/.env.production"
         visible = "s3_enabled"
 
 [oidc]
@@ -184,7 +184,7 @@ services = ["__APP__-web", "__APP__-sidekiq"]
 	    help.en = "Optional, if your instance requires it or if you have one"
         help.fr = "Optionnel, seulement si votre instance le requiert ou si vous en disposez d'une"
 	    bind = "LIBRE_TRANSLATE_API_KEY:__INSTALL_DIR__/live/.env.production"
-	    visible = "libretranslate_endpoint"
+	    visible = "libre_translate_endpoint"
 		
 [misc]
 name.en = "Various settings"
@@ -194,7 +194,7 @@ services = ["__APP__-web", "__APP__-sidekiq"]
     [misc.ldap]
     name = "LDAP"
 
-        [misc.config.ldap_enabled]
+        [misc.ldap.ldap_enabled]
 	    ask.en = "Use LDAP users"
         ask.fr = "Utiliser les utilisateurs LDAP"
 	    help.en = "Disable this if you do not want use the built-in LDAP configuration. Users will have to create an account on Mastodon to be able to access it. Do not forget to enable the option in the Mastodon Administration."
