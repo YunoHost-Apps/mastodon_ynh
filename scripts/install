@@ -7,6 +7,60 @@ admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 # Set `service` settings to support `yunohost app shell` command
 ynh_app_setting_set --key=service --value="$app-web.service"
 
+# Define config_panel settings keys...
+s3_enabled=false
+s3_endpoint=""
+s3_bucket=""
+s3_access_key_id=""
+s3_access_key_secret=""
+s3_alias_host=""
+
+ynh_app_setting_set --key=s3_enabled --value=false
+ynh_app_setting_set --key=s3_endpoint --value=""
+ynh_app_setting_set --key=s3_bucket --value=""
+ynh_app_setting_set --key=s3_access_key_id --value=""
+ynh_app_setting_set --key=s3_access_key_secret --value=""
+ynh_app_setting_set --key=s3_alias_host --value=""
+
+#-------
+oidc_enabled=false
+oidc_display_name=""
+oidc_issuer=""
+oidc_discovery=false
+oidc_client_id=""
+oidc_client_secret=""
+oidc_redirect_uri=""
+oidc_scope="openid,profile,email"
+oidc_uid_field="preferred_username"
+oidc_security_assume_email_is_verified=false
+
+ynh_app_setting_set --key=oidc_enabled --value=false
+ynh_app_setting_set --key=oidc_display_name --value=""
+ynh_app_setting_set --key=oidc_issuer --value=""
+ynh_app_setting_set --key=oidc_discovery --value=false
+ynh_app_setting_set --key=oidc_client_id --value=""
+ynh_app_setting_set --key=oidc_client_secret --value=""
+ynh_app_setting_set --key=oidc_redirect_uri --value=""
+ynh_app_setting_set --key=oidc_scope --value="openid,profile,email"
+ynh_app_setting_set --key=oidc_uid_field --value="preferred_username"
+ynh_app_setting_set --key=oidc_security_assume_email_is_verified --value=false
+
+#-------
+deepl_api_key=""
+deepl_plan="free"
+libre_translate_endpoint=""
+libre_translate_api_key=""
+
+ynh_app_setting_set --key=deepl_api_key --value=""
+ynh_app_setting_set --key=deepl_plan --value="free"
+ynh_app_setting_set --key=libre_translate_endpoint --value=""
+ynh_app_setting_set --key=libre_translate_api_key --value=""
+
+#---------
+ldap_enabled=true
+ynh_app_setting_set --key=ldap_enabled --value=true
+
+
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
